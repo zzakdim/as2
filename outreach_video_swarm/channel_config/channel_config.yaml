@@ -1,0 +1,17 @@
+# Channel-level configuration for outreach video production
+channel:
+  name: "Your Channel Name"
+  niche: "Your niche (e.g., AI tools, business outreach, education)"
+  language: "en"
+  tone: "clear, friendly, practical"
+
+publishing:
+  platform: "youtube"
+  cadence: "weekly"
+  default_duration_seconds: 90
+
+branding:
+  primary_color: "#0B5FFF"
+  secondary_color: "#111827"
+  watermark_enabled: true
+  outro_seconds: 5

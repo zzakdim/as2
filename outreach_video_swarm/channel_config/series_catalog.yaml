@@ -1,0 +1,19 @@
+# Catalog of recurring video series
+series:
+  - id: "quick_tips"
+    title: "Quick Tips"
+    objective: "Deliver one actionable tip in under 2 minutes"
+    target_duration_seconds: 60
+    cadence: "2x/week"
+
+  - id: "case_breakdown"
+    title: "Case Breakdown"
+    objective: "Analyze a real example and extract lessons"
+    target_duration_seconds: 120
+    cadence: "weekly"
+
+  - id: "tool_spotlight"
+    title: "Tool Spotlight"
+    objective: "Show practical usage of one tool"
+    target_duration_seconds: 90
+    cadence: "weekly"

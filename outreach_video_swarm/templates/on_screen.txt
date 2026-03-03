@@ -1,0 +1,14 @@
+ON-SCREEN TEXT TEMPLATE
+=======================
+
+[00:00-00:03] Hook text
+[00:04-00:12] Problem statement
+[00:13-00:35] Key point #1
+[00:36-00:55] Key point #2
+[00:56-01:10] Example/proof
+[01:11-01:20] CTA text
+
+Notes:
+- Keep each line short (3-8 words).
+- Use sentence case for readability.
+- Avoid clutter; one key message at a time.

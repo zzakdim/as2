@@ -1,0 +1,12 @@
+{
+  "title": "Video title placeholder",
+  "description": "Two-sentence summary with keywords and CTA.",
+  "tags": ["keyword1", "keyword2", "keyword3"],
+  "series_id": "quick_tips",
+  "language": "en",
+  "thumbnail_text": "Short bold phrase",
+  "publish": {
+    "status": "draft",
+    "scheduled_at": "YYYY-MM-DDTHH:MM:SSZ"
+  }
+}
