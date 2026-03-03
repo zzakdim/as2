@@ -128,3 +128,82 @@ videos/<video_id>/
   output/
   thumbnails/
 ```
+
+
+## Evolving Swarm Loop (Ollama + OpenClaw, local-first)
+
+Use `tools/swarm.py` to run a multi-agent iteration loop that turns analytics into the next video package.
+
+### 1) Configure swarm
+
+Edit `swarm_config/swarm_config.json`:
+- `platform`, `target_duration_seconds`, `tone`
+- optional `openclaw.post_plan_command` hook (command template with `{video_id}`)
+
+Example OpenClaw hook:
+
+```json
+{
+  "openclaw": {
+    "post_plan_command": "openclaw run local-render --video {video_id}"
+  }
+}
+```
+
+### 2) Generate next video iteration
+
+```bash
+python tools/swarm.py iterate --series quick_tips --topic-focus "cold outreach"
+```
+
+If Ollama is not available yet, test the pipeline with:
+
+```bash
+python tools/swarm.py iterate --dry-run --series quick_tips --topic-focus "cold outreach"
+```
+
+This creates `videos/<video_id>/` and fills:
+- `brief.md` (goal, key points, style mutation, analytics rationale)
+- `outline.md`
+- `script.md`
+- `on_screen.txt`
+- `metadata.json`
+- `human_review.md` (upload gate)
+
+### 3) Human upload gate
+
+After manual review/upload decision, record status:
+
+```bash
+python tools/swarm.py review <video_id> --decision approved
+```
+
+(or `--decision rejected`).
+
+### 4) Continuous adaptation loop
+
+1. Pull latest analytics into sqlite (`tools/analytics_pull.py`).
+2. Run `tools/swarm.py iterate ...` for next concept + style mutation.
+3. Human checks/approves upload (`tools/swarm.py review ...`).
+4. Periodically update mutation memory with:
+
+```bash
+python tools/swarm.py learn --window-days 30
+```
+
+5. Inspect swarm memory/queue health with:
+
+```bash
+python tools/swarm.py status
+python tools/swarm.py status --json
+```
+
+6. Publish and collect analytics.
+7. Repeat.
+
+### Swarm state files
+
+`tools/swarm.py` now stores evolving memory in:
+- `swarm_state/iterations.jsonl` (event log: generated/reviewed/learned)
+- `swarm_state/style_genome.json` (preferred/blocked mutation dimensions)
+- `videos/<video_id>/swarm_manifest.json` (per-iteration snapshot + review status)
