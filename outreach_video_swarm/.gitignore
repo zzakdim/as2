@@ -1,0 +1,4 @@
+__pycache__/
+tools/__pycache__/
+swarm_state/
+videos/*/swarm_manifest.json

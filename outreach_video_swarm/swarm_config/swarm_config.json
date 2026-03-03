@@ -1,0 +1,14 @@
+{
+  "platform": "youtube",
+  "target_duration_seconds": 90,
+  "tone": "clear, tactical, high signal",
+  "mutation_dimensions": [
+    "hook_structure",
+    "pacing",
+    "story_format",
+    "thumbnail_positioning"
+  ],
+  "openclaw": {
+    "post_plan_command": ""
+  }
+}
