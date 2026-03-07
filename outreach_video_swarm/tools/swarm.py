@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import re
 import sqlite3
 import subprocess
@@ -25,6 +26,7 @@ from urllib import error, request
 
 from run import TEMPLATE_FILES
 from utils import project_root
+from analytics_pull import ensure_schema, upsert_rows
 
 REQUIRED_PLAN_KEYS = {
     "video_slug",
@@ -459,6 +461,11 @@ def run_openclaw_hook(command: str | None, video_id: str, workdir: Path) -> None
     subprocess.run(rendered, shell=True, cwd=workdir, check=True)
 
 
+def _safe_slug(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    return slug or "next-video"
+
+
 def iterate(args: argparse.Namespace) -> Path:
     cfg = load_swarm_config(Path(args.config) if args.config else None)
     analytics = fetch_analytics_summary(Path(args.db), args.window_days)
@@ -469,7 +476,7 @@ def iterate(args: argparse.Namespace) -> Path:
     plan: dict[str, Any]
     if args.dry_run:
         plan = {
-            "video_slug": f"{args.topic_focus.lower().replace(' ', '-')}-mutation",
+            "video_slug": f"{_safe_slug(args.topic_focus)}-mutation",
             "working_title": f"{args.topic_focus.title()} That Actually Converts",
             "hook": "Your last 5 videos are leaking retention in the first 8 seconds.",
             "goal": "Increase CTR and 30-second retention with one controlled style mutation.",
@@ -492,8 +499,14 @@ def iterate(args: argparse.Namespace) -> Path:
     plan = validate_plan(plan)
 
     now = datetime.utcnow().strftime("%Y%m%d")
-    slug = str(plan.get("video_slug", "next-video")).strip().strip("-") or "next-video"
-    video_id = f"{args.series}-{slug}-{now}"
+    slug = _safe_slug(str(plan.get("video_slug", "next-video")))
+    base_video_id = f"{args.series}-{slug}-{now}"
+    video_id = base_video_id
+    videos_root = project_root() / "videos"
+    counter = 2
+    while (videos_root / video_id).exists():
+        video_id = f"{base_video_id}-{counter}"
+        counter += 1
 
     video_dir = create_from_templates(video_id)
     write_swarm_outputs(video_dir, args.series, plan, analytics)
@@ -512,6 +525,80 @@ def iterate(args: argparse.Namespace) -> Path:
         }
     )
     return video_dir
+
+
+def _record_synthetic_analytics(video_id: str, db_path: Path, seed: int | None = None) -> dict[str, float]:
+    rng = random.Random(seed)
+    views = rng.randint(200, 2500)
+    ctr = round(rng.uniform(0.02, 0.11), 4)
+    avd = round(rng.uniform(12, 68), 2)
+    watch_time_minutes = round((views * avd) / 60.0, 2)
+
+    rows = [
+        (
+            datetime.utcnow().date().isoformat(),
+            video_id,
+            "youtube",
+            views,
+            watch_time_minutes,
+            avd,
+            ctr,
+            rng.randint(3, 120),
+            rng.randint(0, 30),
+            rng.randint(0, 25),
+            rng.randint(0, 18),
+        )
+    ]
+
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(db_path) as connection:
+        ensure_schema(connection)
+        upsert_rows(connection, rows)
+        connection.commit()
+
+    return {
+        "views": float(views),
+        "ctr": ctr,
+        "avg_view_duration_seconds": avd,
+    }
+
+
+def simulate(args: argparse.Namespace) -> list[str]:
+    run_ids: list[str] = []
+    db = Path(args.db)
+
+    for index in range(args.cycles):
+        iteration_args = argparse.Namespace(
+            series=args.series,
+            topic_focus=args.topic_focus,
+            db=str(db),
+            window_days=args.window_days,
+            config=args.config,
+            model=args.model,
+            ollama_url=args.ollama_url,
+            timeout_s=args.timeout_s,
+            dry_run=True,
+        )
+        created = iterate(iteration_args)
+        video_id = created.name
+        run_ids.append(video_id)
+
+        decision = "approved" if (index % 2 == 0 or args.approve_all) else "rejected"
+        review_video(video_id, decision)
+        metrics = _record_synthetic_analytics(video_id, db, seed=args.seed + index if args.seed is not None else None)
+
+        append_iteration_event(
+            {
+                "event": "simulated_metrics",
+                "at": utc_now_iso(),
+                "video_id": video_id,
+                "decision": decision,
+                **metrics,
+            }
+        )
+
+    learn_from_feedback(db, args.window_days)
+    return run_ids
 
 
 def _update_manifest_review(video_id: str, decision: str) -> None:
@@ -619,6 +706,26 @@ def build_parser() -> argparse.ArgumentParser:
     learn_parser.add_argument("--db", default=str(default_db_path()), help="Path to analytics sqlite db")
     learn_parser.add_argument("--window-days", type=int, default=30, help="Analytics lookback window")
 
+    simulate_parser = subparsers.add_parser(
+        "simulate",
+        help="Run a fully local dry-run loop (generate/review/analytics/learn) for fast testing",
+    )
+    simulate_parser.add_argument("--cycles", type=int, default=3, help="Number of iterations to run")
+    simulate_parser.add_argument("--series", default="quick_tips", help="Series id")
+    simulate_parser.add_argument("--topic-focus", default="outreach automation", help="Primary topic direction")
+    simulate_parser.add_argument("--db", default=str(default_db_path()), help="Path to analytics sqlite db")
+    simulate_parser.add_argument("--window-days", type=int, default=30, help="Analytics lookback window")
+    simulate_parser.add_argument("--config", help="Path to swarm config json")
+    simulate_parser.add_argument("--model", default="llama3.1:8b", help="Ollama model")
+    simulate_parser.add_argument("--ollama-url", default="http://127.0.0.1:11434", help="Ollama base URL")
+    simulate_parser.add_argument("--timeout-s", type=int, default=90, help="Ollama call timeout seconds")
+    simulate_parser.add_argument("--seed", type=int, help="Optional seed for deterministic synthetic metrics")
+    simulate_parser.add_argument(
+        "--approve-all",
+        action="store_true",
+        help="Set all simulated reviews to approved (default alternates approved/rejected)",
+    )
+
     return parser
 
 
@@ -641,6 +748,13 @@ def main() -> None:
         elif args.command == "learn":
             path = learn_from_feedback(Path(args.db), args.window_days)
             print(f"Updated style genome: {path}")
+        elif args.command == "simulate":
+            if args.cycles < 1:
+                parser.exit(status=1, message="Error: --cycles must be >= 1\n")
+            run_ids = simulate(args)
+            print("Completed simulation cycles:")
+            for run_id in run_ids:
+                print(f"- {run_id}")
     except (error.URLError, TimeoutError) as exc:
         parser.exit(status=1, message=f"Error: Ollama endpoint unavailable: {exc}\n")
     except Exception as exc:
