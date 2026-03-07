@@ -201,6 +201,28 @@ python tools/swarm.py status --json
 6. Publish and collect analytics.
 7. Repeat.
 
+### 5) One-command local swarm test (no Ollama required)
+
+To test the full evolving loop end-to-end on your machine (generation -> review -> analytics -> learning):
+
+```bash
+python tools/swarm.py simulate --cycles 3 --series quick_tips --topic-focus "cold outreach" --seed 42
+```
+
+What this does locally:
+- generates 3 video packages using deterministic dry-run planning
+- alternates human review decisions (approved/rejected) unless `--approve-all`
+- writes synthetic analytics rows into `metrics/analytics.db`
+- updates style genome via `learn`
+
+After simulation, inspect:
+
+```bash
+python tools/swarm.py status
+python tools/swarm.py status --json
+cat swarm_state/style_genome.json
+```
+
 ### Swarm state files
 
 `tools/swarm.py` now stores evolving memory in:
