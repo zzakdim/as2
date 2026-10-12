@@ -1,0 +1,131 @@
+# After Dark
+
+A co-op horde shooter in the spirit of **Left 4 Dead 2**, built in **Godot 4.5**.
+You and three AI teammates fight from saferoom to saferoom through a city
+that's procedurally generated every run, while an AI Director decides when
+and where the infected come at you.
+
+Everything is placeholder art right now: characters are box figures, sounds
+are synthesized at startup. The systems underneath are the real thing.
+
+## Running it
+
+1. Download Godot 4.5 (standard build, not .NET): https://godotengine.org/download
+2. Open Godot → **Import** → pick `horde/project.godot`.
+3. Press **F5**.
+
+### Controls
+
+| Action | Key |
+| --- | --- |
+| Move / jump / crouch / walk | WASD / Space / Ctrl / Shift |
+| Fire / shove | LMB / RMB |
+| Reload / use (hold to revive) | R / E |
+| Weapons & items | 1 primary · 2 secondary · 3 throwable · 4 medkit · 5 pills · Q last · wheel |
+| Flashlight / ping a special | F / Z |
+| Stats / Director overlay / pause | Tab / F3 / Esc |
+
+Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
+
+## What's in it
+
+**Campaign.** Three maps. Each one runs start saferoom → streets, alleys,
+plazas and a warehouse → a **crescendo gate** (press the button, hold out
+against waves until it opens) → end saferoom (close the door with everyone
+inside). The last map ends in a **radio finale**: survive the waves and two
+Tanks, then get to the extraction zone. Your health and gear carry over
+between maps.
+
+**AI Director** (`scripts/ai/director.gd`). Modeled on Valve's published
+design. It tracks each survivor's intensity (damage taken, incaps, pins, close
+kills) and cycles **Build-up → Peak → Relax**. While building up it keeps
+wanderers populated ahead of the team, sends mobs on a timer and spawns
+specials. Everything it spawns appears out of sight of every survivor and
+somewhere that can reach you. It also places the Tank (at a random point
+along the map) and Witches. Press F3 in game to watch it work.
+
+**Infected**
+- Commons: wander, sit and idle. Gunfire and flashlights wake them. They path
+  with a flow field, so 100+ can swarm. They can be shoved, gibbed, set on fire
+  and lured.
+- **Hunter**: stalks, screeches, pounces and pins. You can shove it off, or
+  shove it mid-air to skeet it.
+- **Smoker**: tongue-grabs from range and drags the victim. Break the hold by
+  shooting the Smoker, shoving the victim or breaking line of sight.
+- **Boomer**: bile calls a horde onto whoever it hits, and it bursts when
+  killed. Shove it first.
+- **Charger**: straight-line charge that scatters the team, then carries one
+  victim off and pummels them.
+- **Spitter**: lobs acid that burns harder the longer you stand in it.
+- **Tank**: thousands of HP, punches send you flying, throws concrete. Gets
+  its own music.
+- **Witch**: sits sobbing. Proximity, flashlights and noise make her angrier
+  until she charges whoever set her off and drops them in one hit.
+
+**Survivors**
+- Health plus temporary health (pills) that decays.
+- Incap → revive → black & white on your last life → death.
+- Limping at low health. Friendly fire scales with difficulty.
+
+**Weapons**: pistol / dual pistols / magnum / machete, SMG, pump & auto
+shotgun, assault rifle, hunting rifle. Also pipe bombs (lure + explode),
+molotovs and bile jars. Damage numbers follow L4D2's published stats,
+including headshots, penetration and shotgun falloff.
+
+**Bots** (`scripts/ai/bot_brain.gd`)
+- Follow you and prioritise specials pinning a teammate.
+- Shove commons, revive the downed and heal themselves.
+- Grab better guns and call out what they see. They never shoot the Witch.
+
+Also included: car alarms that summon a mob, Darktide-style pinging (Z marks
+a special for the team), four difficulties, and a stats screen.
+
+## Project layout
+
+```
+horde/
+  project.godot           Engine config (Jolt physics, Forward+)
+  scenes/main.tscn        Entry scene; everything else is built in code
+  scripts/
+    game.gd               Autoload: shared refs, difficulty tables, input map
+    main.gd               Menus, map loading, carry-over, soak test
+    level/                Procedural map generator, flow fields, props, pickups
+    actors/               Survivor, player controller, common + special infected, rigs
+    ai/                   Director, bot brain
+    weapons/              Weapon table, throwables, projectiles, fire/acid hazards
+    fx/                   Materials/textures, particles, decals
+    audio/sfx.gd          Procedural sound synthesis + music layers
+    ui/hud.gd             HUD, menus, scoreboard
+```
+
+## Headless soak test
+
+Bots play the whole campaign with no window, logging the Director state.
+This catches script errors and stuck states without anyone playing:
+
+```
+godot --headless --path horde --time-scale 4 -- --autotest --seconds=600
+```
+
+To grab screenshots (software rendering works):
+`xvfb-run godot --path horde --rendering-driver opengl3 -- --autotest --seconds=20 --shot=10:/tmp/a.png`
+
+## Roadmap / bells and whistles
+
+Next up, roughly in order of impact:
+
+- **Real art.** Animated character models (e.g. Quaternius CC0 packs), proper
+  textures, recorded sound and survivor voice lines. The rigs in
+  `body_rig.gd` are the swap point.
+- **Hand-authored set pieces** mixed into the procedural layout, plus
+  interiors with stairs and multiple floors.
+- **Darktide layer**
+  - Classes with abilities (Veteran, Zealot, Psyker, Ogryn-style).
+  - Toughness that regenerates near teammates (coherency).
+  - Armored elites and ranged gunners.
+  - Heavy/light melee combos with stamina and blocking.
+  - Loadouts and progression between runs.
+- **More L4D2**: Jockey, rescue closets for dead teammates, ledge hangs, more
+  melee weapons, laser sights / incendiary ammo, gas can scavenge finales,
+  weather (Hard Rain).
+- **Online co-op** (Godot's high-level multiplayer) and versus mode.
