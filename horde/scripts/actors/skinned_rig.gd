@@ -122,6 +122,18 @@ func _build(opts: Dictionary) -> void:
 	_acc = randf() * 2.0
 
 
+## Hang a static prop (shield, blade) on a hand slot.
+func attach_prop(path: String, bone: String) -> void:
+	if not _scenes.has(path):
+		_scenes[path] = load(path)
+	var att := BoneAttachment3D.new()
+	att.bone_name = bone
+	skel.add_child(att)
+	var prop: Node3D = _scenes[path].instantiate()
+	att.add_child(prop)
+	prop.rotation.y = PI if bone.ends_with(".r") else 0.0
+
+
 static func _part_key(n: String) -> String:
 	var low := n.to_lower()
 	for pair in [["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["head", "head"],

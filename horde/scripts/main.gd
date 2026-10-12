@@ -129,7 +129,7 @@ func load_map(idx: int) -> void:
 	Game.time = 0.0
 	Game.sfx.start_music()
 	if Game.mode == "sandbox":
-		Game.hud.map_label.text = "Melee Sandbox  ·  F5 horde  F6 special  F8 tank  F7 god mode (%s)" % ("on" if Game.god_mode else "off")
+		Game.hud.map_label.text = "Melee Sandbox  ·  F5 horde  F6 special  F9 elites  F8 tank  F7 god mode (%s)" % ("on" if Game.god_mode else "off")
 		Game.hud.big_message("Melee Sandbox", Color(0.9, 0.85, 0.75), 3.0)
 	else:
 		Game.hud.map_label.text = "%s  ·  %s" % [Game.MAP_NAMES[idx], Game.DIFF_NAMES[Game.difficulty]]
@@ -252,6 +252,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			Game.director.spawn_mob(20, "sandbox")
 		if event.is_action_pressed("sandbox_special"):
 			Game.director.sandbox_special()
+		if event.is_action_pressed("sandbox_elite"):
+			for i in 3:
+				var c: Vector2i = Game.director.find_hidden_cell(0, Game.level.max_flow, 10.0)
+				if c.x >= 0:
+					var e: Infected = Game.director.spawn_infected(["shieldbearer", "rager"][i % 2], Game.level.cell_center(c))
+					e.alert(Game.player)
 		if event.is_action_pressed("sandbox_tank"):
 			Game.director.spawn_tank_now()
 		if event.is_action_pressed("sandbox_god"):
@@ -380,7 +386,7 @@ func run_lineup(dir: String) -> void:
 	light.light_energy = 2.5
 	world.add_child(light)
 	light.global_position = p.global_position + Vector3(0, 3, -2)
-	var kinds := ["common", "common", "common", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
+	var kinds := ["common", "shieldbearer", "rager", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
 	var actors := []
 	for i in kinds.size():
 		var pos: Vector3 = p.global_position + Vector3((i - 4) * 1.15, 0.0, -4.0)
@@ -388,8 +394,11 @@ func run_lineup(dir: String) -> void:
 		z.set_physics_process(false)
 		actors.append(z)
 	var surv_models := ["knight", "barbarian", "rogue_hooded", "adv_mage"]
+	var surv_weapons := ["smg", "greatsword", "pump_shotgun", "fire_axe"]
 	for i in 4:
 		var r := SkinnedRig.create(surv_models[i], {"role": "survivor"})
+		r.melee_held = WeaponData.get_def(surv_weapons[i]).get("melee", false)
+		r.held.add_child(WeaponData.build_model(surv_weapons[i]))
 		world.add_child(r)
 		r.global_position = p.global_position + Vector3((i - 1.5) * 1.3, 0.0, -7.0)
 		r.set_pose("aim")

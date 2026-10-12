@@ -74,6 +74,8 @@ func _scan() -> void:
 			score -= 10.0
 			if z.get("victim") != null:
 				score -= 40.0
+		elif z is Elite:
+			score -= 6.0
 		elif z.state == Infected.S.IDLE or z.state == Infected.S.WANDER:
 			score += 12.0
 		elif z.state == Infected.S.ATTACK:

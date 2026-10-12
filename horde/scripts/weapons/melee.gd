@@ -95,7 +95,7 @@ const MOVESETS := {
 }
 
 # How much cleave budget each enemy type soaks up.
-const HIT_MASS := {"common": 1.0, "boomer": 1.5, "spitter": 2.0, "hunter": 2.5, "smoker": 2.5, "charger": 4.0, "witch": 6.0, "tank": 99.0}
+const HIT_MASS := {"shieldbearer": 6.0, "rager": 2.0, "common": 1.0, "boomer": 1.5, "spitter": 2.0, "hunter": 2.5, "smoker": 2.5, "charger": 4.0, "witch": 6.0, "tank": 99.0}
 
 var s                       # Survivor
 var ms: Dictionary = {}
@@ -531,6 +531,19 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	dmg *= cleave_k
 	if atk.get("_full", false):
 		dmg *= 1.25
+	# Armor (Darktide "carapace"-lite): sweeps glance off, strikedowns go through.
+	var armored: bool = z.has_method("is_armored") and z.is_armored()
+	if armored:
+		var pierce: float = atk.get("armor", 0.25)
+		if atk.get("thrust", false) or atk.get("split", false) or atk.has("slam"):
+			pierce = max(pierce, 1.0)
+		if ms.get("head_mass", false):
+			pierce = max(pierce, 0.8)
+		dmg *= pierce
+		if pierce < 0.5:
+			budget = 0.0
+			Game.sfx.play3d("clank", p, -2.0, 0.1)
+			Game.fx.impact(p, -tangent)
 	var force: float = atk["impact"] * (1.2 if atk.get("_full", false) else 1.0)
 	z.impact_dir = (tangent + s.flat_forward() * 0.4).normalized()
 	z.impact_force = force

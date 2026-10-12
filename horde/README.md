@@ -5,8 +5,9 @@ You and three AI teammates fight from saferoom to saferoom through a city
 that's procedurally generated every run, while an AI Director decides when
 and where the infected come at you.
 
-Everything is placeholder art right now: characters are box figures, sounds
-are synthesized at startup. The systems underneath are the real thing.
+Art is placeholder-grade but animated: the horde, specials and bot teammates
+use CC0 KayKit characters (see `assets/README.md`), the city is procedural
+geometry, and every sound is synthesized at startup.
 
 ## Running it
 
@@ -38,9 +39,14 @@ Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
 | Push-attack (thrust) | LMB right after a push |
 | Dodge | Space while moving sideways or backwards |
 
+Blocking right before a hit lands is a **perfect block**: no stamina cost,
+and the attacker reels. Heavies held to full charge flash and hit harder.
+Weapons: greatsword (cleaving sweeps), fire axe (armor-cracking chops),
+sledgehammer (slow; the overhead slam knocks everything down), machete.
+
 The **Melee Sandbox** on the title screen drops you in an arena with the
-greatsword and an endless horde. F5 spawns a horde, F6 a special, F8 a
-Tank, F7 toggles god mode.
+greatsword and an endless horde, with every weapon laid out around you.
+F5 spawns a horde, F6 a special, F9 elites, F8 a Tank, F7 toggles god mode.
 
 **Solo testing:** toggle *Bot teammates* on the title screen or pause menu
 (or pass `--no-bots`). Without bots, only death ends the run, and you can hold
@@ -80,6 +86,13 @@ along the map) and Witches. Press F3 in game to watch it work.
   its own music.
 - **Witch**: sits sobbing. Proximity, flashlights and noise make her angrier
   until she charges whoever set her off and drops them in one hit.
+
+**Elites** (Darktide-style, mixed into mobs from Normal up)
+- **Shieldbearer**: armored. Light sweeps glance off and stop dead;
+  overheads, thrusts, axe chops and the sledgehammer go through. Hits hard
+  with a long, readable windup.
+- **Rager**: closes fast and attacks in three-hit flurries. Block, perfect
+  block or dodge them; a push interrupts the flurry.
 
 **Survivors**
 - Health plus temporary health (pills) that decays.
@@ -152,9 +165,10 @@ To grab screenshots (software rendering works):
 
 Next up, roughly in order of impact:
 
-- **Real art.** Animated character models (e.g. Quaternius CC0 packs), proper
-  textures, recorded sound and survivor voice lines. The rigs in
-  `body_rig.gd` are the swap point.
+- **Grimmer art.** The KayKit characters are stylized; a zombie set with the
+  same humanoid rig (e.g. Quaternius' Zombie Apocalypse Kit, which needs a
+  browser download) can drop into `SkinnedRig.MODELS`. Recorded sound and
+  survivor voice lines.
 - **Hand-authored set pieces** mixed into the procedural layout, plus
   interiors with stairs and multiple floors.
 - **Darktide layer**

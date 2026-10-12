@@ -258,15 +258,58 @@ func on_weapon_changed() -> void:
 	for a in arm_parts:
 		a.queue_free()
 	arm_parts.clear()
+	gun_arms.clear()
 	var id := s.current_item_id()
 	if id != "" and WeaponData.get_def(id).get("melee", false) and WeaponData.DEFS.has(id):
 		_build_melee_vm(id)
 	else:
 		vm_model = WeaponData.build_model(id, true) if id != "" else null
+		if vm_model:
+			_build_gun_arms()
 	if vm_model:
 		vm_root.add_child(vm_model)
 	vm_reload = 0.0
 	land_dip = 0.25
+
+
+var gun_arms: Array = []   # [fore_r, hand_r, fore_l, hand_l]
+
+func _build_gun_arms() -> void:
+	for a in gun_arms:
+		if is_instance_valid(a):
+			a.queue_free()
+	gun_arms.clear()
+	var sleeve := Mats.color(s.color.darkened(0.45), 0.9)
+	var glove := Mats.color(Color(0.12, 0.1, 0.09), 0.7)
+	for i in 4:
+		var mi := MeshInstance3D.new()
+		mi.mesh = Mats.box(Vector3(1, 1, 1))
+		mi.material_override = glove if i % 2 == 1 else sleeve
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		camera.add_child(mi)
+		gun_arms.append(mi)
+		arm_parts.append(mi)
+
+
+## Hands on the gun: right on the grip, left on the handguard (or both on
+## the grip for pistols).
+func _update_gun_arms() -> void:
+	if gun_arms.size() < 4:
+		return
+	var id := s.current_item_id()
+	var long: bool = WeaponData.DEFS.has(id) and WeaponData.get_def(id).get("slot", 1) == 0
+	var xf := vm_root.transform
+	var grip_r: Vector3 = xf * Vector3(0, -0.06, 0.02)
+	var grip_l: Vector3 = xf * (Vector3(0, -0.02, -0.32) if long else Vector3(-0.03, -0.07, 0.01))
+	var el_r := Vector3(0.3, -0.62, 0.15)
+	var el_l := Vector3(-0.25, -0.62, 0.05)
+	_limb_between(gun_arms[0], grip_r + (el_r - grip_r).normalized() * 0.34, grip_r, 0.06)
+	gun_arms[1].transform = Transform3D(xf.basis * Basis.from_scale(Vector3(0.075, 0.09, 0.1)), grip_r)
+	_limb_between(gun_arms[2], grip_l + (el_l - grip_l).normalized() * 0.34, grip_l, 0.06)
+	gun_arms[3].transform = Transform3D(xf.basis * Basis.from_scale(Vector3(0.075, 0.09, 0.1)), grip_l)
+	var show := vm_root.visible and s.action == ""
+	for a in gun_arms:
+		a.visible = show
 
 
 func _build_melee_vm(id: String) -> void:
@@ -452,7 +495,7 @@ func _process(delta: float) -> void:
 	vm_melee = max(0.0, vm_melee - delta)
 	if vm_reload > 0.0:
 		vm_reload = max(0.0, vm_reload - delta)
-	var base := Vector3(0.2, -0.19, -0.4)
+	var base := Vector3(0.14, -0.14, -0.3)
 	var rot := Vector3.ZERO
 	base.x += sin(bob_t * 0.5) * 0.01 * clamp(speed / 5.0, 0.0, 1.0)
 	base.y += bob * 0.4 - land_dip
@@ -478,6 +521,7 @@ func _process(delta: float) -> void:
 	vm_root.position = vm_root.position.lerp(base, min(1.0, delta * 20.0))
 	vm_root.rotation = vm_root.rotation.lerp(rot, min(1.0, delta * 20.0))
 	vm_root.visible = not s.dead and s.pinned_by == null
+	_update_gun_arms()
 	if melee_root:
 		var show := not s.dead and s.pinned_by == null and not s.incapped and s.action == ""
 		melee_root.visible = show

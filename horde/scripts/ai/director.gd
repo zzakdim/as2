@@ -146,7 +146,7 @@ func _sandbox(delta: float) -> void:
 
 
 func sandbox_special() -> void:
-	var kinds := ["hunter", "boomer", "charger", "smoker", "spitter"]
+	var kinds := ["shieldbearer", "hunter", "rager", "boomer", "charger", "shieldbearer", "smoker", "rager", "spitter"]
 	var kind: String = kinds[_sandbox_kinds_i % kinds.size()]
 	_sandbox_kinds_i += 1
 	var c := find_hidden_cell(0, Game.level.max_flow, 14.0)
@@ -206,6 +206,7 @@ func _threats_near_pos(p: Vector3, r: float) -> int:
 func spawn_infected(kind: String, pos: Vector3) -> Infected:
 	var z: Infected
 	match kind:
+		"shieldbearer", "rager": z = Elite.make(kind)
 		"hunter": z = Hunter.new()
 		"smoker": z = Smoker.new()
 		"boomer": z = Boomer.new()
@@ -337,7 +338,13 @@ func spawn_mob(size: int, reason: String) -> void:
 	if c.x < 0:
 		return
 	var base: Vector3 = lvl.cell_center(c)
-	for i in size:
+	var elites: int = [0, 1, 2, 3][Game.difficulty] if size >= 10 else 0
+	for i in elites:
+		var e := Elite.make(["shieldbearer", "rager"].pick_random())
+		e.position = base + Vector3(randf_range(-1.5, 1.5), 0.05, randf_range(-1.5, 1.5))
+		e.state = Infected.S.CHASE
+		Game.world.add_child(e)
+	for i in size - elites:
 		var z := Infected.new()
 		var off := Vector3(randf_range(-2.5, 2.5), 0.05, randf_range(-2.5, 2.5))
 		var p := base + off
