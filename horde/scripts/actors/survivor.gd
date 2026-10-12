@@ -99,7 +99,7 @@ func _ready() -> void:
 	floor_snap_length = 0.3
 	var cs := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()
-	cap.radius = 0.32
+	cap.radius = 0.48   # personal space: keeps enemy heads out of the camera
 	cap.height = 1.8
 	cs.shape = cap
 	cs.position.y = 0.9

@@ -275,6 +275,9 @@ func _unhandled_input(event: InputEvent) -> void:
 					load_map(Game.map_index)],
 				["Mouse sensitivity +", func(): Game.mouse_sensitivity *= 1.2],
 				["Mouse sensitivity -", func(): Game.mouse_sensitivity /= 1.2],
+				["Field of view: %d  (+5)" % int(Game.fov), func():
+					Game.fov = 70.0 if Game.fov >= 110.0 else Game.fov + 5.0
+					Game.hud.big_message("FOV %d" % int(Game.fov), Color.WHITE, 1.0)],
 				["Bot teammates: %s (restarts map)" % ("ON" if Game.bots_enabled else "OFF"), func():
 					Game.bots_enabled = not Game.bots_enabled
 					carry = carry_at_map_start.duplicate(true)

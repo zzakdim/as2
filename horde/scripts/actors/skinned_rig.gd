@@ -59,7 +59,7 @@ static func create(model_kind: String, opts := {}) -> SkinnedRig:
 	r.kind = model_kind
 	r.role = opts.get("role", "zombie")
 	r.model_scale = opts.get("scale", 1.0) * 0.9
-	r.head_scale = opts.get("head_scale", 0.62 if model_kind in ["minion", "warrior", "rogue", "mage"] else 0.7)
+	r.head_scale = opts.get("head_scale", 0.55 if model_kind in ["minion", "warrior", "rogue", "mage"] else 0.68)
 	r._build(opts)
 	return r
 

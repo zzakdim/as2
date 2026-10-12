@@ -216,7 +216,7 @@ func think() -> void:
 			if td > 1.6:
 				state = S.CHASE
 			desired = Vector3.ZERO
-			if td < 0.95:
+			if td < 1.05:
 				# Don't climb into the survivor's face; step back to arm's length.
 				var away: Vector3 = global_position - target.global_position
 				away.y = 0

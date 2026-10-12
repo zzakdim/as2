@@ -38,6 +38,7 @@ var bots_enabled := true       # teammates; turn off for solo testing (menu togg
 var playing := false
 var time := 0.0
 var mouse_sensitivity := 0.0022
+var fov := 85.0
 var debug_overlay := false
 var screenshots: Array = []     # [[seconds, path], ...] taken during --autotest
 
@@ -54,6 +55,11 @@ func _ready() -> void:
 			bots_enabled = false
 		if a.begins_with("--seconds="):
 			autotest_seconds = float(a.substr(10))
+		if a.begins_with("--burst="):
+			# --burst=start:count:interval:/dir  -> frame sequence for motion checks
+			var bp := a.substr(8).split(":", false, 3)
+			for i in int(bp[1]):
+				screenshots.append([float(bp[0]) + i * float(bp[2]), "%s/burst_%02d.png" % [bp[3], i]])
 		if a.begins_with("--shot="):
 			# --shot=12.5:/abs/path.png
 			var parts := a.substr(7).split(":", false, 1)

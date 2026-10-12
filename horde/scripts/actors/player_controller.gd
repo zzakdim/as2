@@ -17,7 +17,7 @@ var look_target = null       # current usable / teammate under crosshair
 var hold_kind := ""
 var _was_on_floor := true
 var _mouse_delta := Vector2.ZERO
-var base_fov := 80.0
+var base_fov := 85.0
 # Melee viewmodel: the blade is posed directly from Melee.pose (camera space)
 var melee_root: Node3D
 var melee_blade_mat: StandardMaterial3D
@@ -487,7 +487,7 @@ func _process(delta: float) -> void:
 		roll + dodge_roll)
 	camera.position.y += bob - land_dip * 0.3
 	flashlight.visible = s.flashlight_enabled and not s.dead
-	camera.fov = lerp(camera.fov, base_fov + (4.0 if speed > 4.5 else 0.0), min(1.0, delta * 4.0))
+	camera.fov = lerp(camera.fov, Game.fov + (4.0 if speed > 4.5 else 0.0), min(1.0, delta * 4.0))
 
 	# Viewmodel
 	vm_kick = max(0.0, vm_kick - delta * 6.0)
