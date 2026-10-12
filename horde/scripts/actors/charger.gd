@@ -17,10 +17,7 @@ func _ready() -> void:
 	pin_damage = 15.0
 	can_be_shoved = false
 	tell_sound = "charger_roar"
-	rig = BodyRig.make({
-		"skin": Color(0.55, 0.5, 0.45), "shirt": Color(0.35, 0.3, 0.25), "pants": Color(0.2, 0.2, 0.22),
-		"scale": 1.15, "torso": Vector3(0.6, 0.66, 0.36), "arm_r_mult": 2.4, "hunch": 0.3,
-	})
+	rig = SkinnedRig.create("warrior", {"tint": Color(0.9, 0.72, 0.62), "scale": 1.22, "role": "boss"})
 	super._ready()
 
 

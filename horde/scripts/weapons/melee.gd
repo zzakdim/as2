@@ -38,6 +38,43 @@ const MOVESETS := {
 		"push_attack": {"name": "Thrust", "thrust": true, "windup": 0.1, "strike": 0.12, "follow": 0.1, "recover": 0.36,
 			"damage": 380.0, "cleave": 4.0, "impact": 9.0, "lunge": 5.0, "next_light": 1, "next_heavy": 0},
 	},
+	"fire_axe": {
+		"length": 0.62, "grip": 0.42, "pivot": Vector3(0.12, -0.34, -0.3), "head_mass": true,
+		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
+		"light": [
+			{"name": "Chop L", "dir": 58.0, "arc": [-58.0, 58.0], "windup": 0.15, "strike": 0.12, "follow": 0.1, "recover": 0.3,
+				"damage": 190.0, "cleave": 1.6, "impact": 5.0, "lunge": 1.2, "next_light": 1, "next_heavy": 0, "split": true},
+			{"name": "Chop R", "dir": 122.0, "arc": [-58.0, 58.0], "windup": 0.15, "strike": 0.12, "follow": 0.1, "recover": 0.3,
+				"damage": 190.0, "cleave": 1.6, "impact": 5.0, "lunge": 1.2, "next_light": 2, "next_heavy": 0, "split": true},
+			{"name": "Sweep", "dir": 12.0, "arc": [-60.0, 64.0], "windup": 0.16, "strike": 0.14, "follow": 0.1, "recover": 0.32,
+				"damage": 140.0, "cleave": 3.0, "impact": 5.0, "lunge": 1.4, "next_light": 0, "next_heavy": 0},
+		],
+		"heavy": [
+			{"name": "Overhead chop", "dir": 90.0, "arc": [-58.0, 60.0], "windup": 0.06, "strike": 0.13, "follow": 0.12, "recover": 0.4,
+				"damage": 420.0, "cleave": 1.2, "impact": 9.0, "lunge": 2.5, "charge": 0.42, "next_light": 1, "next_heavy": 0, "split": true},
+		],
+		"push": {"windup": 0.05, "active": 0.1, "recover": 0.28, "range": 2.4, "arc": 0.38, "force": 5.5},
+		"push_attack": {"name": "Hook", "dir": 165.0, "arc": [-50.0, 50.0], "windup": 0.08, "strike": 0.11, "follow": 0.1, "recover": 0.3,
+			"damage": 200.0, "cleave": 2.5, "impact": 7.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
+	},
+	"sledgehammer": {
+		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.08, -0.38, -0.3), "head_mass": true,
+		"stamina": 5.0, "block_cost": 0.35, "push_cost": 0.8, "block_arc": 0.2,
+		"light": [
+			{"name": "Swing L>R", "dir": 15.0, "arc": [-62.0, 66.0], "windup": 0.24, "strike": 0.17, "follow": 0.14, "recover": 0.42,
+				"damage": 160.0, "cleave": 5.0, "impact": 11.0, "lunge": 1.5, "next_light": 1, "next_heavy": 0},
+			{"name": "Swing R>L", "dir": 165.0, "arc": [-62.0, 66.0], "windup": 0.24, "strike": 0.17, "follow": 0.14, "recover": 0.42,
+				"damage": 160.0, "cleave": 5.0, "impact": 11.0, "lunge": 1.5, "next_light": 0, "next_heavy": 0},
+		],
+		"heavy": [
+			{"name": "Slam", "dir": 90.0, "arc": [-60.0, 62.0], "windup": 0.08, "strike": 0.16, "follow": 0.1, "recover": 0.55,
+				"damage": 500.0, "cleave": 6.0, "impact": 15.0, "lunge": 1.0, "charge": 0.7, "next_light": 0, "next_heavy": 0,
+				"slam": 3.2},
+		],
+		"push": {"windup": 0.06, "active": 0.12, "recover": 0.32, "range": 2.8, "arc": 0.3, "force": 8.0},
+		"push_attack": {"name": "Uppercut", "dir": 270.0, "arc": [-50.0, 55.0], "windup": 0.1, "strike": 0.14, "follow": 0.12, "recover": 0.4,
+			"damage": 260.0, "cleave": 4.0, "impact": 13.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
+	},
 	"machete": {
 		"length": 0.52, "grip": 0.14, "pivot": Vector3(0.16, -0.3, -0.3),
 		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
@@ -240,6 +277,8 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 			_sweep(theta_prev, theta)
 			if fire_pressed:
 				queued = true
+			if k >= 1.0 and atk.has("slam") and not atk.get("_slammed", false):
+				_slam(atk["slam"])
 			if stopped:
 				_enter("recover")
 			elif k >= 1.0:
@@ -311,6 +350,8 @@ func _start_push_attack() -> void:
 
 
 func _begin_strike() -> void:
+	if atk.has("slam"):
+		atk = atk.duplicate()   # per-swing flag below
 	budget = atk["cleave"]
 	hit_set.clear()
 	kills_this_swing = 0
@@ -538,6 +579,33 @@ func _stop(z) -> void:
 	cam_punch += Vector2(0.03, 0.0)
 	if z.kind == "tank" or z.kind == "charger" or z.kind == "witch":
 		Game.sfx.play3d("clank", z.global_position + Vector3(0, 1.2, 0), -2.0)
+
+
+## Ground slam: everything around the impact point is knocked flat.
+func _slam(radius: float) -> void:
+	atk["_slammed"] = true
+	var cam := camera_xform()
+	var p: Vector3 = cam * Vector3(0, -1.2, -1.6)
+	p.y = s.global_position.y
+	Game.fx.add_shake(p, 0.9)
+	Game.fx.impact(p + Vector3(0, 0.05, 0), Vector3.UP)
+	Game.fx.gib_burst(p + Vector3(0, 0.1, 0), Vector3.UP, 0.12)
+	Game.sfx.play3d("tank_punch", p, 2.0, 0.1)
+	cam_punch += Vector2(0.05, 0.0)
+	for z in Game.infected.duplicate():
+		if not is_instance_valid(z) or z.is_dead() or hit_set.has(z):
+			continue
+		var d: float = z.global_position.distance_to(p)
+		if d < radius:
+			var away: Vector3 = z.global_position - p
+			away.y = 0
+			away = away.normalized()
+			if not z.is_special and d < radius * 0.5:
+				z.impact_dir = (away + Vector3(0, 1.2, 0)).normalized()
+				z.impact_force = 8.0
+				z.take_damage(120.0, s, "body", "melee", z.global_position + Vector3(0, 0.8, 0))
+			if not z.is_dead():
+				z.melee_stagger(away, 10.0)
 
 
 func _do_push() -> void:

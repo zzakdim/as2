@@ -18,7 +18,7 @@ var survivor_name := "Survivor"
 var color := Color.WHITE
 var is_bot := true
 var controller = null
-var rig: BodyRig
+var rig: Rig
 var held_model: Node3D
 var name_tag: Label3D
 var flashlight: SpotLight3D
@@ -104,10 +104,8 @@ func _ready() -> void:
 	cs.shape = cap
 	cs.position.y = 0.9
 	add_child(cs)
-	rig = BodyRig.make({
-		"skin": Color(0.85, 0.68, 0.55) if randf() < 0.5 else Color(0.55, 0.4, 0.3),
-		"shirt": color.darkened(0.25), "pants": Color(0.2, 0.22, 0.28), "bare_arms": false,
-	})
+	var models := {"Reyes": "knight", "Okafor": "barbarian", "Mags": "rogue_hooded", "Dutch": "adv_mage"}
+	rig = SkinnedRig.create(models.get(survivor_name, "knight"), {"role": "survivor"})
 	add_child(rig)
 	rig.set_pose("aim")
 	if is_bot:
@@ -239,6 +237,8 @@ func _refresh_held_model() -> void:
 	var id := current_item_id()
 	if id == "" or rig == null:
 		return
+	if rig is SkinnedRig:
+		rig.melee_held = WeaponData.DEFS.has(id) and WeaponData.get_def(id).get("melee", false)
 	held_model = WeaponData.build_model(id)
 	rig.held.add_child(held_model)
 
@@ -845,7 +845,10 @@ func die() -> void:
 	if pinned_by and is_instance_valid(pinned_by) and pinned_by.has_method("release_pin"):
 		pinned_by.release_pin()
 	pinned_by = null
-	rig.die(flat_forward())
+	if rig.visible and is_bot:
+		rig.ragdoll(velocity, -flat_forward() * 6.0 + Vector3(0, 2, 0), global_position + Vector3(0, 1, 0), "")
+	else:
+		rig.die(flat_forward())
 	if name_tag:
 		name_tag.visible = false
 	if flashlight:

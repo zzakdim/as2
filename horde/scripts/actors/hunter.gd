@@ -15,10 +15,7 @@ func _ready() -> void:
 	run_speed = 6.6
 	pin_damage = 10.0
 	tell_sound = "hunter_growl"
-	rig = BodyRig.make({
-		"skin": Color(0.6, 0.55, 0.5), "shirt": Color(0.12, 0.16, 0.3), "pants": Color(0.15, 0.15, 0.17),
-		"hood": true, "bare_arms": false, "hunch": 0.45,
-	})
+	rig = SkinnedRig.create("rogue", {"tint": Color(0.55, 0.65, 1.0), "glow_eyes": Color(0.4, 0.6, 1.0, 1.0)})
 	super._ready()
 
 

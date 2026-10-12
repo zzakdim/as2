@@ -22,6 +22,14 @@ const DEFS := {
 		"name": "Machete", "slot": 1, "tier": 0, "melee": true, "moveset": "machete", "damage": 200.0, "rate": 0.55,
 		"range": 2.3, "arc": 70.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
 	},
+	"fire_axe": {
+		"name": "Fire Axe", "slot": 1, "tier": 0, "melee": true, "moveset": "fire_axe", "damage": 190.0, "rate": 0.5,
+		"range": 2.2, "arc": 60.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
+	},
+	"sledgehammer": {
+		"name": "Sledgehammer", "slot": 1, "tier": 0, "melee": true, "moveset": "sledgehammer", "damage": 160.0, "rate": 0.7,
+		"range": 2.4, "arc": 70.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
+	},
 	"greatsword": {
 		"name": "Greatsword", "slot": 1, "tier": 0, "melee": true, "moveset": "greatsword", "damage": 240.0, "rate": 0.5,
 		"range": 2.6, "arc": 80.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
@@ -96,6 +104,18 @@ static func build_model(id: String, view := false) -> Node3D:
 			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.03, 0.14)), wood, Vector3(0, 0, -0.07))
 			var mb := Mats.add_mesh(root, Mats.box(Vector3(0.07, 0.012, 0.5)), steel.duplicate(), Vector3(0.01, 0, -0.4))
 			mb.name = "Blade"
+		"fire_axe":
+			var handle := Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.035, 0.95)), wood, Vector3(0, 0, -0.47))
+			handle.name = "Handle"
+			var red := Mats.color(Color(0.62, 0.08, 0.06), 0.4, 0.4)
+			var ab := Mats.add_mesh(root, Mats.box(Vector3(0.2, 0.025, 0.14)), steel.duplicate(), Vector3(0.1, 0, -0.9))
+			ab.name = "Blade"
+			Mats.add_mesh(root, Mats.box(Vector3(0.08, 0.05, 0.12)), red, Vector3(0.0, 0, -0.9))
+			Mats.add_mesh(root, Mats.box(Vector3(0.12, 0.04, 0.05)), red, Vector3(-0.08, 0, -0.9))
+		"sledgehammer":
+			Mats.add_mesh(root, Mats.box(Vector3(0.045, 0.045, 1.05)), wood, Vector3(0, 0, -0.52))
+			var hb := Mats.add_mesh(root, Mats.box(Vector3(0.3, 0.14, 0.15)), Mats.color(Color(0.35, 0.36, 0.38), 0.45, 0.7).duplicate(), Vector3(0, 0, -1.02))
+			hb.name = "Blade"
 		"greatsword":
 			var leather := Mats.color(Color(0.16, 0.1, 0.07), 0.8)
 			var brass := Mats.color(Color(0.55, 0.42, 0.2), 0.35, 0.8)

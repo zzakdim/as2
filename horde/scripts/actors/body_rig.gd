@@ -1,5 +1,5 @@
 class_name BodyRig
-extends Node3D
+extends Rig
 ## Placeholder humanoid built from boxes with procedural animation.
 ## Faces -Z. Swap for skinned models later; the actor scripts only call
 ## animate(), set_pose(), swing() and die().
@@ -11,9 +11,7 @@ var arm_l: Node3D
 var arm_r: Node3D
 var leg_l: Node3D
 var leg_r: Node3D
-var held: Node3D           # attach point in the right hand
 var phase := randf() * TAU
-var pose := "idle"          # idle, walk, run, zombie, aim, crouch, sit, incap, pinned, dead
 var swing_t := 0.0
 var swing_dur := 0.4
 var dead_t := -1.0
@@ -110,6 +108,12 @@ func gib_arm() -> void:
 ## Recoil away from a hit. local_dir is the blow direction in rig space.
 func flinch(local_dir: Vector3, force: float) -> void:
 	flinch_v += Vector2(local_dir.x, -local_dir.z) * clamp(force * 0.08, 0.1, 0.9)
+
+
+func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -> bool:
+	Ragdoll.from_rig(self, velocity, impulse, point, cut)
+	visible = false
+	return true
 
 
 func die(from_dir: Vector3) -> void:

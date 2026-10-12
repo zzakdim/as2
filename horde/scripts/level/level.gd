@@ -205,7 +205,7 @@ func generate_arena(seed_v: int) -> void:
 			Props.lamp(self, pos, pos - Vector3(side * 2.0, 0, 0), false)
 		z += 12
 	var c := cell_center(start_door)
-	var ring := ["greatsword", "machete", "pump_shotgun", "assault_rifle", "ammo", "medkit", "pills", "pipe_bomb", "molotov", "bile_jar"]
+	var ring := ["greatsword", "fire_axe", "sledgehammer", "machete", "pump_shotgun", "assault_rifle", "ammo", "medkit", "pills", "pipe_bomb", "molotov", "bile_jar"]
 	for i in ring.size():
 		var a := TAU * i / ring.size()
 		add_child(Pickup.create(ring[i], c + Vector3(cos(a), 0, sin(a)) * 3.0))
@@ -750,6 +750,9 @@ func _place_items() -> void:
 			add_child(Pickup.create("medkit", cell_center(Vector2i(r.end.x - 1, r.position.y + 2)) + Vector3(-0.4 + i * 0.3, 0, -0.5)))
 	else:
 		add_child(Pickup.create("magnum", cell_center(Vector2i(r.end.x - 2, r.position.y + 1))))
+		add_child(Pickup.create("greatsword", cell_center(Vector2i(r.end.x - 3, r.position.y + 1))))
+	if map_index == 1:
+		add_child(Pickup.create("sledgehammer", cell_center(Vector2i(r.end.x - 2, r.position.y + 1))))
 	# End saferoom: medkits + ammo + T2.
 	if not is_finale:
 		var e := end_room
@@ -771,7 +774,7 @@ func _place_items() -> void:
 		["pills", 0.2], ["pills", 0.5], ["pills", 0.8],
 		["medkit", 0.6],
 		["pipe_bomb", 0.25], ["molotov", 0.4], ["bile_jar", 0.65], ["pipe_bomb", 0.85],
-		["machete", 0.15], ["dual_pistols", 0.3],
+		["machete", 0.15], ["dual_pistols", 0.3], ["fire_axe", 0.45], ["greatsword", 0.7],
 	]
 	if map_index > 0:
 		scatter.append(["hunting_rifle", 0.35])

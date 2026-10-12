@@ -17,10 +17,7 @@ func _ready() -> void:
 	run_speed = 4.8
 	pin_damage = 5.0
 	tell_sound = "smoker_cough"
-	rig = BodyRig.make({
-		"skin": Color(0.42, 0.45, 0.32), "shirt": Color(0.3, 0.28, 0.22), "pants": Color(0.2, 0.2, 0.2),
-		"scale": 1.12, "torso": Vector3(0.4, 0.7, 0.24), "leg_len": 0.95, "arm_len": 0.8, "hunch": 0.2,
-	})
+	rig = SkinnedRig.create("mage", {"tint": Color(0.75, 0.9, 0.6), "scale": 1.12, "glow_eyes": Color(0.6, 1.0, 0.4, 1.0)})
 	super._ready()
 	tongue = MeshInstance3D.new()
 	var cm := CylinderMesh.new()

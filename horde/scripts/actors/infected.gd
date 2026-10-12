@@ -13,7 +13,7 @@ var is_special := false
 var hp := 50.0
 var max_hp := 50.0
 var state: int = S.IDLE
-var rig: BodyRig
+var rig: Rig
 var shape: CollisionShape3D
 var run_speed := 5.6
 var walk_speed := 1.0
@@ -47,14 +47,21 @@ var _grav := 20.0
 var _far := false
 
 
+const COMMON_MODELS := ["minion", "minion", "minion", "warrior", "rogue", "mage"]
+const COMMON_TINTS := [Color(0.62, 0.6, 0.55), Color(0.55, 0.6, 0.5), Color(0.66, 0.6, 0.52), Color(0.52, 0.54, 0.56), Color(0.7, 0.64, 0.58)]
+static var use_box_rigs := false   # fallback to the procedural box figures
+
 func setup_common() -> void:
 	max_hp = 50.0
 	hp = max_hp
 	run_speed = randf_range(5.3, 6.0)
-	rig = BodyRig.make({
-		"skin": SKINS.pick_random(), "shirt": SHIRTS.pick_random(), "pants": PANTS.pick_random(),
-		"scale": randf_range(0.93, 1.07), "hunch": randf_range(0.05, 0.25),
-	})
+	if use_box_rigs:
+		rig = BodyRig.make({
+			"skin": SKINS.pick_random(), "shirt": SHIRTS.pick_random(), "pants": PANTS.pick_random(),
+			"scale": randf_range(0.93, 1.07), "hunch": randf_range(0.05, 0.25),
+		})
+	else:
+		rig = SkinnedRig.create(COMMON_MODELS.pick_random(), {"tint": COMMON_TINTS.pick_random()})
 
 
 func _ready() -> void:
@@ -444,8 +451,7 @@ func die(attacker = null, part := "body", dmg_type := "bullet", dmg := 0.0) -> v
 	on_death()
 	Game.infected.erase(self)
 	if rig.visible:
-		Ragdoll.from_rig(rig, body_vel, impulse, point, cut)
-	rig.visible = false
+		rig.ragdoll(body_vel, impulse, point, cut)
 	set_physics_process(false)
 	queue_free.call_deferred()
 

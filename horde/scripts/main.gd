@@ -140,6 +140,8 @@ func load_map(idx: int) -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--melee-poses="):
 			run_pose_sheet(a.substr(14))
+		if a.begins_with("--lineup="):
+			run_lineup(a.substr(9))
 
 
 func _build_environment() -> void:
@@ -318,7 +320,15 @@ func run_pose_sheet(dir: String) -> void:
 		if c is PlayerController:
 			p.controller = c
 	p.melee_frozen = true
-	p.melee.set_weapon("greatsword")
+	var wid := "greatsword"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--pose-weapon="):
+			wid = a.substr(14)
+	p.secondary = WeaponData.new_state(wid)
+	p.active_slot = Survivor.SLOT_SECONDARY
+	p._refresh_held_model()
+	p.controller.on_weapon_changed()
+	p.melee.set_weapon(wid)
 	for z in Game.infected.duplicate():
 		z.queue_free()
 	Game.director.set_physics_process(false)
@@ -345,6 +355,68 @@ func run_pose_sheet(dir: String) -> void:
 		img.save_png(path)
 		n += 1
 	print("[autotest] pose sheet: %d frames in %s" % [n, dir])
+	get_tree().quit(0)
+
+
+## --lineup=/dir : every character model in a row (with a light), then kills
+## half of them with different cuts and screenshots the ragdolls.
+func run_lineup(dir: String) -> void:
+	var p: Survivor = Game.player
+	for c in p.get_children():
+		if c is PlayerController:
+			p.controller = c
+	Game.director.set_physics_process(false)
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	for s in Game.survivors:
+		if s != p:
+			s.set_physics_process(false)
+			s.visible = false
+	p.global_position = Game.level.cell_center(Game.level.start_door) + Vector3(0, 0.1, 4.5)
+	p.yaw = 0.0
+	p.pitch = -0.12
+	var light := OmniLight3D.new()
+	light.omni_range = 12.0
+	light.light_energy = 2.5
+	world.add_child(light)
+	light.global_position = p.global_position + Vector3(0, 3, -2)
+	var kinds := ["common", "common", "common", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
+	var actors := []
+	for i in kinds.size():
+		var pos: Vector3 = p.global_position + Vector3((i - 4) * 1.15, 0.0, -4.0)
+		var z: Infected = Game.director.spawn_infected(kinds[i], pos)
+		z.set_physics_process(false)
+		actors.append(z)
+	var surv_models := ["knight", "barbarian", "rogue_hooded", "adv_mage"]
+	for i in 4:
+		var r := SkinnedRig.create(surv_models[i], {"role": "survivor"})
+		world.add_child(r)
+		r.global_position = p.global_position + Vector3((i - 1.5) * 1.3, 0.0, -7.0)
+		r.set_pose("aim")
+		actors.append(r)
+	await get_tree().create_timer(0.3).timeout
+	for i in 20:
+		for a in actors:
+			if is_instance_valid(a):
+				var rg = a.rig if a is Infected else a
+				rg.rotation.y = PI
+				rg.animate(0.016, 0.0)
+		await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(dir + "/lineup_a.png")
+	var cuts := ["decap", "bisect", "arm", "", "split"]
+	for i in 5:
+		var z: Infected = actors[i]
+		z.set_physics_process(true)
+		z.impact_dir = Vector3(randf_range(-0.5, 0.5), 0.3, -1).normalized()
+		z.rig.rotation.y = PI
+		z.impact_force = 9.0
+		z.cut = cuts[i]
+		z.take_damage(9999.0, p, "body", "melee", z.global_position + Vector3(0, 1.1, 0))
+	await get_tree().create_timer(1.2).timeout
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(dir + "/lineup_b.png")
+	print("[autotest] lineup saved to ", dir)
 	get_tree().quit(0)
 
 

@@ -432,7 +432,7 @@ func _process(delta: float) -> void:
 		roll + dodge_roll)
 	camera.position.y += bob - land_dip * 0.3
 	flashlight.visible = s.flashlight_enabled and not s.dead
-	camera.fov = lerp(camera.fov, base_fov + (4.0 if speed > 4.5 else 0.0), delta * 4.0)
+	camera.fov = lerp(camera.fov, base_fov + (4.0 if speed > 4.5 else 0.0), min(1.0, delta * 4.0))
 
 	# Viewmodel
 	vm_kick = max(0.0, vm_kick - delta * 6.0)
