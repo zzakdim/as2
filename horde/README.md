@@ -27,6 +27,10 @@ are synthesized at startup. The systems underneath are the real thing.
 
 Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
 
+**Solo testing:** toggle *Bot teammates* on the title screen or pause menu
+(or pass `--no-bots`). Without bots, only death ends the run, and you can hold
+E while downed to get yourself back up.
+
 ## What's in it
 
 **Campaign.** Three maps. Each one runs start saferoom → streets, alleys,

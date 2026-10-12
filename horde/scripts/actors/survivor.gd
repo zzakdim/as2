@@ -664,7 +664,7 @@ func take_item(id: String) -> String:
 func begin_action(kind: String, dur: float, target) -> void:
 	if action != "" or not can_act():
 		return
-	if incapped and kind != "use_hold":
+	if incapped and kind != "use_hold" and kind != "self_revive":
 		return
 	action = kind
 	action_t = 0.0
@@ -690,7 +690,7 @@ func cancel_action() -> void:
 func _update_action(delta: float) -> void:
 	if action == "":
 		return
-	if not can_act() or (incapped and action != "use_hold"):
+	if not can_act() or (incapped and action != "use_hold" and action != "self_revive"):
 		cancel_action()
 		return
 	var t = action_target
@@ -728,6 +728,8 @@ func _update_action(delta: float) -> void:
 			_refresh_held_model()
 		"use_hold":
 			t.on_use(self)
+		"self_revive":
+			revive()
 
 
 func _apply_medkit(who) -> void:

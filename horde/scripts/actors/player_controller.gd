@@ -120,6 +120,11 @@ func update(delta: float) -> void:
 			s.try_shove()
 
 	# Use (E): pickups/doors instantly, revive/radio by holding.
+	# Solo testing: no one is coming, so hold E to get yourself back up.
+	if s.incapped and not Game.bots_enabled and Input.is_action_just_pressed("use") and s.action == "":
+		s.begin_action("self_revive", 5.0, s)
+	if s.action == "self_revive" and not Input.is_action_pressed("use"):
+		s.cancel_action()
 	if Input.is_action_just_pressed("use") and s.action == "":
 		if look_target is Survivor and look_target.incapped:
 			s.begin_action("revive", 5.0, look_target)

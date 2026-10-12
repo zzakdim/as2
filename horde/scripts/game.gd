@@ -32,6 +32,7 @@ var attractors: Array = []
 var map_index := 0
 var autotest := false
 var autotest_seconds := 90.0
+var bots_enabled := true       # teammates; turn off for solo testing (menu toggle or --no-bots)
 var playing := false
 var time := 0.0
 var mouse_sensitivity := 0.0022
@@ -45,6 +46,8 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	autotest = "--autotest" in args
 	for a in args:
+		if a == "--no-bots":
+			bots_enabled = false
 		if a.begins_with("--seconds="):
 			autotest_seconds = float(a.substr(10))
 		if a.begins_with("--shot="):

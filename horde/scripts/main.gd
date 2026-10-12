@@ -49,6 +49,9 @@ Don't startle the Witch. Shove Boomers before you shoot them."""
 	for d in 4:
 		var diff: int = d
 		buttons.append(["Play on %s" % Game.DIFF_NAMES[d], func(): start_campaign(diff)])
+	buttons.append(["Bot teammates: %s" % ("ON" if Game.bots_enabled else "OFF"), func():
+		Game.bots_enabled = not Game.bots_enabled
+		show_title()])
 	buttons.append(["Quit", func(): get_tree().quit()])
 	Game.hud.show_menu("AFTER DARK", body, buttons)
 
@@ -85,7 +88,7 @@ func load_map(idx: int) -> void:
 	if Game.autotest:
 		print("[autotest] map %d generated in %d ms (max_flow %d)" % [idx, Time.get_ticks_msec() - t0, lvl.max_flow])
 
-	for i in 4:
+	for i in (4 if Game.bots_enabled else 1):
 		var s := Survivor.new()
 		var info: Array = SURVIVORS[i]
 		s.setup(info[0], info[1], i != 0)
@@ -233,6 +236,10 @@ func _unhandled_input(event: InputEvent) -> void:
 					load_map(Game.map_index)],
 				["Mouse sensitivity +", func(): Game.mouse_sensitivity *= 1.2],
 				["Mouse sensitivity -", func(): Game.mouse_sensitivity /= 1.2],
+				["Bot teammates: %s (restarts map)" % ("ON" if Game.bots_enabled else "OFF"), func():
+					Game.bots_enabled = not Game.bots_enabled
+					carry = carry_at_map_start.duplicate(true)
+					load_map(Game.map_index)],
 				["Title screen", show_title],
 			])
 	elif event is InputEventMouseButton and event.pressed and Game.playing and not get_tree().paused:

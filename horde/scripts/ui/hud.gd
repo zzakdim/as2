@@ -222,7 +222,7 @@ func _process(delta: float) -> void:
 	if p.action != "":
 		progress.visible = true
 		progress.value = p.action_t / p.action_dur * 100.0
-		progress_label.text = {"heal_self": "Healing yourself", "heal_other": "Healing teammate", "revive": "Reviving", "pills": "Taking pills", "use_hold": "Using"}.get(p.action, p.action)
+		progress_label.text = {"heal_self": "Healing yourself", "heal_other": "Healing teammate", "revive": "Reviving", "pills": "Taking pills", "use_hold": "Using", "self_revive": "Getting back up"}.get(p.action, p.action)
 	elif p.being_revived_by != null and is_instance_valid(p.being_revived_by):
 		progress.visible = true
 		var r = p.being_revived_by
@@ -231,7 +231,7 @@ func _process(delta: float) -> void:
 	elif p.incapped:
 		progress.visible = true
 		progress.value = p.incap_hp / 300.0 * 100.0
-		progress_label.text = "INCAPACITATED - waiting for help"
+		progress_label.text = "INCAPACITATED - waiting for help" if Game.bots_enabled else "INCAPACITATED - hold E to get up"
 	elif p.pinned_by != null:
 		progress.visible = false
 		progress_label.text = "PINNED - your team has to save you!"

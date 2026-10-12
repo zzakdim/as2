@@ -496,6 +496,8 @@ func check_wipe() -> void:
 		if is_instance_valid(s) and not s.dead and not s.incapped and s.pinned_by == null:
 			standing += 1
 	var player_dead: bool = Game.player != null and is_instance_valid(Game.player) and Game.player.dead
+	if not Game.bots_enabled:
+		standing = 1  # solo: only death ends the run (you can self-revive)
 	if standing == 0 or player_dead:
 		await get_tree().create_timer(2.5).timeout
 		# Re-check: someone may have been freed in the meantime.
@@ -504,6 +506,8 @@ func check_wipe() -> void:
 			if is_instance_valid(s) and not s.dead and not s.incapped and s.pinned_by == null:
 				standing += 1
 		player_dead = Game.player != null and is_instance_valid(Game.player) and Game.player.dead
+		if not Game.bots_enabled:
+			standing = 1
 		if (standing == 0 or player_dead) and not wiped and not finished:
 			wiped = true
 			Game.main.on_wipe()
