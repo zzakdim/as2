@@ -262,6 +262,7 @@ func on_weapon_changed() -> void:
 	var id := s.current_item_id()
 	if id != "" and WeaponData.get_def(id).get("melee", false) and WeaponData.DEFS.has(id):
 		_build_melee_vm(id)
+		Game.sfx.play2d("draw", -10.0)
 	else:
 		vm_model = WeaponData.build_model(id, true) if id != "" else null
 		if vm_model:

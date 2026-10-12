@@ -6,7 +6,20 @@ extends Node
 
 const RATE := 22050
 
-var sounds := {}
+var sounds := {}      # name -> AudioStream, or Array of variants picked at random
+const SAMPLE_SETS := {
+	# CC0 Kenney recordings, layered over the synthesized whooshes.
+	"slash": ["knifeSlice", "knifeSlice2", "chop"],
+	"chop": ["impactPunch_medium_000", "impactPunch_medium_001", "impactPunch_medium_002", "impactPunch_medium_003", "impactPunch_medium_004"],
+	"bone": ["impactPunch_heavy_000", "impactPunch_heavy_001", "impactPunch_heavy_002", "impactPunch_heavy_003", "impactPunch_heavy_004"],
+	"flesh": ["impactSoft_heavy_000", "impactSoft_heavy_001", "impactSoft_heavy_002", "impactSoft_heavy_003", "impactSoft_heavy_004"],
+	"melee_hit": ["impactSoft_medium_000", "impactSoft_medium_001", "impactSoft_medium_002", "impactSoft_medium_003", "impactSoft_medium_004"],
+	"claw": ["impactPunch_medium_000", "impactPunch_medium_002", "impactPunch_medium_004"],
+	"clank": ["impactMetal_heavy_000", "impactMetal_heavy_001", "impactMetal_heavy_002", "impactMetal_heavy_003", "impactMetal_heavy_004"],
+	"block": ["impactPlate_medium_000", "impactPlate_medium_001", "impactPlate_medium_002", "impactPlate_medium_003", "impactPlate_medium_004"],
+	"step": ["footstep_concrete_000", "footstep_concrete_001", "footstep_concrete_002", "footstep_concrete_003", "footstep_concrete_004"],
+	"draw": ["drawKnife1", "drawKnife2"],
+}
 var _pool: Array = []
 var _pool_i := 0
 var _ui: Array = []
@@ -20,6 +33,7 @@ var _music_state := "ambient"
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
+	_load_samples()
 	for i in 40:
 		var p := AudioStreamPlayer3D.new()
 		p.unit_size = 6.0
@@ -39,7 +53,7 @@ func _ready() -> void:
 
 func _music_player(n: String, db: float) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
-	p.stream = sounds[n]
+	p.stream = _stream(n)
 	p.volume_db = db
 	add_child(p)
 	return p
@@ -78,12 +92,30 @@ func set_music(state: String) -> void:
 	_music_state = state
 
 
+func _load_samples() -> void:
+	for n in SAMPLE_SETS:
+		var arr: Array = []
+		for f in SAMPLE_SETS[n]:
+			var path := "res://assets/kenney/audio/%s.ogg" % f
+			if ResourceLoader.exists(path):
+				arr.append(load(path))
+		if not arr.is_empty():
+			sounds[n] = arr
+
+
+func _stream(n: String) -> AudioStream:
+	var v = sounds[n]
+	if v is Array:
+		return v.pick_random()
+	return v
+
+
 func play3d(n: String, pos: Vector3, db := 0.0, pitch_rand := 0.08) -> void:
 	if not sounds.has(n):
 		return
 	var p: AudioStreamPlayer3D = _pool[_pool_i]
 	_pool_i = (_pool_i + 1) % _pool.size()
-	p.stream = sounds[n]
+	p.stream = _stream(n)
 	p.volume_db = db
 	p.pitch_scale = 1.0 + randf_range(-pitch_rand, pitch_rand)
 	if p.is_inside_tree():
@@ -96,7 +128,7 @@ func play2d(n: String, db := 0.0) -> void:
 		return
 	var p: AudioStreamPlayer = _ui[_ui_i]
 	_ui_i = (_ui_i + 1) % _ui.size()
-	p.stream = sounds[n]
+	p.stream = _stream(n)
 	p.volume_db = db
 	p.play()
 
@@ -104,7 +136,7 @@ func play2d(n: String, db := 0.0) -> void:
 ## Looping positional sound attached to a node; free the returned player to stop.
 func start_loop(n: String, parent: Node3D, db := 0.0) -> AudioStreamPlayer3D:
 	var p := AudioStreamPlayer3D.new()
-	p.stream = sounds.get(n)
+	p.stream = _stream(n) if sounds.has(n) else null
 	p.volume_db = db
 	p.unit_size = 8.0
 	p.max_distance = 80.0

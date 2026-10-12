@@ -566,7 +566,9 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 		Game.fx.blood_decal(z.global_position + z.impact_dir * randf_range(0.5, 1.5))
 	if killed or randf() < 0.3:
 		Game.fx.wall_blood(p, z.impact_dir)
-	Game.sfx.play3d("slash" if killed else "chop", p, -2.0 if is_heavy else -4.0, 0.15)
+	Game.sfx.play3d("slash" if killed else "chop", p, 0.0 if is_heavy else -2.0, 0.12)
+	if killed:
+		Game.sfx.play3d("flesh", p, -4.0, 0.15)
 	if killed and (z.cut != "" or is_heavy):
 		Game.sfx.play3d("bone", p, -6.0, 0.2)
 	blood = min(1.0, blood + 0.06)
