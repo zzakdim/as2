@@ -54,6 +54,9 @@ Don't startle the Witch. Shove Boomers before you shoot them."""
 	buttons.append(["Melee Sandbox (greatsword, endless horde)", func():
 		Game.mode = "sandbox"
 		start_campaign(Game.Diff.NORMAL)])
+	buttons.append(["Characters: %s" % ("Placeholder boxes (fast)" if Infected.use_box_rigs else "Animated (KayKit)"), func():
+		Infected.use_box_rigs = not Infected.use_box_rigs
+		show_title()])
 	buttons.append(["Bot teammates: %s" % ("ON" if Game.bots_enabled else "OFF"), func():
 		Game.bots_enabled = not Game.bots_enabled
 		show_title()])
@@ -399,8 +402,9 @@ func run_lineup(dir: String) -> void:
 	var surv_models := ["knight", "barbarian", "rogue_hooded", "adv_mage"]
 	var surv_weapons := ["smg", "greatsword", "pump_shotgun", "fire_axe"]
 	for i in 4:
-		var r := SkinnedRig.create(surv_models[i], {"role": "survivor"})
-		r.melee_held = WeaponData.get_def(surv_weapons[i]).get("melee", false)
+		var r: Rig = SkinnedRig.create(surv_models[i], {"role": "survivor"})
+		if r is SkinnedRig:
+			r.melee_held = WeaponData.get_def(surv_weapons[i]).get("melee", false)
 		r.held.add_child(WeaponData.build_model(surv_weapons[i]))
 		world.add_child(r)
 		r.global_position = p.global_position + Vector3((i - 1.5) * 1.3, 0.0, -7.0)

@@ -47,6 +47,12 @@ var hurt_t := 0.0
 var last_hurt_dir := Vector3.ZERO
 var being_revived_by = null
 var in_safe_room := false
+# Darktide-style toughness: absorbs damage first, regenerates when you're
+# not taking hits (faster near teammates), and melee kills refill it.
+var toughness := 100.0
+var toughness_max := 100.0
+var toughness_delay := 0.0
+var coherency := 0
 
 # inventory
 var primary: Variant = null                # {id, mag, reserve} or null
@@ -264,6 +270,28 @@ func is_melee_active() -> bool:
 
 var melee_frozen := false   # pose contact sheet holds the pose
 
+var _coh_t := 0.0
+
+func _update_toughness(delta: float) -> void:
+	_coh_t -= delta
+	if _coh_t <= 0.0:
+		_coh_t = 0.5
+		coherency = 0
+		for o in Game.survivors:
+			if o != self and is_instance_valid(o) and not o.dead and o.global_position.distance_to(global_position) < 8.0:
+				coherency += 1
+	if incapped or dead:
+		return
+	toughness_delay -= delta
+	if toughness_delay <= 0.0:
+		var rate := 5.0 + 5.0 * coherency
+		toughness = min(toughness_max, toughness + rate * delta)
+
+
+func restore_toughness(amount: float) -> void:
+	toughness = min(toughness_max, toughness + amount)
+
+
 func _update_melee(delta: float) -> void:
 	if melee_frozen:
 		return
@@ -287,6 +315,7 @@ func _timers(delta: float) -> void:
 		biled_time -= delta
 	if temp_health > 0.0:
 		temp_health = max(0.0, temp_health - 0.27 * delta)
+	_update_toughness(delta)
 	if incapped and pinned_by == null:
 		incap_hp -= delta * (3.0 if being_revived_by == null else 0.0)
 		if incap_hp <= 0.0:
@@ -785,6 +814,19 @@ func take_damage(amount: float, attacker = null, kind := "") -> void:
 			die()
 		hurt.emit(amount, last_hurt_dir)
 		return
+	# Toughness soaks most hits first (not pins, acid, fire or bleed-outs).
+	if kind in ["claw", "punch", "rock", "charge", "pounce", "explosion", ""] and toughness > 0.0:
+		var soaked: float = min(toughness, amount)
+		toughness -= soaked
+		amount -= soaked * 0.85      # a little damage bleeds through
+		toughness_delay = 3.0
+		if toughness <= 0.0 and controller and controller.has_method("on_toughness_broken"):
+			controller.on_toughness_broken()
+		if amount <= 0.01:
+			hurt.emit(soaked, last_hurt_dir)
+			return
+	else:
+		toughness_delay = 3.0
 	if kind == "incap":
 		health = 0.0
 		temp_health = 0.0
@@ -828,6 +870,7 @@ func revive() -> void:
 	if not incapped or dead:
 		return
 	incapped = false
+	toughness = toughness_max * 0.5
 	health = 1.0
 	temp_health = 30.0
 	incap_count += 1
@@ -893,6 +936,8 @@ func apply_bile(t: float) -> void:
 
 func add_kill(z, headshot: bool) -> void:
 	stats["kills"] += 1
+	if is_melee_active():
+		restore_toughness(15.0 if z.is_special or z is Elite else 5.0)
 	if z.is_special:
 		stats["specials"] += 1
 	if headshot:

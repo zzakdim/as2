@@ -48,6 +48,10 @@ The **Melee Sandbox** on the title screen drops you in an arena with the
 greatsword and an endless horde, with every weapon laid out around you.
 F5 spawns a horde, F6 a special, F9 elites, F8 a Tank, F7 toggles god mode.
 
+**Options:** the title screen toggles *Characters* between the animated
+KayKit models and fast placeholder boxes (`--box-rigs` on the command line),
+and the pause menu has FOV and mouse sensitivity.
+
 **Solo testing:** toggle *Bot teammates* on the title screen or pause menu
 (or pass `--no-bots`). Without bots, only death ends the run, and you can hold
 E while downed to get yourself back up.
@@ -95,6 +99,10 @@ along the map) and Witches. Press F3 in game to watch it work.
   block or dodge them; a push interrupts the flurry.
 
 **Survivors**
+- **Toughness** (Darktide): a shield bar above health that soaks most hits.
+  It regenerates when you avoid damage for 3 s, faster with teammates
+  within 8 m (coherency), and melee kills refill it, so fighting
+  aggressively in melee keeps you alive.
 - Health plus temporary health (pills) that decays.
 - Incap → revive → black & white on your last life → death.
 - Limping at low health. Friendly fire scales with difficulty.

@@ -24,14 +24,16 @@ func _ready() -> void:
 			max_hp = 300.0
 			run_speed = 4.4
 			rig = SkinnedRig.create("warrior", {"tint": Color(0.55, 0.55, 0.6), "glow_eyes": Color(1.0, 0.55, 0.1, 1.0)})
-			rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Shield_Large_A.gltf", "handslot.l")
-			rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Axe.gltf", "handslot.r")
+			if rig is SkinnedRig:
+				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Shield_Large_A.gltf", "handslot.l")
+				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Axe.gltf", "handslot.r")
 		"rager":
 			max_hp = 180.0
 			run_speed = 6.4
 			rig = SkinnedRig.create("rogue", {"tint": Color(0.75, 0.45, 0.42), "glow_eyes": Color(1.0, 0.1, 0.1, 1.0)})
-			rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Blade.gltf", "handslot.l")
-			rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Blade.gltf", "handslot.r")
+			if rig is SkinnedRig:
+				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Blade.gltf", "handslot.l")
+				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Blade.gltf", "handslot.r")
 	hp = max_hp
 	super._ready()
 

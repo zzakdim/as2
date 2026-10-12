@@ -51,6 +51,8 @@ func _ready() -> void:
 	for a in args:
 		if a == "--sandbox":
 			mode = "sandbox"
+		if a == "--box-rigs":
+			Infected.use_box_rigs = true
 		if a == "--no-bots":
 			bots_enabled = false
 		if a.begins_with("--seconds="):

@@ -54,7 +54,14 @@ var head_scale := 0.62
 var melee_held := false
 
 
-static func create(model_kind: String, opts := {}) -> SkinnedRig:
+static func create(model_kind: String, opts := {}) -> Rig:
+	if Infected.use_box_rigs:
+		# Fast placeholder figure, roughly matching size and colour.
+		var t: Color = opts.get("tint", Color(0.8, 0.8, 0.8))
+		var sc: float = opts.get("scale", 1.0)
+		return BodyRig.make({"skin": Color(0.6, 0.62, 0.52) * t, "shirt": Color(0.4, 0.38, 0.35) * t,
+			"pants": Color(0.25, 0.25, 0.28), "scale": sc, "hunch": 0.15 if opts.get("role", "zombie") == "zombie" else 0.0,
+			"bare_arms": opts.get("role", "zombie") != "survivor"})
 	var r := SkinnedRig.new()
 	r.kind = model_kind
 	r.role = opts.get("role", "zombie")

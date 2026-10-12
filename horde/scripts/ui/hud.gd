@@ -562,6 +562,9 @@ class TeamRow extends Control:
 			items += "* "
 		draw_string(font, Vector2(270, 18), items, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(0.9, 0.9, 0.9))
 		var w := 300.0
+		if not s.dead and not s.incapped:
+			draw_rect(Rect2(12, 22, w, 3), Color(0.1, 0.12, 0.18))
+			draw_rect(Rect2(12, 22, w * clamp(s.toughness / s.toughness_max, 0.0, 1.0), 3), Color(0.45, 0.7, 1.0) if s.coherency > 0 else Color(0.35, 0.5, 0.75))
 		draw_rect(Rect2(12, 26, w, 10), Color(0.15, 0.15, 0.15))
 		if s.incapped:
 			draw_rect(Rect2(12, 26, w * s.incap_hp / 300.0, 10), Color(0.8, 0.15, 0.1))

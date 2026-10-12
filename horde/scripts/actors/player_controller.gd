@@ -417,6 +417,11 @@ func on_melee_hit(killed: bool, dist: float) -> void:
 		Game.hud.screen_blood()
 
 
+func on_toughness_broken() -> void:
+	Game.sfx.play2d("clank", -6.0)
+	Game.hud.flash(Color(0.5, 0.7, 1.0, 0.15), 0.25)
+
+
 func on_perfect_block() -> void:
 	hit_shake = max(hit_shake, 0.5)
 	Game.hud.flash(Color(1, 0.9, 0.6, 0.18), 0.12)
