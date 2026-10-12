@@ -373,6 +373,15 @@ func on_melee_hit(killed: bool, dist: float) -> void:
 		Game.hud.screen_blood()
 
 
+func on_perfect_block() -> void:
+	hit_shake = max(hit_shake, 0.5)
+	Game.hud.flash(Color(1, 0.9, 0.6, 0.18), 0.12)
+
+
+func on_full_charge() -> void:
+	Game.hud.flash(Color(1, 1, 1, 0.08), 0.1)
+
+
 func on_dodge(dir: Vector3) -> void:
 	var right := Vector3(-s.flat_forward().z, 0, s.flat_forward().x)
 	dodge_roll = -right.dot(dir) * 0.06
@@ -412,7 +421,10 @@ func _process(delta: float) -> void:
 	camera.position.y = lerp(camera.position.y, eye_h, min(1.0, delta * 10.0))
 	var speed := Vector2(s.velocity.x, s.velocity.z).length()
 	if s.is_on_floor() and speed > 0.5:
+		var before := floorf(bob_t / PI)
 		bob_t += delta * speed * 1.9
+		if floorf(bob_t / PI) != before and not s.want_walk:
+			Game.sfx.play2d("step", -16.0 if speed > 3.0 else -22.0)
 	if s.is_on_floor() and not _was_on_floor:
 		land_dip = 0.12
 	_was_on_floor = s.is_on_floor()

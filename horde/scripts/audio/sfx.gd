@@ -217,6 +217,7 @@ func _build() -> void:
 	var rl := _mix(_tone(0.06, 900, 700, "sqr", 0.001, 60.0, 0.0, 0.3), _tone(0.08, 1300, 1000, "sqr", 0.001, 50.0, 0.0, 0.3), 0.25)
 	sounds["reload"] = _wav(rl)
 	sounds["shell"] = _wav(_tone(0.07, 700, 500, "sqr", 0.001, 50.0, 0.0, 0.25))
+	sounds["step"] = _wav(_shot(0.09, 45.0, 700, 60, 0.6, 0.45))
 	sounds["swing"] = _wav(_shot(0.25, 10.0, 900, 0, 0.0, 0.5))
 	# Melee: whooshes are band-passed noise sweeps; impacts layer a wet
 	# slap, a low thump and (for bone) a short crack.

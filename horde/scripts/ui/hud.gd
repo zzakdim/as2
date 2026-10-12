@@ -318,6 +318,18 @@ func _update_weapon(p) -> void:
 
 # ================================================================== events
 
+## Brief full-screen tint (perfect block, full charge).
+func flash(col: Color, dur: float) -> void:
+	var r := ColorRect.new()
+	r.color = col
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(r)
+	var tw := r.create_tween()
+	tw.tween_property(r, "color:a", 0.0, dur)
+	tw.tween_callback(r.queue_free)
+
+
 ## Darktide-style gore on the screen after a close kill.
 func screen_blood() -> void:
 	var tr := TextureRect.new()

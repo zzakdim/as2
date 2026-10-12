@@ -263,6 +263,12 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 			var cp := _windup_pose(true)
 			cp.origin += shake
 			pose = _pose_from.interpolate_with(cp, _ease_out(min(1.0, t / 0.25)))
+			if t >= atk["charge"] and not atk.get("_full", false):
+				atk = atk.duplicate()
+				atk["_full"] = true
+				Game.sfx.play3d("beep", s.eye_pos(), -14.0, 0.0)
+				if s.controller and s.controller.has_method("on_full_charge"):
+					s.controller.on_full_charge()
 			if block_held and stamina > 0.0:
 				_enter("block")   # cancel the heavy into a block
 			elif (not fire_held and t >= atk["charge"]) or t >= 1.6:
@@ -523,7 +529,9 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	if part == "head":
 		dmg *= 0.5  # head multiplier is applied by the target
 	dmg *= cleave_k
-	var force: float = atk["impact"]
+	if atk.get("_full", false):
+		dmg *= 1.25
+	var force: float = atk["impact"] * (1.2 if atk.get("_full", false) else 1.0)
 	z.impact_dir = (tangent + s.flat_forward() * 0.4).normalized()
 	z.impact_force = force
 	z.impact_point = p
@@ -543,6 +551,8 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	Game.fx.blood_spray(p, z.impact_dir, 14 if killed else 8)
 	if randf() < 0.5:
 		Game.fx.blood_decal(z.global_position + z.impact_dir * randf_range(0.5, 1.5))
+	if killed or randf() < 0.3:
+		Game.fx.wall_blood(p, z.impact_dir)
 	Game.sfx.play3d("slash" if killed else "chop", p, -2.0 if is_heavy else -4.0, 0.15)
 	if killed and (z.cut != "" or is_heavy):
 		Game.sfx.play3d("bone", p, -6.0, 0.2)
@@ -649,6 +659,16 @@ func block_hit(amount: float, attacker, kind: String) -> float:
 	to.y = 0
 	if to.length() > 0.01 and s.flat_forward().dot(to.normalized()) < ms["block_arc"]:
 		return amount  # hit from behind or the side
+	# Perfect block: raised just before the hit -> free, and the attacker reels.
+	if t < 0.22 and kind != "rock":
+		cam_punch += Vector2(0.03, randf_range(-0.015, 0.015))
+		Game.sfx.play3d("clank", s.eye_pos() + s.flat_forward() * 0.6, 0.0, 0.05)
+		Game.fx.impact(s.eye_pos() + s.flat_forward() * 0.7, -s.flat_forward())
+		if attacker.has_method("melee_stagger"):
+			attacker.melee_stagger(to.normalized(), 9.0)
+		if s.controller and s.controller.has_method("on_perfect_block"):
+			s.controller.on_perfect_block()
+		return amount * (0.15 if kind == "punch" else 0.0)
 	var cost: float = ms["block_cost"] * (4.0 if kind in ["punch", "rock"] else 1.0)
 	_use_stamina(cost)
 	cam_punch += Vector2(0.02, randf_range(-0.01, 0.01))

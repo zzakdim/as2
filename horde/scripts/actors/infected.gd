@@ -148,6 +148,10 @@ func _physics_process(delta: float) -> void:
 	if face_dir.length_squared() > 0.01:
 		rig.rotation.y = atan2(-face_dir.x, -face_dir.z)
 	rig.animate(delta, Vector2(velocity.x, velocity.z).length())
+	if attack_pending > 0.0:
+		attack_pending -= delta
+		if attack_pending <= 0.0:
+			_land_attack()
 	if state == S.ATTACK:
 		attack_t -= delta
 		if attack_t <= 0.0:
@@ -315,15 +319,32 @@ func hear_noise(_pos: Vector3) -> void:
 		alert(Game.nearest_survivor(global_position))
 
 
+var attack_pending := 0.0
+
 func _do_attack() -> void:
-	attack_t = randf_range(0.9, 1.2)
+	attack_t = randf_range(1.0, 1.3)
 	if target == null or not is_instance_valid(target) or target.dead:
 		state = S.CHASE
 		return
 	if global_position.distance_to(target.global_position) > 1.6:
 		state = S.CHASE
 		return
-	rig.swing(0.35)
+	# Telegraphed swing: the hit lands partway through, so it can be
+	# blocked, perfect-blocked or dodged.
+	rig.swing(0.4)
+	attack_pending = 0.38
+	if randf() < 0.3:
+		Game.sfx.play3d("zombie_chase", global_position + Vector3(0, 1.4, 0), -6.0, 0.3)
+
+
+func _land_attack() -> void:
+	if state == S.DEAD or state == S.STAGGER or target == null or not is_instance_valid(target) or target.dead:
+		return
+	var to: Vector3 = target.global_position - global_position
+	to.y = 0
+	if to.length() > 1.75:
+		Game.sfx.play3d("swing", global_position + Vector3(0, 1.3, 0), -12.0, 0.2)
+		return   # whiffed: they stepped back
 	target.take_damage(Game.common_hit_damage(), self, "claw")
 	Game.sfx.play3d("claw", target.global_position + Vector3(0, 1.2, 0), -6.0, 0.2)
 
@@ -386,6 +407,7 @@ func shove(from: Vector3, _by) -> void:
 	dir.y = 0
 	dir = dir.normalized()
 	velocity = dir * 5.0 + Vector3(0, 1.5, 0)
+	attack_pending = 0.0
 	state = S.STAGGER
 	stagger_t = randf_range(0.7, 1.0)
 	sitting = false
@@ -469,6 +491,7 @@ func melee_stagger(dir: Vector3, force: float) -> void:
 		d.y = 0
 		velocity = d.normalized() * force * 0.45 + Vector3(0, 1.0, 0)
 		state = S.STAGGER
+		attack_pending = 0.0
 		stagger_t = 0.45 + force * 0.04
 		sitting = false
 		if rig.pose == "sit":

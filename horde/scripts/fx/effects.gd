@@ -184,6 +184,34 @@ func blood_decal(pos: Vector3) -> void:
 	_decals.append(d)
 
 
+## Splatter on a nearby wall/car in direction `dir` (raycast up to 3.5 m).
+func wall_blood(pos: Vector3, dir: Vector3) -> void:
+	var d := dir.normalized()
+	var q := PhysicsRayQueryParameters3D.create(pos, pos + d * 3.5, Game.LAYER_WORLD)
+	var hit := get_world_3d().direct_space_state.intersect_ray(q)
+	if hit.is_empty():
+		return
+	var n: Vector3 = hit["normal"]
+	if abs(n.y) > 0.7:
+		return   # floor already gets decals
+	var dc: Decal
+	if _decals.size() >= MAX_DECALS:
+		dc = _decals.pop_front()
+	else:
+		dc = Decal.new()
+		dc.texture_albedo = Mats.blood_splat()
+		add_child(dc)
+	var sz := randf_range(0.8, 1.6)
+	dc.size = Vector3(sz, 0.6, sz)
+	dc.global_position = hit["position"]
+	# Decals project along their local -Y: point that into the wall.
+	var y := n
+	var x := y.cross(Vector3.UP).normalized()
+	var z := x.cross(y)
+	dc.global_basis = Basis(x, y, z).rotated(n, randf() * TAU)
+	_decals.append(dc)
+
+
 func explosion(pos: Vector3, radius: float, damage: float, by) -> void:
 	Game.sfx.play3d("explosion", pos, 6.0)
 	Game.make_noise(pos, 40.0)
