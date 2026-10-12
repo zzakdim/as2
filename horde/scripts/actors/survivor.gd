@@ -66,6 +66,14 @@ var shove_cd := 0.0
 var shove_fatigue := 0.0
 var spread_bloom := 0.0
 var trigger_released := true
+var fire_held := false          # set every frame by the controller (melee reads held/press)
+var block_held := false
+var melee: Melee
+var want_dodge := false
+var dodge_t := 0.0
+var dodge_cd := 0.0
+var dodges := 3
+var dodge_regen := 0.0
 
 # timed actions: heal_self, heal_other, revive, pills, use_hold
 var action := ""
@@ -120,6 +128,7 @@ func _ready() -> void:
 		flashlight.light_color = Color(1.0, 0.95, 0.85)
 		flashlight.position = Vector3(0.15, 1.45, -0.3)
 		rig.add_child(flashlight)
+	melee = Melee.new(self)
 	_refresh_held_model()
 	if not Game.survivors.has(self):
 		Game.survivors.append(self)
@@ -243,9 +252,26 @@ func _physics_process(delta: float) -> void:
 	if controller:
 		controller.update(delta)
 	_timers(delta)
+	_update_melee(delta)
 	_move(delta)
 	_update_action(delta)
 	_update_visuals(delta)
+
+
+func is_melee_active() -> bool:
+	return current_def().get("melee", false)
+
+
+var melee_frozen := false   # pose contact sheet holds the pose
+
+func _update_melee(delta: float) -> void:
+	if melee_frozen:
+		return
+	if is_melee_active() and can_act() and not incapped and action == "":
+		melee.set_weapon(current_item_id())
+		melee.update(delta, fire_held and deploy_t <= 0.0, block_held)
+	elif melee.state != "idle":
+		melee.reset()
 
 
 func _timers(delta: float) -> void:
@@ -289,11 +315,32 @@ func _move(delta: float) -> void:
 		speed *= 0.7
 	if stun_t > 0.0:
 		speed = 0.0
-	var target_v := move_dir * speed
+	if is_melee_active():
+		speed *= melee.move_mult()
+	var target_v := move_dir * speed + melee.lunge
 	var hv := Vector3(velocity.x, 0, velocity.z)
 	var a := 40.0 if is_on_floor() else 6.0
 	if stun_t > 0.0:
 		a = 3.0
+	# Dodge: a quick side/back hop that commons' swings whiff through.
+	dodge_t = max(0.0, dodge_t - delta)
+	dodge_cd = max(0.0, dodge_cd - delta)
+	dodge_regen += delta
+	if dodge_regen > 1.0 and dodges < 3:
+		dodges = 3
+	if want_dodge and is_on_floor() and dodge_cd <= 0.0 and dodges > 0 and stun_t <= 0.0 and not incapped and move_dir != Vector3.ZERO:
+		dodges -= 1
+		dodge_regen = 0.0
+		dodge_t = 0.32
+		dodge_cd = 0.18
+		hv = move_dir * 8.0
+		velocity.y = 1.6
+		Game.sfx.play3d("swing", eye_pos(), -10.0, 0.2)
+		if controller and controller.has_method("on_dodge"):
+			controller.on_dodge(move_dir)
+	want_dodge = false
+	if dodge_t > 0.0:
+		a = 4.0
 	hv = hv.move_toward(target_v, a * delta)
 	velocity.x = hv.x
 	velocity.z = hv.z
@@ -338,6 +385,9 @@ func _update_visuals(delta: float) -> void:
 func try_fire() -> void:
 	if not can_act() or deploy_t > 0.0 or action != "":
 		return
+	if is_melee_active() and active_slot == SLOT_SECONDARY:
+		fire_held = true   # the Melee state machine handles light/heavy timing
+		return
 	match active_slot:
 		SLOT_THROW:
 			_throw()
@@ -359,9 +409,6 @@ func try_fire() -> void:
 	if not def.get("auto", false) and not trigger_released and not def.get("melee", false):
 		return
 	trigger_released = false
-	if def.get("melee", false):
-		_melee(def)
-		return
 	if reloading:
 		if def.get("shell_reload", false) and w["mag"] > 0:
 			reloading = false
@@ -548,40 +595,6 @@ func try_shove() -> void:
 		Game.sfx.play3d("melee_hit", eye_pos() + fwd, -6.0, 0.2)
 
 
-func _melee(def: Dictionary) -> void:
-	fire_cd = def["rate"]
-	rig.swing(0.35)
-	Game.sfx.play3d("swing", eye_pos(), -4.0, 0.1)
-	if controller and controller.has_method("on_melee"):
-		controller.on_melee()
-	await get_tree().create_timer(0.12).timeout
-	if dead or not is_inside_tree():
-		return
-	var fwd := aim_dir()
-	var flat := Vector3(fwd.x, 0, fwd.z).normalized()
-	var cos_arc := cos(deg_to_rad(def["arc"]))
-	var hits := 0
-	for z in Game.infected.duplicate():
-		if not is_instance_valid(z) or z.is_dead():
-			continue
-		var to: Vector3 = z.global_position - global_position
-		to.y = 0
-		var d := to.length()
-		if d < def["range"] and d > 0.01 and flat.dot(to / d) > cos_arc:
-			var part := "head" if pitch > -0.1 and randf() < 0.5 else "body"
-			z.take_damage(def["damage"] / (4.0 if part == "head" else 1.0), self, part, "melee", z.global_position + Vector3(0, 1.3, 0))
-			if not z.is_dead():
-				z.shove(global_position, self)
-			hits += 1
-			if hits >= 5:
-				break
-	if hits > 0:
-		Game.sfx.play3d("melee_hit", eye_pos() + flat, -2.0, 0.2)
-		if controller and controller.has_method("hit_marker"):
-			controller.hit_marker(false, false)
-	Game.make_noise(global_position, 6.0)
-
-
 func _throw() -> void:
 	if throwable == "":
 		return
@@ -751,6 +764,15 @@ func take_damage(amount: float, attacker = null, kind := "") -> void:
 		return
 	if Game.autotest and not is_bot and kind != "ff":
 		amount *= 0.25  # keep the soak test running longer
+	if dodge_t > 0.0 and kind == "claw":
+		return  # dodged
+	if is_melee_active() and not incapped:
+		amount = melee.block_hit(amount, attacker, kind)
+		if amount <= 0.0:
+			return
+	if Game.god_mode and not is_bot:
+		hurt_t = 0.15
+		return
 	stats["damage_taken"] += amount
 	hurt_t = 0.3
 	if attacker and is_instance_valid(attacker) and attacker is Node3D:

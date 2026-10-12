@@ -41,6 +41,9 @@ func _ready() -> void:
 	mob_timer = _rng.randf_range(70.0, 110.0)
 	special_timer = _rng.randf_range(25.0, 40.0)
 	var lvl = Game.level
+	if Game.mode == "sandbox":
+		started = true
+		return
 	if lvl.map_index > 0 or _rng.randf() < 0.6:
 		tank_at = _rng.randf_range(0.35, 0.75)
 	if lvl.is_finale:
@@ -54,6 +57,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if finished or wiped:
+		return
+	if Game.mode == "sandbox":
+		_sandbox(delta)
 		return
 	var lvl = Game.level
 	_update_intensity(delta)
@@ -117,6 +123,36 @@ func _physics_process(delta: float) -> void:
 	if finale_stage >= 0:
 		_update_finale(delta)
 	_music()
+
+
+# ================================================================== sandbox
+
+var _sandbox_t := 3.0
+var _sandbox_special_t := 25.0
+var _sandbox_kinds_i := 0
+
+## Melee test arena: keep a steady stream of commons coming, specials now and then.
+func _sandbox(delta: float) -> void:
+	_sandbox_t -= delta
+	if _sandbox_t <= 0.0:
+		_sandbox_t = 4.0
+		if Game.commons_alive() < 30:
+			spawn_mob(12, "sandbox")
+	_sandbox_special_t -= delta
+	if _sandbox_special_t <= 0.0:
+		_sandbox_special_t = 30.0
+		sandbox_special()
+	_music()
+
+
+func sandbox_special() -> void:
+	var kinds := ["hunter", "boomer", "charger", "smoker", "spitter"]
+	var kind: String = kinds[_sandbox_kinds_i % kinds.size()]
+	_sandbox_kinds_i += 1
+	var c := find_hidden_cell(0, Game.level.max_flow, 14.0)
+	if c.x >= 0:
+		spawn_infected(kind, Game.level.cell_center(c))
+		Game.hud.add_callout("", "Spawned a %s" % kind.capitalize(), Color(1, 0.8, 0.5))
 
 
 func _lead_flow() -> int:
@@ -288,14 +324,16 @@ func spawn_mob(size: int, reason: String) -> void:
 	var lead := _lead_flow()
 	if Game.commons_alive() > 120:
 		return
-	var behind := _rng.randf() < 0.4
 	var c: Vector2i
-	if behind:
-		c = find_hidden_cell(lead - 30, lead - 12, 18.0)
+	if Game.mode == "sandbox":
+		c = find_hidden_cell(0, lvl.max_flow, 16.0)
 	else:
-		c = find_hidden_cell(lead + 12, lead + 30, 18.0)
-	if c.x < 0:
-		c = find_hidden_cell(max(0, lead - 40), lead + 40, 14.0)
+		if _rng.randf() < 0.4:
+			c = find_hidden_cell(lead - 30, lead - 12, 18.0)   # behind
+		else:
+			c = find_hidden_cell(lead + 12, lead + 30, 18.0)   # ahead
+		if c.x < 0:
+			c = find_hidden_cell(max(0, lead - 40), lead + 40, 14.0)
 	if c.x < 0:
 		return
 	var base: Vector3 = lvl.cell_center(c)

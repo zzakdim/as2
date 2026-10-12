@@ -110,9 +110,7 @@ class CarAlarm extends Node3D:
 		sound = Game.sfx.start_loop("car_alarm", self, 2.0)
 		Game.director.spawn_mob(Game.mob_size() + 6, "alarm")
 		Game.callout(Game.nearest_survivor(global_position), "Who shot the car?!")
-		get_tree().create_timer(20.0).timeout.connect(func():
-			if is_instance_valid(sound):
-				sound.queue_free())
+		Effects.after(sound, 20.0, sound.queue_free)
 
 
 class Door extends Usable:

@@ -23,6 +23,8 @@ var hitmark: Label
 var hitmark_t := 0.0
 var map_label: Label
 var markers: Array = []
+var stamina_bar: StaminaPips
+var screen_splats: Array = []
 
 var menu: Control
 var menu_title: Label
@@ -55,6 +57,11 @@ void fragment() {
 	crosshair = Crosshair.new()
 	crosshair.set_anchors_preset(Control.PRESET_CENTER)
 	root.add_child(crosshair)
+
+	stamina_bar = StaminaPips.new()
+	stamina_bar.set_anchors_preset(Control.PRESET_CENTER)
+	stamina_bar.position = Vector2(0, 34)
+	root.add_child(stamina_bar)
 
 	hitmark = _label("x", 26, Color(1, 1, 1))
 	hitmark.set_anchors_preset(Control.PRESET_CENTER)
@@ -213,6 +220,15 @@ func _process(delta: float) -> void:
 	bile_rect.color.a = lerp(bile_rect.color.a, 0.45 if p.biled_time > 0.0 else 0.0, delta * 3.0)
 	bw_rect.visible = p.is_black_and_white() or p.dead
 	(bw_rect.material as ShaderMaterial).set_shader_parameter("amount", 1.0 if p.dead else 0.85)
+	var melee_on: bool = p.is_melee_active() and p.active_slot == Survivor.SLOT_SECONDARY
+	stamina_bar.visible = melee_on and not p.dead
+	if melee_on:
+		stamina_bar.value = p.melee.stamina
+		stamina_bar.max_value = p.melee.ms.get("stamina", 4.0)
+		stamina_bar.blocking = p.melee.is_blocking()
+		stamina_bar.charge = clamp(p.melee.t / p.melee.atk.get("charge", 1.0), 0.0, 1.0) if p.melee.state == "charge" else 0.0
+		stamina_bar.queue_redraw()
+	_update_splats(delta)
 	crosshair.visible = not p.dead and p.action == "" and p.active_slot <= Survivor.SLOT_SECONDARY
 	crosshair.spread = _spread_of(p)
 	crosshair.queue_redraw()
@@ -250,7 +266,7 @@ func _process(delta: float) -> void:
 func _spread_of(p) -> float:
 	var def: Dictionary = p.current_def()
 	if def.is_empty() or def.get("melee", false):
-		return 4.0
+		return 2.0
 	var s: float = def.get("spread", 1.0)
 	if Vector2(p.velocity.x, p.velocity.z).length() > 1.0:
 		s *= 1.6
@@ -301,6 +317,35 @@ func _update_weapon(p) -> void:
 
 
 # ================================================================== events
+
+## Darktide-style gore on the screen after a close kill.
+func screen_blood() -> void:
+	var tr := TextureRect.new()
+	tr.texture = Mats.blood_splat()
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	var sz := randf_range(160, 380)
+	tr.size = Vector2(sz, sz)
+	var vp := root.get_viewport_rect().size
+	tr.position = Vector2(randf_range(0, vp.x - sz), randf_range(0, vp.y * 0.7))
+	tr.pivot_offset = tr.size * 0.5
+	tr.rotation = randf() * TAU
+	tr.modulate = Color(1, 1, 1, 0.85)
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(tr)
+	root.move_child(tr, 3)
+	screen_splats.append([tr, 2.5])
+
+
+func _update_splats(delta: float) -> void:
+	for sp in screen_splats.duplicate():
+		sp[1] -= delta
+		var tr: TextureRect = sp[0]
+		tr.modulate.a = clamp(sp[1] / 1.5, 0.0, 0.85)
+		tr.position.y += delta * 6.0
+		if sp[1] <= 0.0:
+			tr.queue_free()
+			screen_splats.erase(sp)
+
 
 func big_message(t: String, col := Color.WHITE, dur := 3.0) -> void:
 	big_label.text = t
@@ -451,6 +496,26 @@ class Crosshair extends Control:
 		draw_line(Vector2(0, -g - l), Vector2(0, -g), c, 2.0)
 		draw_line(Vector2(0, g), Vector2(0, g + l), c, 2.0)
 		draw_circle(Vector2.ZERO, 1.5, c)
+
+
+class StaminaPips extends Control:
+	var value := 4.0
+	var max_value := 4.0
+	var blocking := false
+	var charge := 0.0
+	func _draw() -> void:
+		var n := int(round(max_value))
+		var w := 16.0
+		var gap := 4.0
+		var total := n * w + (n - 1) * gap
+		for i in n:
+			var fill: float = clamp(value - i, 0.0, 1.0)
+			var r := Rect2(-total * 0.5 + i * (w + gap), 0, w, 4)
+			draw_rect(r, Color(1, 1, 1, 0.2))
+			var c := Color(1.0, 0.85, 0.4, 0.9) if blocking else Color(1, 1, 1, 0.75)
+			draw_rect(Rect2(r.position, Vector2(w * fill, 4)), c)
+		if charge > 0.0:
+			draw_arc(Vector2(0, -34), 14.0, -PI / 2, -PI / 2 + TAU * charge, 24, Color(1, 0.9, 0.6, 0.9), 2.0)
 
 
 class TeamRow extends Control:

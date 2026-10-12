@@ -24,6 +24,7 @@ var hunch := 0.0
 var leg_len := 0.8
 var hip_h := 0.85
 var arms_forward := 0.0     # 0 hanging .. 1 straight forward (zombie reach / aiming)
+var flinch_v := Vector2.ZERO   # (side, back) lean from being hit, decays
 
 
 static func make(c: Dictionary) -> BodyRig:
@@ -106,6 +107,11 @@ func gib_arm() -> void:
 	(arm_l if randf() < 0.5 else arm_r).visible = false
 
 
+## Recoil away from a hit. local_dir is the blow direction in rig space.
+func flinch(local_dir: Vector3, force: float) -> void:
+	flinch_v += Vector2(local_dir.x, -local_dir.z) * clamp(force * 0.08, 0.1, 0.9)
+
+
 func die(from_dir: Vector3) -> void:
 	pose = "dead"
 	dead_t = 0.0
@@ -157,7 +163,9 @@ func animate(delta: float, speed: float) -> void:
 			arms_forward = lerp(arms_forward, 0.0, delta * 4.0)
 	hips.position.y = lerp(hips.position.y, hips_y, min(1.0, delta * 10.0))
 	lean = lerp(lean, lean_target, min(1.0, delta * 6.0))
-	torso.rotation.x = -lean
+	flinch_v = flinch_v.lerp(Vector2.ZERO, min(1.0, delta * 6.0))
+	torso.rotation.x = -lean - flinch_v.y
+	torso.rotation.z = -flinch_v.x
 	if pose == "sit":
 		leg_l.rotation.x = 1.5
 		leg_r.rotation.x = 1.5

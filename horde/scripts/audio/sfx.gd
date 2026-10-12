@@ -218,6 +218,15 @@ func _build() -> void:
 	sounds["reload"] = _wav(rl)
 	sounds["shell"] = _wav(_tone(0.07, 700, 500, "sqr", 0.001, 50.0, 0.0, 0.25))
 	sounds["swing"] = _wav(_shot(0.25, 10.0, 900, 0, 0.0, 0.5))
+	# Melee: whooshes are band-passed noise sweeps; impacts layer a wet
+	# slap, a low thump and (for bone) a short crack.
+	sounds["whoosh"] = _wav(_whoosh(0.28, 700.0, 2600.0, 0.55))
+	sounds["whoosh_heavy"] = _wav(_whoosh(0.42, 350.0, 1500.0, 0.75))
+	sounds["slash"] = _wav(_mix(_mix(_shot(0.22, 16.0, 2200, 0, 0.0, 0.7), _shot(0.3, 12.0, 300, 70, 1.0, 0.7)), _squelch(0.25), 0.02))
+	sounds["chop"] = _wav(_mix(_shot(0.18, 22.0, 1800, 0, 0.0, 0.6), _shot(0.25, 14.0, 250, 90, 1.2, 0.8)))
+	sounds["bone"] = _wav(_mix(_shot(0.06, 60.0, 6000, 0, 0.0, 0.5), _shot(0.1, 35.0, 900, 160, 0.8, 0.5), 0.01))
+	sounds["clank"] = _wav(_mix(_tone(0.6, 1250, 1210, "tri", 0.001, 7.0, 0.002, 0.35), _tone(0.5, 2730, 2700, "sin", 0.001, 9.0, 0.0, 0.2)))
+	sounds["block"] = _wav(_mix(_tone(0.35, 980, 950, "tri", 0.001, 12.0, 0.0, 0.35), _shot(0.12, 30.0, 3000, 0, 0.0, 0.5)))
 	sounds["melee_hit"] = _wav(_shot(0.2, 25.0, 600, 60, 1.0, 0.9))
 	sounds["claw"] = _wav(_shot(0.18, 22.0, 1500, 90, 0.6, 0.7))
 	sounds["impact"] = _wav(_shot(0.08, 50.0, 3000, 0, 0.0, 0.4))
@@ -294,6 +303,34 @@ func _build() -> void:
 		var t := float(i) / RATE
 		heli[i] = _rng.randf_range(-1, 1) * (0.25 + 0.25 * sin(TAU * 11.0 * t)) * 0.6
 	sounds["helicopter"] = _wav(heli, true)
+
+
+func _whoosh(sec: float, f0: float, f1: float, gain: float) -> PackedFloat32Array:
+	var b := _buf(sec)
+	var lp := 0.0
+	var lp2 := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var k := t / sec
+		var f: float = lerp(f0, f1, sin(k * PI))
+		var a: float = clamp(f / RATE * 6.28, 0.0, 1.0)
+		var x := _rng.randf_range(-1, 1)
+		lp += a * (x - lp)
+		lp2 += a * 0.5 * (lp - lp2)
+		var env := sin(k * PI) * sin(k * PI)
+		b[i] = (lp - lp2) * 3.0 * env * gain
+	return b
+
+
+func _squelch(sec: float) -> PackedFloat32Array:
+	var b := _buf(sec)
+	var ph := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		var f := 180.0 + 900.0 * exp(-t * 18.0) + _rng.randf_range(-40, 40)
+		ph += f / RATE
+		b[i] = sin(ph * TAU) * exp(-t * 14.0) * 0.4 * (0.6 + 0.4 * _rng.randf())
+	return b
 
 
 func _ambient_drone(sec: float) -> PackedFloat32Array:

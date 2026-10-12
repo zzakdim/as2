@@ -32,6 +32,8 @@ var attractors: Array = []
 var map_index := 0
 var autotest := false
 var autotest_seconds := 90.0
+var mode := "campaign"        # "campaign" or "sandbox" (melee test arena)
+var god_mode := false
 var bots_enabled := true       # teammates; turn off for solo testing (menu toggle or --no-bots)
 var playing := false
 var time := 0.0
@@ -46,6 +48,8 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	autotest = "--autotest" in args
 	for a in args:
+		if a == "--sandbox":
+			mode = "sandbox"
 		if a == "--no-bots":
 			bots_enabled = false
 		if a.begins_with("--seconds="):
@@ -67,7 +71,7 @@ func _setup_inputs() -> void:
 		"jump": [KEY_SPACE], "walk": [KEY_SHIFT], "crouch": [KEY_CTRL, KEY_C],
 		"reload": [KEY_R], "use": [KEY_E], "flashlight": [KEY_F], "ping": [KEY_Z],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5],
-		"last_weapon": [KEY_Q], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE], "debug": [KEY_F3],
+		"last_weapon": [KEY_Q], "sandbox_horde": [KEY_F5], "sandbox_special": [KEY_F6], "sandbox_god": [KEY_F7], "sandbox_tank": [KEY_F8], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE], "debug": [KEY_F3],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):

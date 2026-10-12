@@ -79,7 +79,7 @@ func _vomit(t) -> void:
 	rig.add_child(p)
 	p.position = Vector3(0, 1.5, -0.3)
 	p.emitting = true
-	get_tree().create_timer(1.5).timeout.connect(p.queue_free)
+	Effects.after(p, 1.5, p.queue_free)
 	for s in Game.survivors:
 		if not is_instance_valid(s) or s.dead:
 			continue

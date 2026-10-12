@@ -149,5 +149,5 @@ func on_death() -> void:
 	Game.world.add_child(p)
 	p.global_position = global_position + Vector3(0, 1.2, 0)
 	p.emitting = true
-	get_tree().create_timer(4.0).timeout.connect(p.queue_free)
+	Effects.after(p, 4.0, p.queue_free)
 	Game.sfx.play3d("smoker_cough", global_position, 0.0)

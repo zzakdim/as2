@@ -30,6 +30,8 @@ func _init(surv: Survivor, auto := false) -> void:
 
 
 func update(delta: float) -> void:
+	s.fire_held = false
+	s.block_held = false
 	if s.dead:
 		return
 	callout_cd = max(0.0, callout_cd - delta)
@@ -115,7 +117,10 @@ func _aim(delta: float) -> void:
 
 func _combat() -> void:
 	# Keep the primary out unless we're down or holding something else on purpose.
-	if not s.incapped and s.action == "" and s.active_slot != Survivor.SLOT_PRIMARY and s.primary and s.active_slot != Survivor.SLOT_MEDKIT:
+	var prefer_melee: bool = Game.mode == "sandbox" and WeaponData.get_def(s.secondary["id"]).get("melee", false)
+	if prefer_melee and s.active_slot != Survivor.SLOT_SECONDARY and s.action == "" and not s.incapped:
+		s.switch_to(Survivor.SLOT_SECONDARY)
+	elif not prefer_melee and not s.incapped and s.action == "" and s.active_slot != Survivor.SLOT_PRIMARY and s.primary and s.active_slot != Survivor.SLOT_MEDKIT:
 		s.switch_to(Survivor.SLOT_PRIMARY)
 	if s.primary and s.primary["reserve"] < 20:
 		s.primary["reserve"] = WeaponData.get_def(s.primary["id"])["reserve"]  # bots don't manage ammo
@@ -137,8 +142,13 @@ func _combat() -> void:
 	if def.is_empty():
 		return
 	if def.get("melee", false):
-		if d < 2.3 and err < 0.8:
-			s.try_fire()
+		# Tap for lights; occasionally hold for a heavy into a crowd.
+		if d < 2.6 and err < 0.7:
+			var crowd := _commons_near(s.global_position + s.flat_forward() * 1.5, 2.0)
+			if crowd >= 3:
+				s.fire_held = Engine.get_physics_frames() % 40 < 30
+			else:
+				s.fire_held = Engine.get_physics_frames() % 2 == 0
 		return
 	if err < tol and d < def.get("range", 50.0):
 		tap = not tap
@@ -342,6 +352,8 @@ func _wanted_item():
 func _objective():
 	var lvl = Game.level
 	var dir = Game.director
+	if Game.mode == "sandbox":
+		return lvl.cell_center(lvl.start_door)
 	# Open the start door if it's closed and we're close.
 	for u in Game.usables:
 		if u is Props.Door and is_instance_valid(u) and not u.is_open and not u.is_end_door:

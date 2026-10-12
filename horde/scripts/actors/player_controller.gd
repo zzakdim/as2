@@ -18,6 +18,15 @@ var hold_kind := ""
 var _was_on_floor := true
 var _mouse_delta := Vector2.ZERO
 var base_fov := 80.0
+# Melee viewmodel: the blade is posed directly from Melee.pose (camera space)
+var melee_root: Node3D
+var melee_blade_mat: StandardMaterial3D
+var arm_parts: Array = []      # [upper_r, fore_r, hand_r, upper_l, fore_l, hand_l]
+var trail: MeshInstance3D
+var trail_mesh: ImmediateMesh
+var trail_pts: Array = []      # [base, tip, age] in camera space
+var dodge_roll := 0.0
+var hit_shake := 0.0
 
 
 func attach(surv: Survivor) -> void:
@@ -30,7 +39,7 @@ func attach(surv: Survivor) -> void:
 func _ready() -> void:
 	camera = Camera3D.new()
 	camera.fov = base_fov
-	camera.near = 0.05
+	camera.near = 0.1
 	camera.far = 400.0
 	camera.current = true
 	s.add_child(camera)
@@ -46,6 +55,15 @@ func _ready() -> void:
 	camera.add_child(flashlight)
 	vm_root = Node3D.new()
 	camera.add_child(vm_root)
+	# Viewmodel fill light: keeps the held weapon readable in the dark
+	# (metal reflects nothing against a black sky otherwise).
+	var vm_light := OmniLight3D.new()
+	vm_light.light_color = Color(1.0, 0.9, 0.8)
+	vm_light.light_energy = 0.6
+	vm_light.omni_range = 2.2
+	vm_light.position = Vector3(0.3, 0.25, 0.2)
+	vm_light.light_specular = 1.5
+	camera.add_child(vm_light)
 	s.rig.visible = false
 	s.fired.connect(_on_fired)
 	on_weapon_changed()
@@ -75,8 +93,14 @@ func update(delta: float) -> void:
 	s.want_walk = playing and Input.is_action_pressed("walk")
 	s.want_crouch = playing and Input.is_action_pressed("crouch")
 	if playing and Input.is_action_just_pressed("jump"):
-		s.want_jump = true
+		# Darktide-style: jump while moving sideways/backwards is a dodge.
+		if mv.length() > 0.3 and mv.y > -0.3:
+			s.want_dodge = true
+		else:
+			s.want_jump = true
 	if not playing:
+		s.fire_held = false
+		s.block_held = false
 		return
 
 	if Input.is_action_just_pressed("flashlight"):
@@ -111,7 +135,13 @@ func update(delta: float) -> void:
 			s.cancel_action()
 		elif s.action == "heal_other" and not Input.is_action_pressed("shove"):
 			s.cancel_action()
+	elif s.is_melee_active() and s.active_slot == Survivor.SLOT_SECONDARY:
+		# Melee: LMB light/heavy, hold RMB block, LMB while blocking = push.
+		s.fire_held = fire
+		s.block_held = Input.is_action_pressed("shove")
 	else:
+		s.fire_held = false
+		s.block_held = false
 		if fire:
 			s.try_fire()
 		else:
@@ -221,12 +251,131 @@ func _ping() -> void:
 func on_weapon_changed() -> void:
 	if vm_model:
 		vm_model.queue_free()
+		vm_model = null
+	if melee_root:
+		melee_root.queue_free()
+		melee_root = null
+	for a in arm_parts:
+		a.queue_free()
+	arm_parts.clear()
 	var id := s.current_item_id()
-	vm_model = WeaponData.build_model(id, true) if id != "" else null
+	if id != "" and WeaponData.get_def(id).get("melee", false) and WeaponData.DEFS.has(id):
+		_build_melee_vm(id)
+	else:
+		vm_model = WeaponData.build_model(id, true) if id != "" else null
 	if vm_model:
 		vm_root.add_child(vm_model)
 	vm_reload = 0.0
 	land_dip = 0.25
+
+
+func _build_melee_vm(id: String) -> void:
+	melee_root = Node3D.new()
+	camera.add_child(melee_root)
+	var model := WeaponData.build_model(id, true)
+	melee_root.add_child(model)
+	var blade := model.get_node_or_null("Blade") as MeshInstance3D
+	melee_blade_mat = blade.material_override as StandardMaterial3D if blade else null
+	var tip := model.get_node_or_null("Tip") as MeshInstance3D
+	if tip and melee_blade_mat:
+		tip.material_override = melee_blade_mat
+	var sleeve := Mats.color(s.color.darkened(0.45), 0.9)
+	var glove := Mats.color(Color(0.12, 0.1, 0.09), 0.7)
+	for side in 2:
+		for kind in ["upper", "fore", "hand"]:
+			var mi := MeshInstance3D.new()
+			mi.mesh = Mats.box(Vector3(1, 1, 1))
+			mi.material_override = glove if kind == "hand" else sleeve
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			camera.add_child(mi)
+			arm_parts.append(mi)
+	melee_root.transform = s.melee.idle_pose() if s.melee.ms.size() > 0 else Transform3D()
+	trail_mesh = ImmediateMesh.new()
+	trail = MeshInstance3D.new()
+	trail.mesh = trail_mesh
+	var tm := StandardMaterial3D.new()
+	tm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	tm.vertex_color_use_as_albedo = true
+	tm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	tm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	tm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	trail.material_override = tm
+	trail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	camera.add_child(trail)
+	arm_parts.append(trail)
+
+
+## Places a unit box between two camera-space points.
+func _limb_between(mi: MeshInstance3D, a: Vector3, b: Vector3, thick: float) -> void:
+	var d := b - a
+	var l := d.length()
+	if l < 0.001:
+		return
+	var z := d / l
+	var x := Vector3.UP.cross(z)
+	if x.length_squared() < 0.001:
+		x = Vector3.RIGHT
+	x = x.normalized()
+	var y := z.cross(x)
+	mi.transform = Transform3D(Basis(x * thick, y * thick, z * l), (a + b) * 0.5)
+
+
+func _update_melee_vm(delta: float, bob: float) -> void:
+	var m: Melee = s.melee
+	var xf := m.pose
+	xf.origin += Vector3(0, bob * 0.5 - land_dip * 0.5, 0)
+	melee_root.transform = xf
+	if melee_blade_mat:
+		melee_blade_mat.albedo_color = Color(0.62, 0.63, 0.66).lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
+		melee_blade_mat.roughness = lerp(0.25, 0.6, m.blood)
+	var grip: float = m.ms.get("grip", 0.3)
+	var hand_r: Vector3 = xf * Vector3(0, 0, -grip * 0.25)
+	var hand_l: Vector3 = xf * Vector3(0, 0, -grip * 0.8)
+	# Forearms only: from the hands back toward elbows below the screen.
+	var hands := [hand_r, hand_l]
+	var elbows := [Vector3(0.32, -0.78, 0.05), Vector3(-0.22, -0.8, 0.05)]
+	for side in 2:
+		var hand: Vector3 = hands[side]
+		var elbow: Vector3 = hand + (elbows[side] - hand).normalized() * 0.36
+		arm_parts[side * 3].visible = false
+		_limb_between(arm_parts[side * 3 + 1], elbow, hand, 0.06)
+		arm_parts[side * 3 + 2].transform = Transform3D(xf.basis.orthonormalized() * Basis.from_scale(Vector3(0.095, 0.1, 0.11)), hand)
+
+
+func _update_trail(delta: float) -> void:
+	var m: Melee = s.melee
+	for tp in trail_pts:
+		tp[2] += delta
+	while trail_pts.size() > 0 and trail_pts[0][2] > 0.09:
+		trail_pts.pop_front()
+	if m.state == "strike" or (m.state == "follow" and m.t < 0.05):
+		var grip: float = m.ms.get("grip", 0.3)
+		var length: float = m.ms.get("length", 1.0)
+		trail_pts.append([m.pose * Vector3(0, 0, -grip - length * 0.35), m.pose * Vector3(0, 0, -grip - length), 0.0])
+	trail_mesh.clear_surfaces()
+	if trail_pts.size() < 2:
+		return
+	trail_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+	for tp in trail_pts:
+		var a: float = clamp(1.0 - tp[2] / 0.09, 0.0, 1.0) * (0.35 if not m.is_heavy else 0.5)
+		var col := Color(0.9, 0.9, 1.0, 0.0).lerp(Color(1.0, 0.95, 0.9, a), 1.0)
+		col.a = a
+		trail_mesh.surface_set_color(Color(col.r, col.g, col.b, a * 0.2))
+		trail_mesh.surface_add_vertex(tp[0])
+		trail_mesh.surface_set_color(col)
+		trail_mesh.surface_add_vertex(tp[1])
+	trail_mesh.surface_end()
+
+
+func on_melee_hit(killed: bool, dist: float) -> void:
+	hit_shake = max(hit_shake, 0.4 if killed else 0.25)
+	if killed and dist < 1.9 and randf() < 0.35:
+		Game.hud.screen_blood()
+
+
+func on_dodge(dir: Vector3) -> void:
+	var right := Vector3(-s.flat_forward().z, 0, s.flat_forward().x)
+	dodge_roll = -right.dot(dir) * 0.06
 
 
 func on_reload(def: Dictionary) -> void:
@@ -273,10 +422,14 @@ func _process(delta: float) -> void:
 	var roll := 0.0
 	if s.incapped:
 		roll = 0.25
+	hit_shake = max(0.0, hit_shake - delta * 3.0)
+	dodge_roll = lerp(dodge_roll, 0.0, min(1.0, delta * 6.0))
+	var punch: Vector2 = s.melee.cam_punch if s.melee else Vector2.ZERO
+	var hs := hit_shake * hit_shake * 0.01
 	camera.rotation = Vector3(
-		s.pitch + randf_range(-1, 1) * shake * 0.03,
-		s.yaw + randf_range(-1, 1) * shake * 0.03,
-		roll)
+		s.pitch + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.x,
+		s.yaw + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.y,
+		roll + dodge_roll)
 	camera.position.y += bob - land_dip * 0.3
 	flashlight.visible = s.flashlight_enabled and not s.dead
 	camera.fov = lerp(camera.fov, base_fov + (4.0 if speed > 4.5 else 0.0), delta * 4.0)
@@ -313,6 +466,14 @@ func _process(delta: float) -> void:
 	vm_root.position = vm_root.position.lerp(base, min(1.0, delta * 20.0))
 	vm_root.rotation = vm_root.rotation.lerp(rot, min(1.0, delta * 20.0))
 	vm_root.visible = not s.dead and s.pinned_by == null
+	if melee_root:
+		var show := not s.dead and s.pinned_by == null and not s.incapped and s.action == ""
+		melee_root.visible = show
+		for a in arm_parts:
+			a.visible = show
+		if show:
+			_update_melee_vm(delta, bob)
+			_update_trail(delta)
 
 
 func _on_fired(def: Dictionary) -> void:

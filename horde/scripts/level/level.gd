@@ -172,6 +172,54 @@ func generate(seed_v: int, map_idx: int) -> void:
 	walk = saved
 
 
+## Melee sandbox: one open arena with some cover, no saferooms or events.
+func generate_arena(seed_v: int) -> void:
+	rng.seed = seed_v
+	map_index = 0
+	is_finale = false
+	grid.resize(W * H)
+	grid.fill(T_WALL)
+	heights.resize(W * H)
+	path_center.resize(H)
+	path_center.fill(W / 2)
+	var z1 := 44
+	_carve_rect(3, 3, W - 4, z1)
+	# pillars and a few cars for footwork
+	for i in 10:
+		var x := rng.randi_range(6, W - 7)
+		var z := rng.randi_range(6, z1 - 3)
+		if abs(x - W / 2) + abs(z - 22) > 5:
+			_setc(x, z, T_WALL if rng.randf() < 0.5 else T_LOW)
+	start_door = Vector2i(W / 2, 22)
+	end_room = Rect2i()
+	start_room = Rect2i()
+	_finalize_walk()
+	_compute_flow()
+	_pick_heights()
+	_build_geometry()
+	var z := 8
+	while z < z1:
+		for side in [-1, 1]:
+			var x: int = 4 if side < 0 else W - 5
+			var pos := cell_center(Vector2i(x, z)) + Vector3(side * 0.7, 0, 0)
+			Props.lamp(self, pos, pos - Vector3(side * 2.0, 0, 0), false)
+		z += 12
+	var c := cell_center(start_door)
+	var ring := ["greatsword", "machete", "pump_shotgun", "assault_rifle", "ammo", "medkit", "pills", "pipe_bomb", "molotov", "bile_jar"]
+	for i in ring.size():
+		var a := TAU * i / ring.size()
+		add_child(Pickup.create(ring[i], c + Vector3(cos(a), 0, sin(a)) * 3.0))
+	spawn_points.clear()
+	for i in 4:
+		spawn_points.append(c + Vector3((i - 1.5) * 1.2, 0.1, 1.0))
+	field_survivors = FlowField.new(self)
+	field_special = FlowField.new(self)
+	field_player = FlowField.new(self)
+	field_attract = FlowField.new(self)
+	field_end = FlowField.new(self)
+	field_end.compute([start_door])
+
+
 func _carve_rect(x0: int, z0: int, x1: int, z1: int, t := T_FLOOR) -> void:
 	for z in range(max(z0, 1), min(z1, H - 2) + 1):
 		for x in range(max(x0, 1), min(x1, W - 2) + 1):
@@ -549,6 +597,8 @@ func _build_geometry() -> void:
 			add_child(f)
 
 	# Doors
+	if start_room.size.x == 0:
+		return  # sandbox arena: no saferooms
 	start_door_node = Props.Door.new()
 	start_door_node.setup(self, start_door, false, false)
 	start_door_node.position = cell_center(start_door)

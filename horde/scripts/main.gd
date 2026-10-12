@@ -48,7 +48,12 @@ Don't startle the Witch. Shove Boomers before you shoot them."""
 	var buttons := []
 	for d in 4:
 		var diff: int = d
-		buttons.append(["Play on %s" % Game.DIFF_NAMES[d], func(): start_campaign(diff)])
+		buttons.append(["Play on %s" % Game.DIFF_NAMES[d], func():
+			Game.mode = "campaign"
+			start_campaign(diff)])
+	buttons.append(["Melee Sandbox (greatsword, endless horde)", func():
+		Game.mode = "sandbox"
+		start_campaign(Game.Diff.NORMAL)])
 	buttons.append(["Bot teammates: %s" % ("ON" if Game.bots_enabled else "OFF"), func():
 		Game.bots_enabled = not Game.bots_enabled
 		show_title()])
@@ -84,7 +89,10 @@ func load_map(idx: int) -> void:
 	world.add_child(lvl)
 	Game.level = lvl
 	var t0 := Time.get_ticks_msec()
-	lvl.generate(seed_base + idx * 7919, idx)
+	if Game.mode == "sandbox":
+		lvl.generate_arena(seed_base)
+	else:
+		lvl.generate(seed_base + idx * 7919, idx)
 	if Game.autotest:
 		print("[autotest] map %d generated in %d ms (max_flow %d)" % [idx, Time.get_ticks_msec() - t0, lvl.max_flow])
 
@@ -95,7 +103,13 @@ func load_map(idx: int) -> void:
 		s.position = lvl.spawn_points[i]
 		s.yaw = PI   # face +Z, out of the saferoom
 		world.add_child(s)
-		if i < carry.size():
+		if Game.mode == "sandbox":
+			s.secondary = WeaponData.new_state("greatsword")
+			s.primary = WeaponData.new_state("assault_rifle")
+			s.active_slot = Survivor.SLOT_SECONDARY
+			s.has_medkit = true
+			s._refresh_held_model()
+		elif i < carry.size():
 			s.import_state(carry[i])
 		elif idx == 0:
 			s.primary = null
@@ -114,11 +128,18 @@ func load_map(idx: int) -> void:
 	Game.playing = true
 	Game.time = 0.0
 	Game.sfx.start_music()
-	Game.hud.map_label.text = "%s  ·  %s" % [Game.MAP_NAMES[idx], Game.DIFF_NAMES[Game.difficulty]]
-	Game.hud.big_message(Game.MAP_NAMES[idx], Color(0.9, 0.85, 0.75), 4.0)
+	if Game.mode == "sandbox":
+		Game.hud.map_label.text = "Melee Sandbox  ·  F5 horde  F6 special  F8 tank  F7 god mode (%s)" % ("on" if Game.god_mode else "off")
+		Game.hud.big_message("Melee Sandbox", Color(0.9, 0.85, 0.75), 3.0)
+	else:
+		Game.hud.map_label.text = "%s  ·  %s" % [Game.MAP_NAMES[idx], Game.DIFF_NAMES[Game.difficulty]]
+		Game.hud.big_message(Game.MAP_NAMES[idx], Color(0.9, 0.85, 0.75), 4.0)
 	if not Game.autotest:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	get_tree().paused = false
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--melee-poses="):
+			run_pose_sheet(a.substr(14))
 
 
 func _build_environment() -> void:
@@ -224,6 +245,16 @@ func _ordered_survivors() -> Array:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug"):
 		Game.debug_overlay = not Game.debug_overlay
+	if Game.mode == "sandbox" and Game.playing and Game.director:
+		if event.is_action_pressed("sandbox_horde"):
+			Game.director.spawn_mob(20, "sandbox")
+		if event.is_action_pressed("sandbox_special"):
+			Game.director.sandbox_special()
+		if event.is_action_pressed("sandbox_tank"):
+			Game.director.spawn_tank_now()
+		if event.is_action_pressed("sandbox_god"):
+			Game.god_mode = not Game.god_mode
+			Game.hud.big_message("God mode " + ("ON" if Game.god_mode else "OFF"), Color(1, 1, 0.6), 1.5)
 	if event.is_action_pressed("pause") and Game.playing:
 		if get_tree().paused:
 			_resume()
@@ -276,6 +307,45 @@ func _physics_process(delta: float) -> void:
 			_save_screenshot(shot[1])
 	if autotest_t >= Game.autotest_seconds:
 		_autotest_finish(0)
+
+
+## --melee-poses=/dir : renders every greatsword attack at key frames
+## (one PNG each) so swing arcs can be checked without playing.
+func run_pose_sheet(dir: String) -> void:
+	var p: Survivor = Game.player
+	p.controller = p.get_node_or_null("PlayerController")
+	for c in p.get_children():
+		if c is PlayerController:
+			p.controller = c
+	p.melee_frozen = true
+	p.melee.set_weapon("greatsword")
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	Game.director.set_physics_process(false)
+	await get_tree().create_timer(0.5).timeout
+	var shots := [["idle", 0, "", 0.0], ["block", 0, "", 0.0], ["push", 0, "", 1.0]]
+	for kind in ["light", "heavy"]:
+		for i in p.melee.ms[kind].size():
+			shots.append([kind, i, "windup", 1.0])
+			if kind == "heavy":
+				shots.append([kind, i, "charge", 1.0])
+			for k in [0.25, 0.5, 0.75]:
+				shots.append([kind, i, "strike", k])
+			shots.append([kind, i, "follow", 1.0])
+	for k in [0.0, 0.5, 1.0]:
+		shots.append(["push_attack", 0, "strike", k])
+	var n := 0
+	for sh in shots:
+		p.melee.pose = p.melee.pose_for(sh[0], sh[1], sh[2], sh[3])
+		await get_tree().process_frame
+		await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		var img := get_viewport().get_texture().get_image()
+		var path := "%s/%02d_%s%d_%s_%.2f.png" % [dir, n, sh[0], sh[1], sh[2], sh[3]]
+		img.save_png(path)
+		n += 1
+	print("[autotest] pose sheet: %d frames in %s" % [n, dir])
+	get_tree().quit(0)
 
 
 func _save_screenshot(path: String) -> void:

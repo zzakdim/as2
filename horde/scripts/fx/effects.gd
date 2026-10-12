@@ -18,7 +18,7 @@ var shake := 0.0
 
 func _ready() -> void:
 	for i in 24:
-		_blood_pool.append(_make_burst(Color(0.45, 0.02, 0.02), 0.06, 7.0, 15.0))
+		_blood_pool.append(_make_burst(Color(0.32, 0.01, 0.01), 0.028, 7.0, 15.0))
 	for i in 12:
 		_spark_pool.append(_make_burst(Color(1.0, 0.8, 0.4), 0.03, 6.0, 18.0, true))
 	_tracer_mat = Mats.unshaded(Color(1.0, 0.85, 0.5, 0.55), true)
@@ -51,6 +51,17 @@ func _make_burst(col: Color, size: float, speed: float, grav: float, emissive :=
 	return p
 
 
+## Runs `fn` after `sec` seconds via a Timer owned by `node`, so nothing
+## fires if the node (or the whole map) is freed first.
+static func after(node: Node, sec: float, fn: Callable) -> void:
+	var t := Timer.new()
+	t.one_shot = true
+	t.wait_time = sec
+	t.autostart = true
+	t.timeout.connect(fn)
+	node.add_child(t)
+
+
 func _process(delta: float) -> void:
 	if _flash_t > 0.0:
 		_flash_t -= delta
@@ -64,9 +75,60 @@ func blood(pos: Vector3, amount := 8) -> void:
 	var p: CPUParticles3D = _blood_pool[_blood_i]
 	_blood_i = (_blood_i + 1) % _blood_pool.size()
 	p.global_position = pos
+	p.rotation = Vector3.ZERO
+	p.spread = 70.0
+	p.initial_velocity_max = 7.0
 	p.amount = clampi(amount, 4, 30)
 	p.restart()
 	p.emitting = true
+
+
+## Blood thrown along a direction (the blade's edge or a bullet's path).
+func blood_spray(pos: Vector3, dir: Vector3, amount := 12) -> void:
+	var p: CPUParticles3D = _blood_pool[_blood_i]
+	_blood_i = (_blood_i + 1) % _blood_pool.size()
+	p.global_position = pos
+	var d := dir.normalized()
+	if d.length_squared() > 0.01 and abs(d.dot(Vector3.UP)) < 0.98:
+		p.look_at(pos + d, Vector3.UP)
+		p.rotate_object_local(Vector3.RIGHT, -PI / 2)
+	else:
+		p.rotation = Vector3.ZERO
+	p.spread = 35.0
+	p.initial_velocity_max = 9.0
+	p.amount = clampi(amount * 2, 8, 48)
+	p.restart()
+	p.emitting = true
+
+
+## Chunks + mist for a split head or a body cut in half.
+func gib_burst(pos: Vector3, dir: Vector3, size: float) -> void:
+	var p := _make_burst(Color(0.3, 0.02, 0.02), size * 0.22, 5.0, 12.0)
+	p.amount = 10
+	p.lifetime = 1.0
+	p.global_position = pos
+	p.restart()
+	p.emitting = true
+	Effects.after(p, 1.5, p.queue_free)
+	blood_spray(pos, dir + Vector3(0, 0.5, 0), 26)
+
+
+## Continuous arterial spurt; caller parents it and turns it off.
+func make_spurt() -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.amount = 24
+	p.lifetime = 0.5
+	p.direction = Vector3.UP
+	p.spread = 18.0
+	p.initial_velocity_min = 2.0
+	p.initial_velocity_max = 4.0
+	p.gravity = Vector3(0, -12, 0)
+	var m := BoxMesh.new()
+	m.size = Vector3(0.025, 0.025, 0.025)
+	m.material = Mats.color(Color(0.32, 0.01, 0.01), 0.3)
+	p.mesh = m
+	p.local_coords = false
+	return p
 
 
 func impact(pos: Vector3, normal: Vector3) -> void:
@@ -140,7 +202,7 @@ func explosion(pos: Vector3, radius: float, damage: float, by) -> void:
 	fire.global_position = pos
 	fire.restart()
 	fire.emitting = true
-	get_tree().create_timer(1.5).timeout.connect(fire.queue_free)
+	Effects.after(fire, 1.5, fire.queue_free)
 	for i in 2:
 		blood(pos + Vector3(randf_range(-2, 2), 1, randf_range(-2, 2)), 25)
 	for z in Game.infected.duplicate():
@@ -152,6 +214,9 @@ func explosion(pos: Vector3, radius: float, damage: float, by) -> void:
 			var dmg := damage * (0.4 + 0.6 * k)
 			if z.kind == "tank":
 				dmg *= 0.5
+			z.impact_dir = ((z.global_position - pos).normalized() + Vector3(0, 0.8, 0)).normalized()
+			z.impact_force = 14.0 * k + 4.0
+			z.impact_point = z.global_position + Vector3(0, 0.6, 0)
 			z.take_damage(dmg, by, "body", "explosion", z.global_position + Vector3(0, 1, 0))
 			if not z.is_dead():
 				z.shove(pos, by)
@@ -198,7 +263,7 @@ func bile_burst(pos: Vector3, radius: float) -> void:
 	p.global_position = pos + Vector3(0, 1, 0)
 	p.restart()
 	p.emitting = true
-	get_tree().create_timer(1.5).timeout.connect(p.queue_free)
+	Effects.after(p, 1.5, p.queue_free)
 	for s in Game.survivors:
 		if is_instance_valid(s) and not s.dead and s.global_position.distance_to(pos) < radius:
 			s.apply_bile(15.0)

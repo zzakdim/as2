@@ -38,6 +38,11 @@ var fire_fx: Node3D = null
 var attract_target = null
 var last_attacker = null
 var mob := false
+# Set by whatever lands the killing blow; drives the ragdoll and gore.
+var impact_dir := Vector3.ZERO
+var impact_force := 0.0
+var impact_point := Vector3.INF
+var cut := ""
 var _grav := 20.0
 var _far := false
 
@@ -200,6 +205,11 @@ func think() -> void:
 			if td > 1.6:
 				state = S.CHASE
 			desired = Vector3.ZERO
+			if td < 0.95:
+				# Don't climb into the survivor's face; step back to arm's length.
+				var away: Vector3 = global_position - target.global_position
+				away.y = 0
+				desired = away.normalized() * 1.5
 
 
 func _pick_target(near) -> void:
@@ -241,7 +251,7 @@ func _chase_think(near) -> void:
 	var to: Vector3 = target.global_position - global_position
 	to.y = 0
 	var d := to.length()
-	if d < 1.2:
+	if d < 1.25:
 		state = S.ATTACK
 		attack_t = randf_range(0.2, 0.5)
 		desired = Vector3.ZERO
@@ -340,6 +350,12 @@ func part_mult(part: String) -> float:
 func take_damage(amount: float, attacker = null, part := "body", dmg_type := "bullet", hit_pos := Vector3.INF) -> void:
 	if state == S.DEAD:
 		return
+	if dmg_type != "melee" and dmg_type != "explosion":
+		# Bullets: knock the body along the shot.
+		impact_force = 0.0
+		cut = ""
+		if hit_pos != Vector3.INF:
+			impact_point = hit_pos
 	var dmg := amount * part_mult(part)
 	hp -= dmg
 	last_attacker = attacker
@@ -398,20 +414,26 @@ func die(attacker = null, part := "body", dmg_type := "bullet", dmg := 0.0) -> v
 	state = S.DEAD
 	dead_t = 0.0
 	desired = Vector3.ZERO
+	var body_vel := velocity
 	velocity = Vector3.ZERO
 	shape.set_deferred("disabled", true)
 	collision_layer = 0
-	var from_dir := Vector3.FORWARD
+	var from_dir := -face_dir
 	if attacker and is_instance_valid(attacker):
 		from_dir = global_position - attacker.global_position
 		from_dir.y = 0
 		from_dir = from_dir.normalized()
-	rig.die(from_dir)
-	if part == "head" and (dmg >= 120.0 or dmg_type == "melee" or dmg_type == "explosion" or randf() < 0.25):
-		rig.gib_head()
-		Game.fx.blood(global_position + Vector3(0, head_y, 0), 18)
-	elif dmg_type == "explosion" or (dmg_type == "melee" and randf() < 0.4):
-		rig.gib_arm()
+	# Work out the killing impulse and any dismemberment.
+	var impulse: Vector3
+	if impact_force > 0.0:
+		impulse = impact_dir * impact_force * 4.5 + Vector3(0, impact_force * 0.9, 0)
+	else:
+		impulse = from_dir * clamp(dmg * 0.09, 3.0, 22.0) + Vector3(0, 1.5, 0)
+	if cut == "" and part == "head" and dmg_type == "bullet" and (dmg >= 140.0 or randf() < 0.2):
+		cut = "split"
+	if dmg_type == "explosion":
+		cut = ["bisect", "decap", "arm", "gib"].pick_random()
+	var point := impact_point if impact_point != Vector3.INF else global_position + Vector3(0, 1.1, 0)
 	Game.fx.blood_decal(global_position)
 	if fire_fx and is_instance_valid(fire_fx):
 		fire_fx.queue_free()
@@ -421,6 +443,31 @@ func die(attacker = null, part := "body", dmg_type := "bullet", dmg := 0.0) -> v
 		Game.director.on_infected_killed(self, attacker)
 	on_death()
 	Game.infected.erase(self)
+	if rig.visible:
+		Ragdoll.from_rig(rig, body_vel, impulse, point, cut)
+	rig.visible = false
+	set_physics_process(false)
+	queue_free.call_deferred()
+
+
+func melee_stagger(dir: Vector3, force: float) -> void:
+	if state == S.DEAD:
+		return
+	var need := 3.0
+	match kind:
+		"hunter", "smoker", "spitter", "boomer": need = 6.0
+		"charger": need = 9.0
+		"tank", "witch": need = 999.0
+	if force >= need and (can_be_shoved or force >= 9.0) and kind != "tank" and kind != "witch":
+		var d := dir
+		d.y = 0
+		velocity = d.normalized() * force * 0.45 + Vector3(0, 1.0, 0)
+		state = S.STAGGER
+		stagger_t = 0.45 + force * 0.04
+		sitting = false
+		if rig.pose == "sit":
+			rig.set_pose("zombie")
+	rig.flinch(rig.global_basis.inverse() * dir, force)
 
 
 func on_death() -> void:

@@ -19,8 +19,12 @@ const DEFS := {
 		"range": 90.0, "sound": "shot_magnum", "noise": 30.0, "kick": 0.035,
 	},
 	"machete": {
-		"name": "Machete", "slot": 1, "tier": 0, "melee": true, "damage": 200.0, "rate": 0.55,
+		"name": "Machete", "slot": 1, "tier": 0, "melee": true, "moveset": "machete", "damage": 200.0, "rate": 0.55,
 		"range": 2.3, "arc": 70.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
+	},
+	"greatsword": {
+		"name": "Greatsword", "slot": 1, "tier": 0, "melee": true, "moveset": "greatsword", "damage": 240.0, "rate": 0.5,
+		"range": 2.6, "arc": 80.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
 	},
 	"smg": {
 		"name": "SMG", "slot": 0, "tier": 1, "damage": 20.0, "pellets": 1, "rate": 0.065,
@@ -89,8 +93,22 @@ static func build_model(id: String, view := false) -> Node3D:
 			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.05, l)), steel if id == "magnum" else dark, Vector3(0, 0.02, -l * 0.5))
 			Mats.add_mesh(root, Mats.box(Vector3(0.035, 0.1, 0.05)), dark, Vector3(0, -0.04, 0.0), Vector3(-0.25, 0, 0))
 		"machete":
-			Mats.add_mesh(root, Mats.box(Vector3(0.03, 0.05, 0.14)), wood, Vector3(0, 0, 0.0))
-			Mats.add_mesh(root, Mats.box(Vector3(0.012, 0.07, 0.5)), steel, Vector3(0, 0.01, -0.32))
+			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.03, 0.14)), wood, Vector3(0, 0, -0.07))
+			var mb := Mats.add_mesh(root, Mats.box(Vector3(0.07, 0.012, 0.5)), steel.duplicate(), Vector3(0.01, 0, -0.4))
+			mb.name = "Blade"
+		"greatsword":
+			var leather := Mats.color(Color(0.16, 0.1, 0.07), 0.8)
+			var brass := Mats.color(Color(0.55, 0.42, 0.2), 0.35, 0.8)
+			var blade_mat := Mats.color(Color(0.62, 0.63, 0.66), 0.32, 0.55).duplicate()
+			Mats.add_mesh(root, Mats.sphere(0.035, 8), brass, Vector3(0, 0, 0.02))
+			Mats.add_mesh(root, Mats.cylinder(0.022, 0.32, 8), leather, Vector3(0, 0, -0.17), Vector3(PI / 2, 0, 0))
+			Mats.add_mesh(root, Mats.box(Vector3(0.36, 0.045, 0.06)), brass, Vector3(0, 0, -0.35))
+			Mats.add_mesh(root, Mats.box(Vector3(0.1, 0.06, 0.08)), brass, Vector3(0, 0, -0.39))
+			var b := Mats.add_mesh(root, Mats.box(Vector3(0.078, 0.014, 1.08)), blade_mat, Vector3(0, 0, -0.93))
+			b.name = "Blade"
+			var tip := Mats.add_mesh(root, Mats.box(Vector3(0.055, 0.014, 0.055)), blade_mat, Vector3(0, 0, -1.47), Vector3(0, PI / 4, 0))
+			tip.name = "Tip"
+			Mats.add_mesh(root, Mats.box(Vector3(0.016, 0.017, 0.86)), Mats.color(Color(0.3, 0.3, 0.32), 0.3, 0.9), Vector3(0, 0, -0.86))
 		"smg":
 			Mats.add_mesh(root, Mats.box(Vector3(0.06, 0.08, 0.36)), dark, Vector3(0, 0.02, -0.15))
 			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.16, 0.04)), dark, Vector3(0, -0.08, -0.12))

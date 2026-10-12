@@ -27,6 +27,21 @@ are synthesized at startup. The systems underneath are the real thing.
 
 Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
 
+**Melee (greatsword / machete)** — Darktide-style:
+
+| Action | Input |
+| --- | --- |
+| Light attack chain | tap LMB |
+| Charged heavy | hold LMB, release |
+| Block | hold RMB (costs stamina per hit blocked) |
+| Push | LMB while blocking |
+| Push-attack (thrust) | LMB right after a push |
+| Dodge | Space while moving sideways or backwards |
+
+The **Melee Sandbox** on the title screen drops you in an arena with the
+greatsword and an endless horde. F5 spawns a horde, F6 a special, F8 a
+Tank, F7 toggles god mode.
+
 **Solo testing:** toggle *Bot teammates* on the title screen or pause menu
 (or pass `--no-bots`). Without bots, only death ends the run, and you can hold
 E while downed to get yourself back up.
@@ -71,7 +86,26 @@ along the map) and Witches. Press F3 in game to watch it work.
 - Incap → revive → black & white on your last life → death.
 - Limping at low health. Friendly fire scales with difficulty.
 
-**Weapons**: pistol / dual pistols / magnum / machete, SMG, pump & auto
+**Melee** (`scripts/weapons/melee.gd`). Movesets are data: each attack is
+a swing direction, an arc, timings (windup, strike, follow-through, recover),
+damage, a cleave budget and an impact force. The same camera-space blade
+transform drives the first-person view *and* the hit sweep, so what you see
+is exactly what you hit. Feel comes from:
+- weapon-side drag on contact (the swing slows as it carves through
+  bodies, the Vermintide/Darktide approach, instead of global hit-stop)
+- a camera punch in the swing direction and a fading swing trail
+- the cleave budget: the horde soaks it up, and armored targets stop the
+  blade dead
+- directional staggers and flinches on survivors of a hit
+- ragdolls launched along the swing, with cut-dependent gore: decapitation,
+  head splits, lost arms, and heavy sweeps cutting bodies in half
+- blood that follows the edge, stains the blade, and splashes the screen
+  on close kills
+
+To check swing arcs without playing, render a pose contact sheet:
+`xvfb-run godot --path horde --rendering-driver opengl3 -- --autotest --sandbox --no-bots --seconds=200 --melee-poses=/tmp/poses`
+
+**Weapons**: pistol / dual pistols / magnum / machete / greatsword, SMG, pump & auto
 shotgun, assault rifle, hunting rifle. Also pipe bombs (lure + explode),
 molotovs and bile jars. Damage numbers follow L4D2's published stats,
 including headshots, penetration and shotgun falloff.
