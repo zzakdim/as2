@@ -237,7 +237,7 @@ func _populate_until(flow_to: int, hidden_only: bool) -> void:
 	if flow_to <= populated_upto:
 		return
 	var span := flow_to - populated_upto
-	var density: float = [0.25, 0.32, 0.38, 0.42][Game.difficulty]
+	var density: float = [0.6, 0.8, 1.0, 1.1][Game.difficulty]
 	var n := int(span * density)
 	for i in n:
 		if Game.commons_alive() > 110:
