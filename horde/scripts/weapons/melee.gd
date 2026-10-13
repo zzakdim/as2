@@ -87,6 +87,8 @@ const MOVESETS := {
 	# whiffing or pausing loses it. Rewards staying in the crowd.
 	"messer": {
 		"length": 0.76, "grip": 0.19, "pivot": Vector3(0.12, -0.25, -0.48), "momentum": true, "swish_pitch": 1.1,
+		"wrath": {"name": "Wrath cut", "dir": 35.0, "arc": [-64.0, 70.0], "windup": 0.1, "strike": 0.13, "follow": 0.1, "recover": 0.36,
+			"damage": 220.0, "cleave": 4.0, "impact": 8.0, "lunge": 3.0, "sever": 0.7, "next_light": 0, "next_heavy": 0, "bisect": true},
 		"stamina": 3.5, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
 		"light": [
 			{"name": "Zornhau", "dir": 38.0, "arc": [-58.0, 62.0], "windup": 0.11, "strike": 0.11, "follow": 0.08, "recover": 0.28,
@@ -406,6 +408,23 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 ## deflects any melee hit from the front, reels the attacker and opens a
 ## riposte; mistimed, it leaves you open for a moment.
 func special() -> void:
+	if ms.has("wrath") and momentum >= 2 and state in ["idle", "recover", "follow"]:
+		# Messer: spend the momentum on one huge cut.
+		atk = ms["wrath"].duplicate()
+		atk["damage"] *= 1.0 + 0.25 * momentum
+		atk["cleave"] += momentum
+		atk["sever"] += 0.15 * momentum
+		momentum = 0
+		swing_hits = 0
+		is_heavy = true
+		stopped = false
+		press_t = 0.0
+		queued = false
+		_enter("windup")
+		Game.sfx.play3d("whoosh_heavy", s.eye_pos(), 0.0, 0.05, 0.9)
+		if s.controller and s.controller.has_method("on_full_charge"):
+			s.controller.on_full_charge()
+		return
 	if not ms.has("parry") or state not in ["idle", "block", "recover"] or stamina <= 0.0:
 		return
 	_use_stamina(ms["parry"]["cost"])

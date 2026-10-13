@@ -70,7 +70,8 @@ Swords, each built around a different idea:
   middle into two halves.
 - **Messer** — momentum: every consecutive hit makes the next swing faster
   (up to +40%, chevrons under the stamina pips); whiff or pause and it's
-  gone.
+  gone. Its special (V) spends two or more stacks on a **Wrath cut**: +25%
+  damage, more cleave and more severing per stack.
 
 Other melee: fire axe (armor-cracking chops),
 sledgehammer (slow; the overhead slam knocks everything down — they fall,
