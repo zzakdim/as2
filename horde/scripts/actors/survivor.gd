@@ -40,6 +40,7 @@ var incap_hp := 300.0
 var incap_count := 0
 var dead := false
 var pinned_by = null
+var ride_vel := Vector3.ZERO     # a jockey steering us
 var biled_time := 0.0
 var slow_t := 0.0
 var stun_t := 0.0
@@ -375,6 +376,9 @@ func _timers(delta: float) -> void:
 func _move(delta: float) -> void:
 	if pinned_by != null:
 		velocity = Vector3.ZERO
+		if ride_vel != Vector3.ZERO:
+			velocity = ride_vel + Vector3(0, -2.0, 0)
+			move_and_slide()
 		return
 	var speed := RUN_SPEED
 	if incapped or action in ["heal_self", "heal_other", "revive", "use_hold"]:
@@ -968,7 +972,7 @@ func pin(by, _kind: String) -> void:
 	if Game.director:
 		Game.director.add_intensity(self, 0.6)
 		Game.director.check_wipe()
-	Game.callout(self, {"hunter": "Hunter on me!", "smoker": "Smoker's got me!", "charger": "Charger!"}.get(_kind, "Help!"))
+	Game.callout(self, {"hunter": "Hunter on me!", "smoker": "Smoker's got me!", "charger": "Charger!", "jockey": "Jockey! Get it off me!"}.get(_kind, "Help!"))
 
 
 func unpin() -> void:

@@ -32,7 +32,7 @@ var finished := false
 var wiped := false
 var started := false
 var leave_t := 0.0
-var special_classes := ["hunter", "smoker", "boomer", "charger", "spitter"]
+var special_classes := ["hunter", "smoker", "boomer", "charger", "spitter", "jockey"]
 var _rng := RandomNumberGenerator.new()
 
 
@@ -146,7 +146,7 @@ func _sandbox(delta: float) -> void:
 
 
 func sandbox_special() -> void:
-	var kinds := ["shieldbearer", "hunter", "rager", "boomer", "charger", "shieldbearer", "smoker", "rager", "spitter"]
+	var kinds := ["shieldbearer", "hunter", "rager", "boomer", "charger", "jockey", "gunner", "smoker", "rager", "spitter"]
 	var kind: String = kinds[_sandbox_kinds_i % kinds.size()]
 	_sandbox_kinds_i += 1
 	var c := find_hidden_cell(0, Game.level.max_flow, 14.0)
@@ -208,6 +208,7 @@ func spawn_infected(kind: String, pos: Vector3) -> Infected:
 	match kind:
 		"shieldbearer", "rager", "gunner": z = Elite.make(kind)
 		"hunter": z = Hunter.new()
+		"jockey": z = Jockey.new()
 		"smoker": z = Smoker.new()
 		"boomer": z = Boomer.new()
 		"charger": z = Charger.new()

@@ -86,10 +86,11 @@ func _launch() -> void:
 	var dist := to.length()
 	var flat: Vector3 = to / max(dist, 0.01)
 	var speed: float = clamp(dist * 1.1, 8.0, 15.0)
-	velocity = flat * speed + Vector3(0, 4.0 + dist * 0.08, 0)
+	velocity = flat * speed + Vector3(0, clampf(0.5 * _grav * dist / speed, 3.0, 11.0), 0)
 	desired = flat * speed
 	phase = "leap"
 	phase_t = 0.0
+	jump_lock = 0.2
 	face_dir = flat
 
 

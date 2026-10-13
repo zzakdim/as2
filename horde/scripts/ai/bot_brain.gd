@@ -193,7 +193,7 @@ func _move(delta: float) -> void:
 		if d < 30.0:
 			goal = t.global_position
 			var p = t.pinned_by
-			if d < 2.0 and is_instance_valid(p) and p.kind in ["hunter", "smoker"]:
+			if d < 2.0 and is_instance_valid(p) and p.kind in ["hunter", "smoker", "jockey"]:
 				var to: Vector3 = t.global_position - s.global_position
 				s.yaw = atan2(-to.x, -to.z)
 				s.try_shove()

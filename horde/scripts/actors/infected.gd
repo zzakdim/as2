@@ -45,6 +45,7 @@ var impact_point := Vector3.INF
 var cut := ""
 var _grav := 20.0
 var _far := false
+var jump_lock := 0.0          # just jumped: don't glue to the floor yet
 
 
 const COMMON_MODELS := ["minion", "minion", "minion", "warrior", "rogue", "mage"]
@@ -136,7 +137,8 @@ func _physics_process(delta: float) -> void:
 		hv = hv.move_toward(want, accel * delta)
 	velocity.x = hv.x
 	velocity.z = hv.z
-	if is_on_floor():
+	jump_lock -= delta
+	if is_on_floor() and jump_lock <= 0.0:
 		velocity.y = -1.0
 	else:
 		velocity.y -= _grav * delta

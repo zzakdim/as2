@@ -95,6 +95,9 @@ along the map) and Witches. Press F3 in game to watch it work.
   killed. Shove it first.
 - **Charger**: straight-line charge that scatters the team, then carries one
   victim off and pummels them.
+- **Jockey**: small and fast. Zig-zags in, leaps onto a survivor's
+  shoulders and rides them away from the team toward the horde. Pull the
+  other way to slow it; a teammate has to shove or shoot it off.
 - **Spitter**: lobs acid that burns harder the longer you stand in it.
 - **Tank**: thousands of HP, punches send you flying, throws concrete. Gets
   its own music.
@@ -215,7 +218,7 @@ Next up, roughly in order of impact:
   - Toughness that regenerates near teammates (coherency).
   - Heavy/light melee combos with stamina and blocking.
   - Loadouts and progression between runs.
-- **More L4D2**: Jockey, rescue closets for dead teammates, ledge hangs, more
+- **More L4D2**: rescue closets for dead teammates, ledge hangs, more
   melee weapons, laser sights / incendiary ammo, gas can scavenge finales,
   flooding/rising-water set pieces.
 - **Online co-op** (Godot's high-level multiplayer) and versus mode.
