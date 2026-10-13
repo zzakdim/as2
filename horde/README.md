@@ -176,6 +176,9 @@ is exactly what you hit. Feel comes from:
   head splits, lost arms, and heavy sweeps cutting bodies in half
 - blood that follows the edge, stains the blade, and splashes the screen
   on close kills
+- bodies on the ground can be hacked at too: the blade shoves the limb it
+  passes through and can take it off
+- a swing trail smeared along the blade's arc, tinting red as it gets bloody
 
 `--input-test` drives the real first-person controls through every melee
 state, the medkit, pills and throwables, and fails if any are unreachable.

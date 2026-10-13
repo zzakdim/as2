@@ -689,6 +689,20 @@ func run_swing_test(arg: String) -> void:
 		for i in 18:
 			await get_tree().create_timer(0.05).timeout
 			await shoot.call()
+	elif mode == "chop":
+		# Kill the line with a heavy, then look down and hack at the bodies.
+		for i in 8:
+			await get_tree().create_timer(0.07).timeout
+		Input.action_release("fire")
+		await get_tree().create_timer(1.2).timeout
+		p.pitch = -0.75
+		for i in 30:
+			await get_tree().create_timer(0.05).timeout
+			if i % 7 == 1:
+				Input.action_press("fire")
+			if i % 7 == 2:
+				Input.action_release("fire")
+			await shoot.call()
 	else:
 		await get_tree().create_timer(0.05).timeout
 		Input.action_release("fire")

@@ -822,6 +822,43 @@ static func _rag_swing(bone: String) -> float:
 	return 28.0       # spine / chest
 
 
+## A blade passing through this corpse at physical bone `pb`: shove it and
+## maybe take the limb off. Returns true if something was severed.
+func chop_corpse(pb: PhysicalBone3D, impulse: Vector3, sever_chance: float) -> bool:
+	if not ragdolled or family != "human":
+		return false
+	pb.apply_central_impulse(impulse)
+	var bn := String(pb.bone_name)
+	var part := ""
+	var role_bone := ""
+	var stump_role := ""
+	if bn == "Head":
+		part = "head"
+		role_bone = "head"
+	elif bn.begins_with("upperarm") or bn.begins_with("lowerarm"):
+		var side := bn.right(1)
+		part = "arm_" + side
+		role_bone = "upperarm." + side
+	elif bn.begins_with("thigh") or bn.begins_with("calf"):
+		var side := bn.right(1)
+		part = "leg_" + side
+		role_bone = "upperleg." + side
+	if part == "" or not parts.has(part) or not parts[part].visible or randf() > sever_chance:
+		return false
+	_gib_part(part, role_bone, impulse * 0.6 + Vector3(0, 2.0, 0))
+	if part == "head":
+		_hide_head_parts()
+		_add_stump("head", 0.0, Vector3(0.06, 1, 0.055))
+	elif part.begins_with("arm"):
+		var hp := "hand_" + part.right(1)
+		if parts.has(hp):
+			_gib_part(hp, "hand." + part.right(1), impulse * 0.5 + Vector3(0, 2, 0))
+		_add_stump(role_bone, 0.05, Vector3(0.055, 1, 0.055))
+	else:
+		_add_stump(role_bone, 0.05, Vector3(0.08, 1, 0.08))
+	return true
+
+
 ## The torso above the cut, as its own ragdoll: a second copy of this
 ## character in the same pose and materials showing only the upper parts.
 func _spawn_upper_half(velocity: Vector3, impulse: Vector3, point: Vector3) -> void:

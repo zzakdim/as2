@@ -166,6 +166,8 @@ const HIT_MASS := {"shieldbearer": 6.0, "rager": 2.0, "common": 1.0, "boomer": 1
 
 var s                       # Survivor
 var momentum := 0           # consecutive-hit stacks (momentum weapons)
+var corpses: Array = []     # ragdolls near this swing
+var corpse_hit := {}
 var swing_hits := 0
 var crit_flash := 0.0
 var ms: Dictionary = {}
@@ -452,6 +454,11 @@ func _begin_strike() -> void:
 	for z in Game.infected:
 		if is_instance_valid(z) and not z.is_dead() and z.global_position.distance_to(eye) < 4.5:
 			candidates.append(z)
+	corpses.clear()
+	corpse_hit.clear()
+	for r in SkinnedRig.ragdolls:
+		if is_instance_valid(r) and r.sim and is_instance_valid(r.sim) and r.global_position.distance_to(eye) < 4.0:
+			corpses.append(r)
 	theta = _strike_theta(0.0)
 	theta_prev = theta
 	_enter("strike")
@@ -606,6 +613,31 @@ func _sweep(th0: float, th1: float) -> void:
 				if budget <= 0.0:
 					_stop(z)
 					return
+		_sweep_corpses(a, b, xf)
+
+
+## Bodies on the ground get cut too: shove the bone the blade passes
+## through and sometimes take the limb off. Costs a little cleave.
+func _sweep_corpses(a: Vector3, b: Vector3, xf: Transform3D) -> void:
+	for r in corpses:
+		if not is_instance_valid(r) or corpse_hit.has(r) or r.sim == null or not is_instance_valid(r.sim):
+			continue
+		for pb in r.sim.get_children():
+			if not pb is PhysicalBone3D:
+				continue
+			var c: Vector3 = (pb as PhysicalBone3D).global_position
+			var q := Geometry3D.get_closest_point_to_segment(c, a, b)
+			if q.distance_to(c) < 0.16:
+				corpse_hit[r] = true
+				var tangent: Vector3 = xf.basis.x.normalized()
+				var cut: bool = r.chop_corpse(pb, (tangent * 5.0 + Vector3(0, 2.0, 0)) * (1.5 if is_heavy else 1.0), atk.get("sever", 0.5) * (1.3 if is_heavy else 0.9))
+				Game.fx.blood_spray(q, tangent, 10 if cut else 5)
+				Game.sfx.play3d("flesh_hit", q, -6.0 if cut else -10.0, 0.15)
+				if cut:
+					Game.sfx.play3d("gore", q, -6.0, 0.15)
+				budget -= 0.25
+				blood = min(1.0, blood + 0.02)
+				break
 
 
 func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:

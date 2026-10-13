@@ -454,27 +454,41 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 		arm_parts[side * 3 + 2].transform = Transform3D(xf.basis.orthonormalized() * Basis.from_scale(Vector3(0.095, 0.1, 0.11)), hand)
 
 
+var _trail_prev := Transform3D()
+var _trail_had := false
+const TRAIL_LIFE := 0.13
+
 func _update_trail(delta: float) -> void:
 	var m: Melee = s.melee
 	for tp in trail_pts:
 		tp[2] += delta
-	while trail_pts.size() > 0 and trail_pts[0][2] > 0.09:
+	while trail_pts.size() > 0 and trail_pts[0][2] > TRAIL_LIFE:
 		trail_pts.pop_front()
-	if m.state == "strike" or (m.state == "follow" and m.t < 0.05):
+	var active: bool = m.state == "strike" or (m.state == "follow" and m.t < 0.06)
+	if active:
 		var grip: float = m.ms.get("grip", 0.3)
 		var length: float = m.ms.get("length", 1.0)
-		trail_pts.append([m.pose * Vector3(0, 0, -grip - length * 0.35), m.pose * Vector3(0, 0, -grip - length), 0.0])
+		# Subsample between last frame's blade and this one so fast swings
+		# draw a smooth arc instead of a few flat slabs.
+		var steps := 4 if _trail_had else 1
+		for i in steps:
+			var k := float(i + 1) / steps
+			var xf: Transform3D = _trail_prev.interpolate_with(m.pose, k) if _trail_had else m.pose
+			trail_pts.append([xf * Vector3(0, 0, -grip - length * 0.3), xf * Vector3(0, 0, -grip - length * 1.02), 0.0 - (1.0 - k) * delta])
+		_trail_prev = m.pose
+	_trail_had = active
 	trail_mesh.clear_surfaces()
 	if trail_pts.size() < 2:
 		return
+	var heavy: bool = m.is_heavy
+	var tint := Color(1.0, 0.97, 0.92).lerp(Color(0.85, 0.2, 0.15), clampf(m.blood, 0.0, 1.0) * 0.7)
 	trail_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	for tp in trail_pts:
-		var a: float = clamp(1.0 - tp[2] / 0.09, 0.0, 1.0) * (0.35 if not m.is_heavy else 0.5)
-		var col := Color(0.9, 0.9, 1.0, 0.0).lerp(Color(1.0, 0.95, 0.9, a), 1.0)
-		col.a = a
-		trail_mesh.surface_set_color(Color(col.r, col.g, col.b, a * 0.2))
+		var a: float = clamp(1.0 - tp[2] / TRAIL_LIFE, 0.0, 1.0)
+		a = a * a * (0.55 if not heavy else 0.75)
+		trail_mesh.surface_set_color(Color(tint.r, tint.g, tint.b, 0.0))
 		trail_mesh.surface_add_vertex(tp[0])
-		trail_mesh.surface_set_color(col)
+		trail_mesh.surface_set_color(Color(tint.r, tint.g, tint.b, a))
 		trail_mesh.surface_add_vertex(tp[1])
 	trail_mesh.surface_end()
 
