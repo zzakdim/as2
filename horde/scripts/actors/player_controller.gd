@@ -605,7 +605,7 @@ func _process(delta: float) -> void:
 	camera.rotation = Vector3(
 		s.pitch + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.x,
 		s.yaw + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.y,
-		roll + dodge_roll)
+		roll + dodge_roll + (s.melee.cam_roll if s.melee else 0.0))
 	camera.position.y += bob - land_dip * 0.3
 	flashlight.visible = s.flashlight_enabled and not s.dead
 	var fov_add := 7.0 if s.slide_t > 0.0 else (5.0 if s.sprinting else (2.0 if speed > 4.5 else 0.0))

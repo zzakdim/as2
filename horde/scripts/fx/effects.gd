@@ -188,6 +188,37 @@ func blood_spray(pos: Vector3, dir: Vector3, amount := 12) -> void:
 	p.emitting = true
 
 
+static var _slash_mat: StandardMaterial3D
+
+## A thin bright streak at the point of contact, along the blade's travel,
+## gone in a few frames: makes each connect read crisply.
+func slash_mark(pos: Vector3, tangent: Vector3, length := 0.5, heavy := false) -> void:
+	if _slash_mat == null:
+		_slash_mat = StandardMaterial3D.new()
+		_slash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_slash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_slash_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		_slash_mat.albedo_color = Color(1.0, 0.75, 0.6, 0.9)
+		_slash_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mi := MeshInstance3D.new()
+	var q := QuadMesh.new()
+	q.size = Vector2(length * (1.4 if heavy else 1.0), 0.035 if heavy else 0.022)
+	mi.mesh = q
+	mi.material_override = _slash_mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	var t := tangent.normalized()
+	var cam := get_viewport().get_camera_3d()
+	var to_cam: Vector3 = (cam.global_position - pos).normalized() if cam else Vector3.UP
+	var up := to_cam.cross(t).normalized()
+	if up.length_squared() < 0.01:
+		up = Vector3.UP
+	mi.global_transform = Transform3D(Basis(t, up, t.cross(up)), pos + to_cam * 0.05)
+	var tw := mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3(1.6, 0.2, 1.0), 0.09)
+	tw.tween_callback(mi.queue_free)
+
+
 ## Chunks + mist for a split head or a body cut in half.
 func gib_burst(pos: Vector3, dir: Vector3, size: float) -> void:
 	var p := CPUParticles3D.new()

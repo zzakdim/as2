@@ -166,6 +166,7 @@ const HIT_MASS := {"shieldbearer": 6.0, "rager": 2.0, "common": 1.0, "boomer": 1
 
 var s                       # Survivor
 var momentum := 0           # consecutive-hit stacks (momentum weapons)
+var cam_roll := 0.0         # kill roll kick, decays
 var corpses: Array = []     # ragdolls near this swing
 var corpse_hit := {}
 var swing_hits := 0
@@ -271,6 +272,7 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 	var fire_pressed := fire_held and not _fire_prev
 	_fire_prev = fire_held
 	cam_punch = cam_punch.lerp(Vector2.ZERO, min(1.0, delta * 14.0))
+	cam_roll = lerpf(cam_roll, 0.0, minf(1.0, delta * 10.0))
 	# Stamina
 	if stamina_delay > 0.0:
 		stamina_delay -= delta
@@ -709,6 +711,9 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	var local_t := cam.basis.inverse() * tangent
 	cam_punch += Vector2(-local_t.y, -local_t.x) * (0.012 if not is_heavy else 0.02)
 	Game.fx.blood_spray(p, z.impact_dir, 14 if killed else 8)
+	Game.fx.slash_mark(p, tangent, 0.45 if is_heavy else 0.32, is_heavy)
+	if killed:
+		cam_roll += (0.018 if is_heavy else 0.01) * signf((cam.basis.inverse() * tangent).x)
 	if randf() < 0.5:
 		Game.fx.blood_decal(z.global_position + z.impact_dir * randf_range(0.5, 1.5))
 	if killed or randf() < 0.3:
