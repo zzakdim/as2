@@ -220,7 +220,7 @@ Next up, roughly in order of impact:
   - Toughness that regenerates near teammates (coherency).
   - Heavy/light melee combos with stamina and blocking.
   - Loadouts and progression between runs.
-- **More L4D2**: rescue closets for dead teammates, ledge hangs, more
+- **More L4D2**: ledge hangs, more
   melee weapons, laser sights / incendiary ammo, gas can scavenge finales,
   flooding/rising-water set pieces.
 - **Online co-op** (Godot's high-level multiplayer) and versus mode.
