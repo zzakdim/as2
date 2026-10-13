@@ -1134,7 +1134,35 @@ func _spurt_at(bone: String, offset: Vector3) -> void:
 	Effects.after(p, 1.6, p.set.bind("emitting", false))
 
 
+var _stumble := {}     # headless stagger before collapsing
+
+## Decapitated but still on its feet for a moment: takes the head off now,
+## staggers forward with the neck pumping, then drops as a ragdoll.
+func headless_stumble(dir: Vector3, impulse: Vector3, point: Vector3) -> void:
+	var xf := global_transform
+	get_parent().remove_child(self)
+	Game.world.add_child(self)
+	global_transform = xf
+	_apply_cut("decap", impulse)
+	var d := dir
+	d.y = 0.0
+	_stumble = {"t": randf_range(0.45, 0.8), "dir": d.normalized() * randf_range(0.6, 1.2), "imp": impulse * 0.25, "point": point}
+	pose = "zombie"
+	_oneshot("Hit_B", 0.8)
+	oneshot_t = 999.0
+
+
 func _physics_process(delta: float) -> void:
+	if not _stumble.is_empty():
+		_stumble["t"] -= delta
+		global_position += (_stumble["dir"] as Vector3) * delta
+		rotation.y += sin(Time.get_ticks_msec() * 0.012) * delta * 0.8
+		anim.advance(delta)
+		if _stumble["t"] <= 0.0:
+			var st := _stumble
+			_stumble = {}
+			ragdoll(st["dir"], st["imp"], global_position + Vector3(0, 1.0, 0), "")
+		return
 	if not ragdolled:
 		return
 	if sim == null:

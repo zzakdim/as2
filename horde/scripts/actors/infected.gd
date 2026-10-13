@@ -480,7 +480,11 @@ func die(attacker = null, part := "body", dmg_type := "bullet", dmg := 0.0) -> v
 		Game.director.on_infected_killed(self, attacker)
 	on_death()
 	Game.infected.erase(self)
-	if rig.visible:
+	if rig.visible and cut == "decap" and dmg_type == "melee" and rig.has_method("headless_stumble") \
+			and rig.family == "human" and impulse.length() < 42.0 \
+			and (randf() < (0.65 if impulse.length() < 30.0 else 0.4) or OS.has_environment("FORCE_STUMBLE")):
+		rig.headless_stumble(from_dir, impulse, point)
+	elif rig.visible:
 		rig.ragdoll(body_vel, impulse, point, cut)
 	set_physics_process(false)
 	queue_free.call_deferred()
