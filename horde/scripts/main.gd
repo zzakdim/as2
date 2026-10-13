@@ -170,6 +170,8 @@ func load_map(idx: int) -> void:
 			run_lineup(a.substr(9))
 		if a.begins_with("--hit-test="):
 			run_hit_test(a.substr(11))
+		if a.begins_with("--cut-test="):
+			run_cut_test(a.substr(11))
 		if a.begins_with("--gun-sheet="):
 			run_gun_sheet(a.substr(12))
 		if a.begins_with("--kill-bot="):
@@ -530,7 +532,7 @@ func run_hit_test(dir: String) -> void:
 		n += 1
 	# Kill: a heavy sideways sweep, then watch the ragdolls fall.
 	await get_tree().create_timer(4.0).timeout
-	var cuts := ["", "arm", "decap"]
+	var cuts := ["waist", "waist", "waist"]
 	for i in targets.size():
 		var z: Infected = targets[i]
 		if not is_instance_valid(z) or z.is_dead():
@@ -541,6 +543,10 @@ func run_hit_test(dir: String) -> void:
 		z.cut = cuts[i]
 		z.take_damage(9999.0, Game.player, "body", "melee", z.impact_point)
 	t1 = 0.0
+	if OS.get_cmdline_user_args().has("--hit-top"):
+		var z0: Node3D = targets[1]
+		cam.global_position = z0.global_position + side * 2.4 + Vector3(0, 1.6, 0) - span * 1.2
+		cam.look_at(z0.global_position + span * 0.8 + Vector3(0, 0.5, 0))
 	for t in [0.05, 0.15, 0.3, 0.5, 0.8, 1.2, 1.8, 2.6]:
 		await get_tree().create_timer(t - t1).timeout
 		t1 = t
@@ -548,6 +554,63 @@ func run_hit_test(dir: String) -> void:
 		get_viewport().get_texture().get_image().save_png("%s/%02d_kill_%.2f.png" % [dir, n, t])
 		n += 1
 	print("[autotest] hit test: %d frames" % n)
+	get_tree().quit(0)
+
+
+## --cut-test=/dir:cut : one zombie, bright light, side camera; it takes a
+## killing horizontal sweep with the given cut and frames are saved.
+func run_cut_test(arg: String) -> void:
+	var parts := arg.split(":")
+	var dir := parts[0]
+	var cut_kind := parts[1] if parts.size() > 1 else "waist"
+	var p: Survivor = Game.player
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	Game.director.set_physics_process(false)
+	p.set_physics_process(false)
+	for c in p.get_children():
+		if c is PlayerController:
+			c.set_process(false)
+			for v in c.camera.get_children():
+				if v is Node3D and not v is Light3D:
+					v.visible = false
+	var fwd := p.flat_forward()
+	var pos := p.global_position + fwd * 3.0
+	var z: Infected = Game.director.spawn_infected("common", pos)
+	z.state = Infected.S.IDLE
+	z.think_t = 999.0
+	z.face_dir = -fwd
+	var side := fwd.cross(Vector3.UP)
+	var light := OmniLight3D.new()
+	light.omni_range = 9.0
+	light.light_energy = 4.0
+	world.add_child(light)
+	light.global_position = pos + side * 2.0 + Vector3(0, 2.5, 0)
+	var cam := Camera3D.new()
+	world.add_child(cam)
+	cam.current = true
+	cam.global_position = pos + side * 2.3 + Vector3(0, 1.3, 0) - fwd * 0.5
+	cam.look_at(pos + Vector3(0, 0.7, 0) - fwd * 0.5)
+	Game.hud.root.visible = false
+	await get_tree().create_timer(1.0).timeout
+	z.desired = Vector3.ZERO
+	z.velocity = Vector3.ZERO
+	await get_tree().create_timer(0.3).timeout
+	z.impact_dir = (-side + Vector3(0, 0.2, 0)).normalized()
+	z.impact_force = 8.0
+	z.impact_point = z.global_position + Vector3(0, 1.0, 0)
+	z.cut = cut_kind
+	z.take_damage(9999.0, p, "body", "melee", z.impact_point)
+	var t1 := 0.0
+	var n := 0
+	for t in [0.03, 0.1, 0.2, 0.35, 0.55, 0.8, 1.2, 2.0]:
+		await get_tree().create_timer(t - t1).timeout
+		t1 = t
+		Game.hud.root.visible = false
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/%02d_%s_%.2f.png" % [dir, n, cut_kind, t])
+		n += 1
+	print("[autotest] cut test: %d frames" % n)
 	get_tree().quit(0)
 
 

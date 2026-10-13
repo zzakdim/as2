@@ -93,6 +93,9 @@ var model_scale := 0.9
 var head_scale := 0.62
 var melee_held := false
 var family := "kaykit"
+var build_opts := {}
+var hair_names: Array = []
+var hair_col := Color(1, 1, 1)
 var react: HitReact
 
 
@@ -247,8 +250,11 @@ func _build(opts: Dictionary) -> void:
 	slot.add_child(held)
 	if family == "human":
 		var hair: Array = opts.get("hair", _random_hair())
+		hair_col = opts.get("hair_color", HAIR_COLORS.pick_random() * (0.8 if role == "zombie" else 1.0))
+		hair_names = hair
 		for h in hair:
-			_add_hair(h, opts.get("hair_color", HAIR_COLORS.pick_random() * (0.8 if role == "zombie" else 1.0)))
+			_add_hair(h, hair_col)
+	build_opts = opts
 	if opts.get("glow_eyes", Color(0, 0, 0, 0)).a > 0.0 and parts.has("eyes"):
 		parts["eyes"].material_override = Mats.emissive(opts["glow_eyes"], 3.0)
 	_play(_pick_base(0.0), 0.0, 1.0)
@@ -461,7 +467,7 @@ static func _stain_tex(v: int) -> Texture2D:
 
 static func _part_key(n: String) -> String:
 	var low := n.to_lower()
-	for pair in [["handleft", "hand_l"], ["handright", "hand_r"], ["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["head", "head"],
+	for pair in [["handleft", "hand_l"], ["handright", "hand_r"], ["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["chest", "chest"], ["head", "head"],
 			["jaw", "jaw"], ["eyes", "eyes"], ["body", "body"], ["cloak", "cloak"], ["cape", "cloak"], ["helmet", "helmet"]]:
 		if low.ends_with(pair[0]) or low.find("_" + pair[0]) >= 0:
 			return pair[1]
@@ -695,6 +701,19 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 		var old = ragdolls.pop_front()
 		if is_instance_valid(old):
 			old.queue_free()
+	if cut == "waist" and family == "human" and parts.has("chest") and model_scale <= 1.05:
+		# Cut in half: the upper body becomes a second ragdoll, the legs stay.
+		_spawn_upper_half(velocity, impulse, point)
+		cut = ""
+		# The legs stay behind and just fold.
+		impulse = impulse * 0.15
+		velocity = velocity * 0.2
+		for k in parts.keys():
+			if k in ["chest", "arm_l", "arm_r", "hand_l", "hand_r", "head", "helmet", "eyes"] or k.begins_with("hair_"):
+				parts[k].visible = false
+		_add_stump("spine", 1.0, Vector3(0.12, 1, 0.085))
+		_spurt_at("spine", Vector3(0, 0.12, 0))
+		Game.fx.gib_burst(_bone_pos("spine") + Vector3(0, 0.1, 0), impulse.normalized() + Vector3.UP, 0.35)
 	if model_scale > 1.05:
 		# Physics bones dislike scaled skeletons: big/small models just play a death.
 		anim.play()
@@ -803,12 +822,99 @@ static func _rag_swing(bone: String) -> float:
 	return 28.0       # spine / chest
 
 
+## The torso above the cut, as its own ragdoll: a second copy of this
+## character in the same pose and materials showing only the upper parts.
+func _spawn_upper_half(velocity: Vector3, impulse: Vector3, point: Vector3) -> void:
+	var o := build_opts.duplicate()
+	o["human"] = kind
+	o["hair"] = hair_names
+	o["hair_color"] = hair_col
+	var up: SkinnedRig = SkinnedRig.create("", o)
+	Game.world.add_child(up)
+	up.global_transform = global_transform
+	up.model.transform = model.transform
+	for k in parts:
+		if not up.parts.has(k):
+			continue
+		var a: MeshInstance3D = parts[k]
+		var bmi: MeshInstance3D = up.parts[k]
+		bmi.visible = a.visible and not (k in ["body", "leg_l", "leg_r"])
+		bmi.material_override = a.material_override
+		for i in a.mesh.get_surface_count():
+			bmi.set_surface_override_material(i, a.get_surface_override_material(i))
+	for k in up.parts:
+		if not parts.has(k) and k in ["body", "leg_l", "leg_r"]:
+			up.parts[k].visible = false
+	for i in skel.get_bone_count():
+		up.skel.set_bone_pose_position(i, skel.get_bone_pose_position(i))
+		up.skel.set_bone_pose_rotation(i, skel.get_bone_pose_rotation(i))
+	up.anim.pause()
+	if Game.autotest:
+		print("[cut] waist: upper half spawned, visible parts ", up.parts.keys().filter(func(k): return up.parts[k].visible))
+	up.ragdoll(velocity * 0.5, impulse * 0.7 + Vector3(0, 3.0, 0), point + Vector3(0, 0.3, 0), "")
+	up._add_stump("spine_02", 0.0, Vector3(0.12, 1, 0.085))
+	up._spurt_at("spine_02", Vector3(0, 0.0, 0))
+
+
+## A raw wound cap where a limb or the torso was cut: flesh disc with a
+## pale bone core, on the bone's axis. `at` = 0 at the bone's root, 1 at its
+## tip (where its child starts).
+func _add_stump(role_name: String, at: float, size: Vector3) -> void:
+	var bi := skel.find_bone(b(role_name))
+	if bi < 0:
+		return
+	var att := BoneAttachment3D.new()
+	att.bone_name = b(role_name)
+	skel.add_child(att)
+	var length := 0.0
+	for c in skel.get_bone_children(bi):
+		length = maxf(length, skel.get_bone_rest(c).origin.length())
+	var cap := MeshInstance3D.new()
+	var cm := CylinderMesh.new()
+	cm.top_radius = 1.0
+	cm.bottom_radius = 0.92
+	cm.height = 0.12
+	cm.radial_segments = 12
+	cm.rings = 1
+	cap.mesh = cm
+	cap.material_override = _wound_mat()
+	cap.scale = Vector3(size.x, 0.25, size.z)
+	cap.position = Vector3(0, length * at, 0)
+	att.add_child(cap)
+	var core := MeshInstance3D.new()
+	var cc := CylinderMesh.new()
+	cc.top_radius = 0.22
+	cc.bottom_radius = 0.22
+	cc.height = 0.16
+	cc.radial_segments = 8
+	cc.rings = 1
+	core.mesh = cc
+	core.material_override = Mats.color(Color(0.55, 0.5, 0.42), 0.8)
+	core.scale = cap.scale
+	core.position = cap.position
+	att.add_child(core)
+
+
+static var _wound: StandardMaterial3D
+
+static func _wound_mat() -> StandardMaterial3D:
+	if _wound == null:
+		_wound = StandardMaterial3D.new()
+		_wound.albedo_color = Color(0.28, 0.02, 0.02)
+		_wound.roughness = 0.45
+		_wound.metallic_specular = 0.35
+		_wound.albedo_texture = _stain_tex(1)
+	return _wound
+
+
 func _apply_cut(cut: String, impulse: Vector3) -> void:
 	match cut:
 		"decap":
 			_gib_part("head", "head", impulse + Vector3(0, 3, 0))
 			_hide_head_parts()
 			_spurt_at("chest", Vector3(0, 0.26, 0))
+			if family == "human":
+				_add_stump("head", 0.0, Vector3(0.06, 1, 0.055))
 		"split":
 			var hp := _bone_pos("head")
 			_hide_head_parts()
@@ -819,6 +925,14 @@ func _apply_cut(cut: String, impulse: Vector3) -> void:
 			_gib_part("arm_" + side, "upperarm." + side, impulse * 0.6 + Vector3(0, 2, 0))
 			_gib_part("hand_" + side, "hand." + side, impulse * 0.5 + Vector3(0, 2, 0))
 			_spurt_at("upperarm." + side, Vector3.ZERO)
+			if family == "human":
+				_add_stump("upperarm." + side, 0.05, Vector3(0.055, 1, 0.055))
+		"leg":
+			var side: String = ["l", "r"].pick_random()
+			_gib_part("leg_" + side, "upperleg." + side, impulse * 0.5 + Vector3(0, 1.5, 0))
+			_spurt_at("upperleg." + side, Vector3.ZERO)
+			if family == "human":
+				_add_stump("upperleg." + side, 0.05, Vector3(0.08, 1, 0.08))
 		"bisect":
 			_gib_part("leg_l", "upperleg.l", impulse * 0.3 + Vector3(-1, 1, 0))
 			_gib_part("leg_r", "upperleg.r", impulse * 0.3 + Vector3(1, 1, 0))

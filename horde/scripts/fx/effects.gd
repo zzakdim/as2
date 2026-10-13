@@ -41,14 +41,97 @@ func _make_burst(col: Color, size: float, speed: float, grav: float, emissive :=
 	p.initial_velocity_min = speed * 0.3
 	p.initial_velocity_max = speed
 	p.gravity = Vector3(0, -grav, 0)
-	p.scale_amount_min = 0.6
-	p.scale_amount_max = 1.4
-	var m := BoxMesh.new()
-	m.size = Vector3(size, size, size)
-	m.material = Mats.emissive(col, 2.0) if emissive else Mats.color(col, 0.3)
-	p.mesh = m
+	p.scale_amount_min = 0.5
+	p.scale_amount_max = 1.3
+	if emissive:
+		var m := BoxMesh.new()
+		m.size = Vector3(size, size, size)
+		m.material = Mats.emissive(col, 2.0)
+		p.mesh = m
+	else:
+		# Droplets stretched along their velocity, shrinking as they fly.
+		var m := SphereMesh.new()
+		m.radius = size * 0.5
+		m.height = size * 3.2
+		m.radial_segments = 5
+		m.rings = 2
+		m.material = blood_mat()
+		p.mesh = m
+		p.particle_flag_align_y = true
+		var c := Curve.new()
+		c.add_point(Vector2(0, 1))
+		c.add_point(Vector2(0.7, 0.75))
+		c.add_point(Vector2(1, 0.0))
+		p.scale_amount_curve = c
 	add_child(p)
 	return p
+
+
+static var _blood_mat: StandardMaterial3D
+
+static func blood_mat() -> StandardMaterial3D:
+	if _blood_mat == null:
+		_blood_mat = StandardMaterial3D.new()
+		_blood_mat.albedo_color = Color(0.26, 0.012, 0.01)
+		_blood_mat.roughness = 0.15
+		_blood_mat.metallic_specular = 0.9
+	return _blood_mat
+
+
+static var _mist_tex: Texture2D
+
+## A soft red cloud, for the spray of a big cut.
+func blood_mist(pos: Vector3, dir: Vector3, size := 0.6) -> void:
+	if _mist_tex == null:
+		var g := Gradient.new()
+		g.set_color(0, Color(1, 1, 1, 1))
+		g.set_color(1, Color(1, 1, 1, 0))
+		var gt := GradientTexture2D.new()
+		gt.gradient = g
+		gt.fill = GradientTexture2D.FILL_RADIAL
+		gt.fill_from = Vector2(0.5, 0.5)
+		gt.fill_to = Vector2(0.5, 0.0)
+		gt.width = 64
+		gt.height = 64
+		_mist_tex = gt
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.amount = 6
+	p.lifetime = 0.7
+	p.local_coords = false
+	p.direction = dir.normalized() if dir.length_squared() > 0.01 else Vector3.UP
+	p.spread = 40.0
+	p.initial_velocity_min = 0.6
+	p.initial_velocity_max = 2.2
+	p.damping_min = 2.0
+	p.damping_max = 3.0
+	p.gravity = Vector3(0, -1.2, 0)
+	var c := Curve.new()
+	c.add_point(Vector2(0, 0.4))
+	c.add_point(Vector2(1, 1.0))
+	p.scale_amount_curve = c
+	p.scale_amount_min = size * 0.6
+	p.scale_amount_max = size
+	var g2 := Gradient.new()
+	g2.set_color(0, Color(0.45, 0.02, 0.02, 0.55))
+	g2.set_color(1, Color(0.3, 0.01, 0.01, 0.0))
+	p.color_ramp = g2
+	var q := QuadMesh.new()
+	q.size = Vector2.ONE
+	var m := StandardMaterial3D.new()
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = _mist_tex
+	q.material = m
+	p.mesh = q
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(p)
+	p.global_position = pos
+	p.emitting = true
+	Effects.after(p, 1.2, p.queue_free)
 
 
 ## Runs `fn` after `sec` seconds via a Timer owned by `node`, so nothing
@@ -103,14 +186,37 @@ func blood_spray(pos: Vector3, dir: Vector3, amount := 12) -> void:
 
 ## Chunks + mist for a split head or a body cut in half.
 func gib_burst(pos: Vector3, dir: Vector3, size: float) -> void:
-	var p := _make_burst(Color(0.3, 0.02, 0.02), size * 0.22, 5.0, 12.0)
-	p.amount = 10
-	p.lifetime = 1.0
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.95
+	p.amount = 8
+	p.lifetime = 1.4
+	p.local_coords = false
+	p.direction = (dir + Vector3(0, 0.6, 0)).normalized()
+	p.spread = 55.0
+	p.initial_velocity_min = 2.0
+	p.initial_velocity_max = 5.5
+	p.gravity = Vector3(0, -14, 0)
+	p.angular_velocity_min = -500
+	p.angular_velocity_max = 500
+	p.scale_amount_min = 0.5
+	p.scale_amount_max = 1.2
+	var m := SphereMesh.new()
+	m.radius = clampf(size * 0.12, 0.012, 0.035)
+	m.height = m.radius * 1.4
+	m.radial_segments = 5
+	m.rings = 3
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.3, 0.04, 0.04)
+	mat.roughness = 0.3
+	m.material = mat
+	p.mesh = m
+	add_child(p)
 	p.global_position = pos
-	p.restart()
 	p.emitting = true
-	Effects.after(p, 1.5, p.queue_free)
+	Effects.after(p, 1.6, p.queue_free)
 	blood_spray(pos, dir + Vector3(0, 0.5, 0), 26)
+	blood_mist(pos, dir, 0.4 + size)
 
 
 ## Continuous arterial spurt; caller parents it and turns it off.
@@ -123,10 +229,14 @@ func make_spurt() -> CPUParticles3D:
 	p.initial_velocity_min = 2.0
 	p.initial_velocity_max = 4.0
 	p.gravity = Vector3(0, -12, 0)
-	var m := BoxMesh.new()
-	m.size = Vector3(0.025, 0.025, 0.025)
-	m.material = Mats.color(Color(0.32, 0.01, 0.01), 0.3)
+	var m := SphereMesh.new()
+	m.radius = 0.011
+	m.height = 0.05
+	m.radial_segments = 5
+	m.rings = 2
+	m.material = blood_mat()
 	p.mesh = m
+	p.particle_flag_align_y = true
 	p.local_coords = false
 	return p
 

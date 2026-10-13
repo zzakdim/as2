@@ -460,8 +460,9 @@ func _windup_pose(charged := false) -> Transform3D:
 
 
 func idle_pose() -> Transform3D:
-	var v := Vector3(0.12, 0.8, -0.58).normalized()
-	return _blade_xf(Vector3(0.2, -0.3, -0.36), v, Vector3(-1, 0, 0.2).normalized())
+	# Low and out to the right, blade angled up and across the screen.
+	var v := Vector3(-0.22, 0.78, -0.58).normalized()
+	return _blade_xf(Vector3(0.2, -0.36, -0.52), v, Vector3(-1, -0.1, 0.25).normalized())
 
 
 func block_pose() -> Transform3D:
@@ -551,6 +552,8 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	z.impact_force = force
 	z.impact_point = p
 	z.cut = _cut_type(z, p, part)
+	if Game.autotest and OS.has_environment("CUT_LOG"):
+		print("[cutlog] %s heavy=%s ly=%.2f part=%s cut=%s" % [atk.get("name", "?"), is_heavy, p.y - z.global_position.y, part, z.cut])
 	z.take_damage(dmg, s, part, "melee", p)
 	var killed: bool = z.is_dead()
 	if killed:
@@ -587,20 +590,37 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 
 
 func _cut_type(z, p: Vector3, part: String) -> String:
-	var dir: float = atk.get("dir", 0.0)
-	var horizontal: bool = abs(sin(dir * DEG)) < 0.5
-	var ly: float = p.y - z.global_position.y
 	if atk.get("thrust", false):
 		return ""
+	var dir: float = atk.get("dir", 0.0)
+	var horizontal: bool = abs(sin(dir * DEG)) < 0.5
+	var sc: float = z.rig.model_scale if z.rig is SkinnedRig else 1.0
+	var ly: float = (p.y - z.global_position.y) / maxf(sc, 0.5)
+	var power: float = atk.get("sever", 0.5)        # weapon/attack's cutting power
+	if is_heavy:
+		power += 0.35
+	if atk.get("_full", false):
+		power += 0.2
+	if z.kind == "tank" or z.kind == "charger":
+		power -= 0.8
 	if part == "head":
-		return "split" if atk.get("split", false) or not horizontal else "decap"
-	if horizontal and atk.get("bisect", false) and ly > 0.7 and ly < 1.35 and z.kind != "tank":
-		return "bisect"
-	if not horizontal and randf() < 0.45:
-		return "arm"
-	if horizontal and ly > 1.2 and randf() < 0.5:
-		return "decap"
-	return ""
+		if horizontal:
+			return "decap" if randf() < power + 0.3 else ""
+		var r := randf()
+		return "split" if r < 0.5 + power * 0.3 else ("decap" if r < 0.85 else "")
+	if horizontal:
+		# A sweep strong enough to bisect goes clean through the trunk.
+		if atk.get("bisect", false) and power >= 0.75 and ly > 0.6:
+			return "waist"
+		if ly > 1.32:
+			return "decap" if randf() < power + 0.2 else ""
+		if ly < 0.7:
+			return "leg" if randf() < power * 0.8 else ""
+		return "arm" if randf() < power * 0.4 else ""
+	# Diagonals and overheads lop arms; full-power overheads split the skull.
+	if ly > 1.25 and atk.get("split", false):
+		return "split"
+	return "arm" if randf() < power * 0.7 else ""
 
 
 func _stop(z) -> void:

@@ -54,11 +54,15 @@ def group_of(bone):
         return "arm_l"
     if bone.endswith("_r") and not bone.startswith("clavicle"):
         return "arm_r"
+    # Upper torso is its own part so bodies can be cut in half at the waist.
+    if bone in ("spine_02", "spine_03", "neck_01") or bone.startswith("clavicle"):
+        return "chest"
     return "torso"
 
 
 NAMES = {"hand_l": "Human_HandLeft", "hand_r": "Human_HandRight", "head": "Human_Helmet", "arm_l": "Human_ArmLeft",
-         "arm_r": "Human_ArmRight", "leg_l": "Human_LegLeft", "leg_r": "Human_LegRight", "torso": "Human_Body"}
+         "arm_r": "Human_ArmRight", "leg_l": "Human_LegLeft", "leg_r": "Human_LegRight", "torso": "Human_Body",
+         "chest": "Human_Chest"}
 
 joint_names = [A["nodes"][i]["name"] for i in A["skins"][0]["joints"]]
 mesh_nodes = [i for i, n in enumerate(A["nodes"]) if "mesh" in n]
