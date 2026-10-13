@@ -277,3 +277,106 @@ static func _reorient_x(rings: Array, profile: PackedVector2Array) -> ArrayMesh:
 	_cap(st, pts[pts.size() - 1], true)
 	st.generate_normals()
 	return st.commit()
+
+
+## Generic sword from a spec: handle along +Z..0, blade toward -Z.
+##   grip: handle length          blade: blade length
+##   width: [base, mid, near-tip] half-widths    thick: half-thickness at base
+##   curve: sideways sag (+X, the edge side) at the blade's middle, metres
+##   tip: "point", "clip" (sabre), "flat" (executioner)
+##   guard: "cross", "knuckle" (sabre bow), "disc"
+##   single_edge: true thickens the back (messer/sabre profile)
+static func sword(root: Node3D, spec: Dictionary, steel: Material, fittings: Material, wrap: Material) -> MeshInstance3D:
+	var grip: float = spec.get("grip", 0.25)
+	var blen: float = spec.get("blade", 0.9)
+	var w: Array = spec.get("width", [0.03, 0.028, 0.02])
+	var thick: float = spec.get("thick", 0.007)
+	var curve: float = spec.get("curve", 0.0)
+	var tip: String = spec.get("tip", "point")
+	var z0 := -grip - 0.03
+	var rings := []
+	var n := 18
+	for i in n:
+		var k := float(i) / (n - 1)
+		var z := z0 - k * blen
+		var x := curve * sin(k * PI * 0.85) * (1.0 if k < 0.85 else 1.0)
+		var hw: float
+		if k < 0.5:
+			hw = lerp(float(w[0]), float(w[1]), k / 0.5)
+		else:
+			hw = lerp(float(w[1]), float(w[2]), (k - 0.5) / 0.5)
+		var t: float = lerp(thick, thick * 0.55, k)
+		match tip:
+			"point":
+				if k > 0.86:
+					hw = lerp(hw, 0.0015, (k - 0.86) / 0.14)
+					t = lerp(t, 0.001, (k - 0.86) / 0.14)
+			"clip":
+				if k > 0.8:
+					var q := (k - 0.8) / 0.2
+					hw = lerp(hw, 0.0015, q * q)
+					x += -hw * q * 0.6          # the back sweeps down to the point
+			"flat":
+				if k > 0.97:
+					hw *= 0.9
+		rings.append([Vector3(x, 0, z), hw, t])
+	var prof := blade_profile() if not spec.get("single_edge", false) else _single_edge_profile()
+	var mi := MeshInstance3D.new()
+	mi.mesh = loft(rings, prof)
+	mi.name = "Blade"
+	mi.material_override = steel
+	root.add_child(mi)
+	if tip == "flat":
+		# Executioner's swords end square with a little dish.
+		Mats.add_mesh(root, Mats.box(Vector3(float(w[2]) * 1.8, thick * 1.1, 0.012)), steel, Vector3(rings[n - 1][0].x, 0, z0 - blen))
+	# Guard
+	match spec.get("guard", "cross"):
+		"cross":
+			var gw: float = spec.get("guard_w", 0.13)
+			var path := []
+			var rr := []
+			for i in 7:
+				var k := float(i) / 6.0 * 2.0 - 1.0
+				path.append(Vector3(k * gw, 0, -grip - 0.015 - 0.02 * k * k))
+				rr.append(0.011 - 0.004 * absf(k))
+			Mats.add_mesh(root, tube(path, rr, 6), fittings)
+		"knuckle":
+			# A bow from the guard round the knuckles to the pommel.
+			var path := []
+			var rr := []
+			for i in 9:
+				var k := float(i) / 8.0
+				path.append(Vector3(-0.045 * sin(k * PI) - 0.012, 0, -grip - 0.02 + k * (grip + 0.02)))
+				rr.append(0.006)
+			Mats.add_mesh(root, tube(path, rr, 5), fittings)
+			Mats.add_mesh(root, Mats.box(Vector3(0.07, 0.016, 0.02)), fittings, Vector3(-0.01, 0, -grip - 0.02))
+		"disc":
+			var d := Mats.add_mesh(root, Mats.cylinder(0.04, 0.01, 12), fittings, Vector3(0, 0, -grip - 0.015))
+			d.rotation.x = PI / 2
+	if spec.get("nagel", false):
+		# Messer: a little nail sticking out of the guard on the flat.
+		Mats.add_mesh(root, Mats.box(Vector3(0.01, 0.035, 0.01)), fittings, Vector3(0.015, 0.018, -grip - 0.02))
+	# Grip and pommel
+	var gpath := []
+	var gr := []
+	var segs := maxi(4, int(grip / 0.025))
+	for i in segs + 1:
+		var k := float(i) / segs
+		gpath.append(Vector3(0, 0, -grip + k * grip))
+		gr.append(0.016 + (0.0025 if i % 2 == 0 else 0.0) + 0.002 * sin(k * PI))
+	Mats.add_mesh(root, tube(gpath, gr, 8), wrap)
+	var pom := []
+	var pr := []
+	var ps: float = spec.get("pommel", 0.028)
+	for i in 6:
+		var k := float(i) / 5.0
+		pom.append(Vector3(0, 0, 0.004 + k * ps * 1.6))
+		pr.append(ps * sin(k * PI) + 0.008)
+	Mats.add_mesh(root, tube(pom, pr, 8), fittings)
+	return mi
+
+
+static func _single_edge_profile() -> PackedVector2Array:
+	# Edge at +X, a thick flat spine at -X.
+	return PackedVector2Array([Vector2(1.0, 0.0), Vector2(0.4, 0.75), Vector2(-0.6, 1.0), Vector2(-1.0, 0.9),
+		Vector2(-1.0, -0.9), Vector2(-0.6, -1.0), Vector2(0.4, -0.75)])

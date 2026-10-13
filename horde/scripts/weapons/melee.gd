@@ -38,6 +38,73 @@ const MOVESETS := {
 		"push_attack": {"name": "Thrust", "thrust": true, "windup": 0.1, "strike": 0.12, "follow": 0.1, "recover": 0.36,
 			"damage": 380.0, "cleave": 4.0, "impact": 9.0, "lunge": 5.0, "next_light": 1, "next_heavy": 0},
 	},
+	# Speed and precision: very fast light chain, weak cleave, heavy damage
+	# and guaranteed severing on head hits (crits). The heavy is a lunge.
+	"sabre": {
+		"length": 0.84, "grip": 0.14, "pivot": Vector3(0.13, -0.24, -0.48),
+		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true,
+		"light": [
+			{"name": "Cut 1", "dir": 28.0, "arc": [-56.0, 60.0], "windup": 0.07, "strike": 0.085, "follow": 0.06, "recover": 0.2,
+				"damage": 105.0, "cleave": 1.6, "impact": 3.0, "lunge": 1.2, "sever": 0.45, "next_light": 1, "next_heavy": 0},
+			{"name": "Cut 2", "dir": 152.0, "arc": [-56.0, 60.0], "windup": 0.07, "strike": 0.085, "follow": 0.06, "recover": 0.2,
+				"damage": 105.0, "cleave": 1.6, "impact": 3.0, "lunge": 1.2, "sever": 0.45, "next_light": 2, "next_heavy": 0},
+			{"name": "Rising cut", "dir": 300.0, "arc": [-54.0, 58.0], "windup": 0.08, "strike": 0.09, "follow": 0.06, "recover": 0.22,
+				"damage": 115.0, "cleave": 1.6, "impact": 3.5, "lunge": 1.4, "sever": 0.5, "next_light": 3, "next_heavy": 0},
+			{"name": "Snap cut", "dir": 80.0, "arc": [-54.0, 58.0], "windup": 0.08, "strike": 0.08, "follow": 0.06, "recover": 0.24,
+				"damage": 130.0, "cleave": 1.2, "impact": 3.5, "lunge": 1.4, "sever": 0.6, "next_light": 0, "next_heavy": 0, "split": true},
+		],
+		"heavy": [
+			{"name": "Lunge", "thrust": true, "windup": 0.05, "strike": 0.11, "follow": 0.08, "recover": 0.28, "charge": 0.3,
+				"damage": 420.0, "cleave": 2.5, "impact": 8.0, "lunge": 7.5, "sever": 0.6, "next_light": 1, "next_heavy": 0},
+		],
+		"push": {"windup": 0.05, "active": 0.1, "recover": 0.22, "range": 2.2, "arc": 0.4, "force": 4.5},
+		"push_attack": {"name": "Riposte", "thrust": true, "windup": 0.06, "strike": 0.09, "follow": 0.07, "recover": 0.24,
+			"damage": 320.0, "cleave": 1.5, "impact": 6.0, "lunge": 4.0, "next_light": 0, "next_heavy": 0},
+	},
+	# Commitment: slow, wide and heavy. Every light is a crowd-cleaving sweep,
+	# the charged heavy goes through a whole line and always cuts bodies in two.
+	"executioner": {
+		"length": 1.0, "grip": 0.36, "pivot": Vector3(0.06, -0.28, -0.5),
+		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92,
+		"light": [
+			{"name": "Wide sweep L>R", "dir": 8.0, "arc": [-70.0, 76.0], "windup": 0.26, "strike": 0.19, "follow": 0.16, "recover": 0.46,
+				"damage": 230.0, "cleave": 7.0, "impact": 9.0, "lunge": 2.4, "sever": 0.85, "next_light": 1, "next_heavy": 0, "bisect": true},
+			{"name": "Wide sweep R>L", "dir": 172.0, "arc": [-70.0, 76.0], "windup": 0.24, "strike": 0.19, "follow": 0.16, "recover": 0.46,
+				"damage": 230.0, "cleave": 7.0, "impact": 9.0, "lunge": 2.4, "sever": 0.85, "next_light": 0, "next_heavy": 0, "bisect": true},
+		],
+		"heavy": [
+			{"name": "Headsman", "dir": 90.0, "arc": [-60.0, 62.0], "windup": 0.1, "strike": 0.15, "follow": 0.14, "recover": 0.55,
+				"damage": 900.0, "cleave": 3.0, "impact": 12.0, "lunge": 2.8, "charge": 0.85, "sever": 1.2, "next_light": 0, "next_heavy": 1, "split": true},
+			{"name": "Reaping sweep", "dir": 4.0, "arc": [-80.0, 84.0], "windup": 0.1, "strike": 0.22, "follow": 0.18, "recover": 0.55,
+				"damage": 420.0, "cleave": 30.0, "impact": 13.0, "lunge": 3.6, "charge": 0.8, "sever": 1.2, "next_light": 1, "next_heavy": 0, "bisect": true},
+		],
+		"push": {"windup": 0.07, "active": 0.12, "recover": 0.34, "range": 2.8, "arc": 0.3, "force": 7.5},
+		"push_attack": {"name": "Pommel strike", "thrust": true, "windup": 0.1, "strike": 0.12, "follow": 0.1, "recover": 0.38,
+			"damage": 200.0, "cleave": 3.0, "impact": 11.0, "lunge": 2.5, "next_light": 0, "next_heavy": 0},
+	},
+	# Momentum: the swings get faster with every consecutive hit (up to +40%);
+	# whiffing or pausing loses it. Rewards staying in the crowd.
+	"messer": {
+		"length": 0.76, "grip": 0.19, "pivot": Vector3(0.12, -0.25, -0.48), "momentum": true,
+		"stamina": 3.5, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
+		"light": [
+			{"name": "Zornhau", "dir": 38.0, "arc": [-58.0, 62.0], "windup": 0.11, "strike": 0.11, "follow": 0.08, "recover": 0.28,
+				"damage": 140.0, "cleave": 2.6, "impact": 4.5, "lunge": 1.4, "sever": 0.55, "next_light": 1, "next_heavy": 0},
+			{"name": "Back cut", "dir": 150.0, "arc": [-58.0, 62.0], "windup": 0.1, "strike": 0.11, "follow": 0.08, "recover": 0.28,
+				"damage": 140.0, "cleave": 2.6, "impact": 4.5, "lunge": 1.4, "sever": 0.55, "next_light": 2, "next_heavy": 0},
+			{"name": "Low sweep", "dir": 10.0, "arc": [-60.0, 64.0], "windup": 0.1, "strike": 0.12, "follow": 0.08, "recover": 0.28,
+				"damage": 130.0, "cleave": 3.2, "impact": 4.0, "lunge": 1.4, "sever": 0.6, "next_light": 3, "next_heavy": 0},
+			{"name": "Rising back cut", "dir": 215.0, "arc": [-58.0, 62.0], "windup": 0.1, "strike": 0.11, "follow": 0.08, "recover": 0.28,
+				"damage": 140.0, "cleave": 2.6, "impact": 4.5, "lunge": 1.4, "sever": 0.55, "next_light": 0, "next_heavy": 0},
+		],
+		"heavy": [
+			{"name": "Crown cut", "dir": 85.0, "arc": [-58.0, 60.0], "windup": 0.07, "strike": 0.12, "follow": 0.1, "recover": 0.34,
+				"damage": 340.0, "cleave": 2.0, "impact": 7.0, "lunge": 2.2, "charge": 0.4, "sever": 0.8, "next_light": 1, "next_heavy": 0, "split": true},
+		],
+		"push": {"windup": 0.05, "active": 0.1, "recover": 0.26, "range": 2.4, "arc": 0.38, "force": 5.5},
+		"push_attack": {"name": "Nagel jab", "thrust": true, "windup": 0.07, "strike": 0.1, "follow": 0.08, "recover": 0.28,
+			"damage": 220.0, "cleave": 2.0, "impact": 6.0, "lunge": 3.5, "next_light": 0, "next_heavy": 0},
+	},
 	"fire_axe": {
 		"length": 0.62, "grip": 0.42, "pivot": Vector3(0.1, -0.26, -0.48), "head_mass": true,
 		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
@@ -98,6 +165,9 @@ const MOVESETS := {
 const HIT_MASS := {"shieldbearer": 6.0, "rager": 2.0, "common": 1.0, "boomer": 1.5, "spitter": 2.0, "hunter": 2.5, "smoker": 2.5, "charger": 4.0, "witch": 6.0, "tank": 99.0}
 
 var s                       # Survivor
+var momentum := 0           # consecutive-hit stacks (momentum weapons)
+var swing_hits := 0
+var crit_flash := 0.0
 var ms: Dictionary = {}
 var weapon_id := ""
 var state := "idle"         # idle, windup, charge, strike, follow, recover, block, push
@@ -157,6 +227,7 @@ func set_weapon(id: String) -> void:
 	if id == weapon_id:
 		return
 	weapon_id = id
+	momentum = 0
 	var def := WeaponData.get_def(id)
 	ms = MOVESETS.get(def.get("moveset", "machete"), MOVESETS["machete"])
 	stamina = ms["stamina"]
@@ -208,6 +279,7 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 	if drag_t > 0.0:
 		drag_t -= delta
 		dt *= drag_scale
+	dt *= tempo()
 	if fire_held:
 		press_t += delta
 	lunge = Vector3.ZERO
@@ -218,6 +290,7 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 			if idle_t > 0.7:
 				light_i = 0
 				heavy_i = 0
+				momentum = 0
 			pose = pose.interpolate_with(idle_pose(), min(1.0, delta * 10.0))
 			if block_held:
 				_enter("block")
@@ -325,7 +398,20 @@ func _enter(st: String) -> void:
 		queued = false
 
 
+## Swing speed: the weapon's own pace, plus momentum (messer).
+func tempo() -> float:
+	return ms.get("speed", 1.0) * (1.0 + 0.08 * momentum)
+
+
 func _start_attack(chained: bool) -> void:
+	if ms.get("momentum", false) and atk.size() > 0:
+		if swing_hits > 0:
+			momentum = mini(momentum + 1, 5)
+			if momentum == 5 and s.controller and s.controller.has_method("on_full_charge"):
+				s.controller.on_full_charge()
+		else:
+			momentum = maxi(momentum - 2, 0)
+	swing_hits = 0
 	if not chained:
 		press_t = 0.0
 	else:
@@ -527,6 +613,11 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	budget -= mass
 	var part: String = z.hit_part(p)
 	var dmg: float = atk["damage"]
+	swing_hits += 1
+	var crit := false
+	if part == "head":
+		dmg *= ms.get("head_mult", 1.0)
+		crit = ms.get("crit", false)
 	# Damage falls off as the blade loses momentum through the crowd.
 	var cleave_k: float = clamp(budget / max(atk["cleave"], 0.01) + 0.45, 0.45, 1.0)
 	if part == "head":
@@ -552,6 +643,13 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	z.impact_force = force
 	z.impact_point = p
 	z.cut = _cut_type(z, p, part)
+	if crit and z.hp - dmg <= 0.0 and z.kind != "tank":
+		# Precision kill: the head always comes off, with a bright ring.
+		z.cut = "decap" if abs(sin(atk.get("dir", 0.0) * DEG)) < 0.6 else "split"
+		Game.sfx.play3d("blade_ring", p, -2.0, 0.05)
+		crit_flash = 0.12
+		if s.controller and s.controller.has_method("on_crit"):
+			s.controller.on_crit()
 	if Game.autotest and OS.has_environment("CUT_LOG"):
 		print("[cutlog] %s heavy=%s ly=%.2f part=%s cut=%s" % [atk.get("name", "?"), is_heavy, p.y - z.global_position.y, part, z.cut])
 	z.take_damage(dmg, s, part, "melee", p)

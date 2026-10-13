@@ -263,6 +263,7 @@ func _process(delta: float) -> void:
 		stamina_bar.value = p.melee.stamina
 		stamina_bar.max_value = p.melee.ms.get("stamina", 4.0)
 		stamina_bar.blocking = p.melee.is_blocking()
+		stamina_bar.momentum = p.melee.momentum if p.melee.ms.get("momentum", false) else -1
 		stamina_bar.charge = clamp(p.melee.t / p.melee.atk.get("charge", 1.0), 0.0, 1.0) if p.melee.state == "charge" else 0.0
 		stamina_bar.queue_redraw()
 	ability_icon.frac = 1.0 - p.ability_cd / p.ability_cooldown()
@@ -566,6 +567,7 @@ class AbilityIcon extends Control:
 
 
 class StaminaPips extends Control:
+	var momentum := -1
 	var value := 4.0
 	var max_value := 4.0
 	var blocking := false
@@ -581,6 +583,13 @@ class StaminaPips extends Control:
 			draw_rect(r, Color(1, 1, 1, 0.2))
 			var c := Color(1.0, 0.85, 0.4, 0.9) if blocking else Color(1, 1, 1, 0.75)
 			draw_rect(Rect2(r.position, Vector2(w * fill, 4)), c)
+		if momentum >= 0:
+			# Momentum chevrons under the stamina pips.
+			for i in 5:
+				var x := -40.0 + i * 20.0
+				var on := i < momentum
+				var c := Color(1.0, 0.55, 0.2, 0.95) if on else Color(1, 1, 1, 0.15)
+				draw_polyline(PackedVector2Array([Vector2(x - 5, 12), Vector2(x, 17), Vector2(x + 5, 12)]), c, 2.0)
 		if charge > 0.0:
 			draw_arc(Vector2(0, -34), 14.0, -PI / 2, -PI / 2 + TAU * charge, 24, Color(1, 0.9, 0.6, 0.9), 2.0)
 

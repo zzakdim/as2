@@ -155,7 +155,7 @@ func load_map(idx: int) -> void:
 	Game.time = 0.0
 	Game.sfx.start_music()
 	if Game.mode == "sandbox":
-		Game.hud.map_label.text = "Melee Sandbox  ·  F5 horde  F6 special  F9 elites  F8 tank  F7 god mode (%s)" % ("on" if Game.god_mode else "off")
+		Game.hud.map_label.text = "Melee Sandbox  ·  T swap blade  F5 horde  F6 special  F9 elites  F8 tank  F7 god mode (%s)" % ("on" if Game.god_mode else "off")
 		Game.hud.big_message("Melee Sandbox", Color(0.9, 0.85, 0.75), 3.0)
 	else:
 		Game.hud.map_label.text = "%s  ·  %s" % [Game.MAP_NAMES[idx], Game.DIFF_NAMES[Game.difficulty]]
@@ -316,6 +316,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				if c.x >= 0:
 					var e: Infected = Game.director.spawn_infected(["shieldbearer", "rager", "gunner"][i % 3], Game.level.cell_center(c))
 					e.alert(Game.player)
+		if event.is_action_pressed("sandbox_weapon"):
+			cycle_sandbox_melee()
 		if event.is_action_pressed("sandbox_tank"):
 			Game.director.spawn_tank_now()
 		if event.is_action_pressed("sandbox_god"):
@@ -379,6 +381,23 @@ func _physics_process(delta: float) -> void:
 			_save_screenshot(shot[1])
 	if autotest_t >= Game.autotest_seconds:
 		_autotest_finish(0)
+
+
+const SANDBOX_MELEE := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete"]
+
+## Sandbox: T swaps the melee weapon in hand.
+func cycle_sandbox_melee() -> void:
+	var p: Survivor = Game.player
+	if p == null or p.dead:
+		return
+	var cur: String = p.secondary["id"] if p.secondary else ""
+	var nxt: String = SANDBOX_MELEE[(SANDBOX_MELEE.find(cur) + 1) % SANDBOX_MELEE.size()]
+	p.secondary = WeaponData.new_state(nxt)
+	p.active_slot = Survivor.SLOT_SECONDARY
+	p._refresh_held_model()
+	if p.controller and p.controller.has_method("on_weapon_changed"):
+		p.controller.on_weapon_changed()
+	Game.hud.big_message(WeaponData.get_def(nxt)["name"], Color(0.9, 0.85, 0.75), 1.2)
 
 
 ## --melee-poses=/dir : renders every greatsword attack at key frames

@@ -499,6 +499,11 @@ func on_perfect_block() -> void:
 	Game.hud.flash(Color(1, 0.9, 0.6, 0.18), 0.12)
 
 
+func on_crit() -> void:
+	hit_shake = maxf(hit_shake, 0.45)
+	Game.hud.flash(Color(1, 0.95, 0.85, 0.07), 0.08)
+
+
 func on_full_charge() -> void:
 	Game.hud.flash(Color(1, 1, 1, 0.08), 0.1)
 

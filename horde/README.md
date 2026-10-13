@@ -48,13 +48,25 @@ Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
 
 Blocking right before a hit lands is a **perfect block**: no stamina cost,
 and the attacker reels. Heavies held to full charge flash and hit harder.
-Weapons: greatsword (cleaving sweeps), fire axe (armor-cracking chops),
+Swords, each built around a different idea:
+- **Greatsword** — the all-rounder: cleaving sweeps, heavies cut bodies in half.
+- **Duelling Sabre** — speed and precision: a four-cut chain that's barely
+  slower than clicking, weak cleave, but head hits deal 1.8x and a head-hit
+  kill always takes the head off. The heavy is a long lunge.
+- **Executioner's Sword** — commitment: slow, wide sweeps that cleave a
+  crowd and halve what they hit; the charged Reaping sweep goes through a
+  whole line, the Headsman overhead splits anything.
+- **Messer** — momentum: every consecutive hit makes the next swing faster
+  (up to +40%, chevrons under the stamina pips); whiff or pause and it's
+  gone.
+
+Other melee: fire axe (armor-cracking chops),
 sledgehammer (slow; the overhead slam knocks everything down — they fall,
 lie there a moment and climb back up, as do commons near a blast), machete.
 
 The **Melee Sandbox** on the title screen drops you in an arena with the
 greatsword and an endless horde, with every weapon laid out around you.
-F5 spawns a horde, F6 a special, F9 elites (shield, rager, gunner), F8 a Tank, F7 toggles god mode.
+T swaps between the melee weapons, F5 spawns a horde, F6 a special, F9 elites (shield, rager, gunner), F8 a Tank, F7 toggles god mode.
 
 **Options:** the title screen cycles *Characters* between Realistic
 (Quaternius), Stylized (KayKit, `--kaykit`) and placeholder boxes

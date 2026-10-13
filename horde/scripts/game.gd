@@ -86,7 +86,7 @@ func _setup_inputs() -> void:
 		"jump": [KEY_SPACE], "walk": [KEY_SHIFT], "crouch": [KEY_CTRL, KEY_C],
 		"reload": [KEY_R], "use": [KEY_E], "flashlight": [KEY_F], "ping": [KEY_Z],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5],
-		"last_weapon": [KEY_Q], "sandbox_horde": [KEY_F5], "sandbox_special": [KEY_F6], "sandbox_god": [KEY_F7], "sandbox_tank": [KEY_F8], "sandbox_elite": [KEY_F9], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE], "ability": [KEY_G], "debug": [KEY_F3],
+		"last_weapon": [KEY_Q], "sandbox_horde": [KEY_F5], "sandbox_special": [KEY_F6], "sandbox_god": [KEY_F7], "sandbox_tank": [KEY_F8], "sandbox_elite": [KEY_F9], "sandbox_weapon": [KEY_T], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE], "ability": [KEY_G], "debug": [KEY_F3],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):

@@ -30,6 +30,18 @@ const DEFS := {
 		"name": "Sledgehammer", "slot": 1, "tier": 0, "melee": true, "moveset": "sledgehammer", "damage": 160.0, "rate": 0.7,
 		"range": 2.4, "arc": 70.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
 	},
+	"sabre": {
+		"name": "Duelling Sabre", "slot": 1, "tier": 0, "melee": true, "moveset": "sabre", "damage": 110.0, "rate": 0.3,
+		"range": 2.2, "arc": 70.0, "sound": "swing", "noise": 5.0, "kick": 0.0,
+	},
+	"executioner": {
+		"name": "Executioner's Sword", "slot": 1, "tier": 0, "melee": true, "moveset": "executioner", "damage": 220.0, "rate": 0.8,
+		"range": 2.6, "arc": 90.0, "sound": "swing", "noise": 9.0, "kick": 0.0,
+	},
+	"messer": {
+		"name": "Messer", "slot": 1, "tier": 0, "melee": true, "moveset": "messer", "damage": 140.0, "rate": 0.4,
+		"range": 2.3, "arc": 75.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
+	},
 	"greatsword": {
 		"name": "Greatsword", "slot": 1, "tier": 0, "melee": true, "moveset": "greatsword", "damage": 240.0, "rate": 0.5,
 		"range": 2.6, "arc": 80.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
@@ -151,6 +163,20 @@ static func build_model(id: String, view := false) -> Node3D:
 			WeaponMesh.fire_axe(root, steel.duplicate(), Mats.color(Color(0.62, 0.08, 0.06), 0.4, 0.4), wood)
 		"sledgehammer":
 			WeaponMesh.sledgehammer(root, Mats.color(Color(0.35, 0.36, 0.38), 0.45, 0.7).duplicate(), wood)
+		"sabre", "executioner", "messer":
+			var steel2 := Mats.color(Color(0.66, 0.67, 0.7), 0.25, 0.8).duplicate()
+			var brass2 := Mats.color(Color(0.6, 0.45, 0.2), 0.3, 0.85)
+			var iron := Mats.color(Color(0.18, 0.18, 0.19), 0.45, 0.8)
+			var leather2 := Mats.color(Color(0.12, 0.08, 0.06), 0.8)
+			var spec: Dictionary = {
+				"sabre": {"grip": 0.13, "blade": 0.84, "width": [0.017, 0.016, 0.018], "thick": 0.0045, "curve": 0.05,
+					"tip": "clip", "guard": "knuckle", "single_edge": true, "pommel": 0.016},
+				"executioner": {"grip": 0.34, "blade": 0.98, "width": [0.05, 0.052, 0.054], "thick": 0.007, "tip": "flat",
+					"guard": "cross", "guard_w": 0.14, "pommel": 0.034},
+				"messer": {"grip": 0.18, "blade": 0.76, "width": [0.022, 0.024, 0.02], "thick": 0.006, "curve": 0.025,
+					"tip": "clip", "guard": "cross", "guard_w": 0.08, "single_edge": true, "nagel": true, "pommel": 0.022},
+			}[id]
+			WeaponMesh.sword(root, spec, steel2, brass2 if id == "sabre" else iron, leather2)
 		"greatsword":
 			var leather := Mats.color(Color(0.16, 0.1, 0.07), 0.8)
 			var brass := Mats.color(Color(0.55, 0.42, 0.2), 0.35, 0.8)
