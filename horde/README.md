@@ -12,7 +12,8 @@ grime and blood), driven by the Universal Animation Library (including its
 zombie walk/idle/scratch set). Stylized KayKit models and
 fast placeholder boxes are one toggle away. The procedural city is dressed with Quaternius' Downtown City MegaKit
 (brick and trim facades, shopfronts, cornices, AC units) via MultiMesh;
-impacts are recorded CC0 sounds and everything else is synthesized.
+guns are Quaternius' CC0 Ultimate Gun Pack; impacts are recorded CC0 sounds
+and everything else is synthesized.
 
 ## Running it
 
@@ -141,6 +142,8 @@ state, the medkit, pills and throwables, and fails if any are unreachable.
 
 `--spawn=gunner,rager` (with `--autotest`) drops those enemies 12 m in front
 of the player, for screenshot checks of a specific fight.
+
+`--gun-sheet=/dir` renders each gun in first person (grip and scale check).
 
 To check swing arcs without playing, render a pose contact sheet:
 `xvfb-run godot --path horde --rendering-driver opengl3 -- --autotest --sandbox --no-bots --seconds=200 --melee-poses=/tmp/poses`

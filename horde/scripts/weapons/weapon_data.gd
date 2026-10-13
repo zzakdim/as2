@@ -90,8 +90,53 @@ static func new_state(id: String) -> Dictionary:
 
 
 ## Placeholder gun model built from boxes. Barrel points along -Z.
+# Real gun meshes (Quaternius Ultimate Gun Pack, CC0): OBJ with the origin on
+# the pistol grip, muzzle along +X. [file, overall length in m, support-hand
+# point in our model space (muzzle along -Z)].
+const GUN_MODELS := {
+	"pistol": ["Pistol_1", 0.2, Vector3(-0.02, -0.05, 0.0)],
+	"dual_pistols": ["Pistol_1", 0.2, Vector3(-0.02, -0.05, 0.0)],
+	"magnum": ["Revolver_1", 0.3, Vector3(-0.02, -0.05, 0.0)],
+	"smg": ["SubmachineGun_2", 0.52, Vector3(0, -0.07, -0.09)],
+	"pump_shotgun": ["Shotgun_1", 1.0, Vector3(0, -0.03, -0.42)],
+	"auto_shotgun": ["Shotgun_3", 1.0, Vector3(0, -0.03, -0.38)],
+	"assault_rifle": ["AssaultRifle2_1", 0.84, Vector3(0, -0.02, -0.24)],
+	"hunting_rifle": ["SniperRifle_1", 1.12, Vector3(0, -0.03, -0.3)],
+}
+static var _gun_meshes := {}
+
+
+## Support-hand grip for first-person arms (model space), or null.
+static func fore_grip(id: String):
+	if GUN_MODELS.has(id) and ResourceLoader.exists("res://assets/quaternius/guns/%s.obj" % GUN_MODELS[id][0]):
+		return GUN_MODELS[id][2]
+	return null
+
+
+static func _real_gun(id: String) -> Node3D:
+	if not GUN_MODELS.has(id):
+		return null
+	var path := "res://assets/quaternius/guns/%s.obj" % GUN_MODELS[id][0]
+	if not ResourceLoader.exists(path):
+		return null
+	if not _gun_meshes.has(path):
+		_gun_meshes[path] = load(path)
+	var mesh: Mesh = _gun_meshes[path]
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	var sc: float = GUN_MODELS[id][1] / maxf(mesh.get_aabb().size.x, 0.001)
+	mi.transform = Transform3D(Basis(Vector3.UP, PI / 2).scaled(Vector3.ONE * sc), Vector3.ZERO)
+	return mi
+
+
 static func build_model(id: String, view := false) -> Node3D:
 	var root := Node3D.new()
+	var real := _real_gun(id)
+	if real:
+		root.add_child(real)
+		if view:
+			real.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		return root
 	var dark := Mats.color(Color(0.12, 0.12, 0.13), 0.4, 0.6)
 	var wood := Mats.color(Color(0.35, 0.2, 0.1), 0.7)
 	var steel := Mats.color(Color(0.5, 0.5, 0.52), 0.35, 0.8)

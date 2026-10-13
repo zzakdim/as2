@@ -5,6 +5,7 @@
 | `kaykit/skeletons` | [KayKit Character Pack: Skeletons 1.0](https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0) by Kay Lousberg | CC0 1.0 |
 | `quaternius/humans` | [Universal Base Characters](https://quaternius.itch.io/universal-base-characters) (free tier) by Quaternius — bodies split into limb parts by `tools/split_gltf_parts.py`, textures downscaled to 1024 px | CC0 1.0 |
 | `quaternius/humans/Outfit_*` | [Modular Character Outfits – Fantasy](https://quaternius.itch.io/modular-character-outfits-fantasy) (free tier) by Quaternius — Ranger and Peasant outfits merged with the base-character heads and split into limb parts by `tools/build_outfit_model.py`, textures downscaled to 1024 px | CC0 1.0 |
+| `quaternius/guns` | [Ultimate Gun Pack](https://quaternius.itch.io/50-lowpoly-guns) by Quaternius — 7 of the OBJ guns | CC0 1.0 |
 | `quaternius/anims` | [Universal Animation Library](https://quaternius.itch.io/universal-animation-library) 1 + [2](https://quaternius.itch.io/universal-animation-library-2) by Quaternius | CC0 1.0 |
 | `quaternius/city` | [Downtown City MegaKit](https://quaternius.itch.io/downtown-city-megakit) (free tier) by Quaternius — facade modules, cornices, props; textures downscaled to 1024 px | CC0 1.0 |
 | `quaternius/hair` | Hairstyles from Universal Base Characters by Quaternius | CC0 1.0 |

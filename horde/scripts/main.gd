@@ -152,6 +152,8 @@ func load_map(idx: int) -> void:
 			run_pose_sheet(a.substr(14))
 		if a.begins_with("--lineup="):
 			run_lineup(a.substr(9))
+		if a.begins_with("--gun-sheet="):
+			run_gun_sheet(a.substr(12))
 		if a.begins_with("--spawn="):
 			# --spawn=gunner,rager : spawn these 12 m ahead of the player, already hunting
 			var k := 0
@@ -385,6 +387,36 @@ func run_pose_sheet(dir: String) -> void:
 		img.save_png(path)
 		n += 1
 	print("[autotest] pose sheet: %d frames in %s" % [n, dir])
+	get_tree().quit(0)
+
+
+## --gun-sheet=/dir : first-person view of every gun (checks grips and scale).
+func run_gun_sheet(dir: String) -> void:
+	var p: Survivor = Game.player
+	for c in p.get_children():
+		if c is PlayerController:
+			p.controller = c
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	Game.director.set_physics_process(false)
+	Game.player.set_physics_process(false)
+	await get_tree().create_timer(0.5).timeout
+	var n := 0
+	for id in ["pistol", "magnum", "smg", "pump_shotgun", "auto_shotgun", "assault_rifle", "hunting_rifle"]:
+		var st := WeaponData.new_state(id)
+		if WeaponData.get_def(id).get("slot", 1) == 0:
+			p.primary = st
+			p.active_slot = Survivor.SLOT_PRIMARY
+		else:
+			p.secondary = st
+			p.active_slot = Survivor.SLOT_SECONDARY
+		p._refresh_held_model()
+		p.controller.on_weapon_changed()
+		await get_tree().create_timer(1.2).timeout
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/%02d_%s.png" % [dir, n, id])
+		n += 1
+	print("[autotest] gun sheet: %d frames" % n)
 	get_tree().quit(0)
 
 

@@ -306,7 +306,8 @@ func _update_gun_arms() -> void:
 	var long: bool = WeaponData.DEFS.has(id) and WeaponData.get_def(id).get("slot", 1) == 0
 	var xf := vm_root.transform
 	var grip_r: Vector3 = xf * Vector3(0, -0.06, 0.02)
-	var grip_l: Vector3 = xf * (Vector3(0, -0.02, -0.32) if long else Vector3(-0.03, -0.07, 0.01))
+	var fore = WeaponData.fore_grip(id)
+	var grip_l: Vector3 = xf * (fore if fore != null else (Vector3(0, -0.02, -0.32) if long else Vector3(-0.03, -0.07, 0.01)))
 	var el_r := Vector3(0.3, -0.62, 0.15)
 	var el_l := Vector3(-0.25, -0.62, 0.05)
 	_limb_between(gun_arms[0], grip_r + (el_r - grip_r).normalized() * 0.34, grip_r, 0.06)
