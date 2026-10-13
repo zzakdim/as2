@@ -365,6 +365,26 @@ func blood_decal(pos: Vector3) -> void:
 	_decals.append(d)
 
 
+## A pool spreading out from under a body over a few seconds.
+func blood_pool(node: Node3D) -> void:
+	var d: Decal
+	if _decals.size() >= MAX_DECALS:
+		d = _decals.pop_front()
+	else:
+		d = Decal.new()
+		d.cull_mask = 1
+		add_child(d)
+	_decals.append(d)
+	d.texture_albedo = Mats.floor_blood(randi() % 4)
+	d.size = Vector3(0.2, 1.0, 0.2)
+	var p := node.global_position
+	d.global_position = Vector3(p.x, p.y + 0.3, p.z)
+	d.rotation.y = randf() * TAU
+	var full := randf_range(1.3, 2.0)
+	var tw := d.create_tween()
+	tw.tween_property(d, "size", Vector3(full, 1.0, full), randf_range(4.0, 7.0)).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+
 ## Splatter on a nearby wall/car in direction `dir` (raycast up to 3.5 m).
 func wall_blood(pos: Vector3, dir: Vector3) -> void:
 	var d := dir.normalized()

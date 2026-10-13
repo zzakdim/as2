@@ -765,6 +765,12 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 	if cut == "decap" and bodies.has(b("head")):
 		bodies[b("head")].joint_type = PhysicalBone3D.JOINT_TYPE_NONE
 	sim.physical_bones_start_simulation()
+	# Blood pools out from under the body once it has settled.
+	var hips_pb = bodies.get(b("hips"))
+	if hips_pb:
+		Effects.after(self, 1.2, func():
+			if Game.fx and is_instance_valid(hips_pb):
+				Game.fx.blood_pool(hips_pb))
 	# The body hitting the ground: one heavy thud a moment later.
 	var thud_pos := global_position
 	Effects.after(self, randf_range(0.35, 0.6), func():
