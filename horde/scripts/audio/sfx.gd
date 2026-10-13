@@ -161,14 +161,14 @@ func _stream(n: String) -> AudioStream:
 	return v
 
 
-func play3d(n: String, pos: Vector3, db := 0.0, pitch_rand := 0.08) -> void:
+func play3d(n: String, pos: Vector3, db := 0.0, pitch_rand := 0.08, pitch := 1.0) -> void:
 	if not sounds.has(n):
 		return
 	var p: AudioStreamPlayer3D = _pool[_pool_i]
 	_pool_i = (_pool_i + 1) % _pool.size()
 	p.stream = _stream(n)
 	p.volume_db = db
-	p.pitch_scale = 1.0 + randf_range(-pitch_rand, pitch_rand)
+	p.pitch_scale = pitch * (1.0 + randf_range(-pitch_rand, pitch_rand))
 	if p.is_inside_tree():
 		p.global_position = pos
 	p.play()

@@ -42,7 +42,7 @@ const MOVESETS := {
 	# and guaranteed severing on head hits (crits). The heavy is a lunge.
 	"sabre": {
 		"length": 0.84, "grip": 0.14, "pivot": Vector3(0.13, -0.24, -0.48),
-		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true,
+		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true, "swish_pitch": 1.3,
 		"light": [
 			{"name": "Cut 1", "dir": 28.0, "arc": [-56.0, 60.0], "windup": 0.07, "strike": 0.085, "follow": 0.06, "recover": 0.2,
 				"damage": 105.0, "cleave": 1.6, "impact": 3.0, "lunge": 1.2, "sever": 0.45, "next_light": 1, "next_heavy": 0},
@@ -65,7 +65,7 @@ const MOVESETS := {
 	# the charged heavy goes through a whole line and always cuts bodies in two.
 	"executioner": {
 		"length": 1.0, "grip": 0.36, "pivot": Vector3(0.06, -0.28, -0.5),
-		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92,
+		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92, "swish_pitch": 0.72,
 		"light": [
 			{"name": "Wide sweep L>R", "dir": 8.0, "arc": [-70.0, 76.0], "windup": 0.26, "strike": 0.19, "follow": 0.16, "recover": 0.46,
 				"damage": 230.0, "cleave": 7.0, "impact": 9.0, "lunge": 2.4, "sever": 0.85, "next_light": 1, "next_heavy": 0, "bisect": true},
@@ -85,7 +85,7 @@ const MOVESETS := {
 	# Momentum: the swings get faster with every consecutive hit (up to +40%);
 	# whiffing or pausing loses it. Rewards staying in the crowd.
 	"messer": {
-		"length": 0.76, "grip": 0.19, "pivot": Vector3(0.12, -0.25, -0.48), "momentum": true,
+		"length": 0.76, "grip": 0.19, "pivot": Vector3(0.12, -0.25, -0.48), "momentum": true, "swish_pitch": 1.1,
 		"stamina": 3.5, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
 		"light": [
 			{"name": "Zornhau", "dir": 38.0, "arc": [-58.0, 62.0], "windup": 0.11, "strike": 0.11, "follow": 0.08, "recover": 0.28,
@@ -125,7 +125,7 @@ const MOVESETS := {
 			"damage": 200.0, "cleave": 2.5, "impact": 7.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
 	},
 	"sledgehammer": {
-		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.07, -0.28, -0.48), "head_mass": true,
+		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.07, -0.28, -0.48), "head_mass": true, "swish_pitch": 0.65,
 		"stamina": 5.0, "block_cost": 0.35, "push_cost": 0.8, "block_arc": 0.2,
 		"light": [
 			{"name": "Swing L>R", "dir": 15.0, "arc": [-62.0, 66.0], "windup": 0.24, "strike": 0.17, "follow": 0.14, "recover": 0.42,
@@ -462,7 +462,9 @@ func _begin_strike() -> void:
 	theta = _strike_theta(0.0)
 	theta_prev = theta
 	_enter("strike")
-	Game.sfx.play3d("whoosh_heavy" if is_heavy else "whoosh", s.eye_pos(), -1.0 if is_heavy else -4.0, 0.12)
+	# Lighter blades hiss higher, big ones whoom lower; faster swings rise.
+	var pitch: float = ms.get("swish_pitch", 1.0) * (0.9 + 0.1 * tempo())
+	Game.sfx.play3d("whoosh_heavy" if is_heavy else "whoosh", s.eye_pos(), -1.0 if is_heavy else -4.0, 0.12, pitch)
 	if is_heavy and ms.get("length", 0.0) > 0.9:
 		Game.sfx.play3d("blade_ring", s.eye_pos(), -12.0, 0.08)
 	# After the strike decides the chain, advance it.
@@ -696,6 +698,9 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 		kills_this_swing += 1
 	else:
 		z.melee_stagger(z.impact_dir, force)
+		if z.cut == "arm" and z.has_method("maim"):
+			z.maim("arm", z.impact_dir * force)
+		z.cut = ""
 	# Feel: blade drags, camera punches with the swing, blood follows the edge.
 	var heavy_target: bool = z.is_special
 	drag_t = 0.07 if heavy_target else (0.045 if killed else 0.06)

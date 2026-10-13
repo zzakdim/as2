@@ -350,7 +350,7 @@ func _land_attack() -> void:
 	if to.length() > 1.75:
 		Game.sfx.play3d("swing", global_position + Vector3(0, 1.3, 0), -12.0, 0.2)
 		return   # whiffed: they stepped back
-	target.take_damage(Game.common_hit_damage(), self, "claw")
+	target.take_damage(Game.common_hit_damage() * (1.0 - 0.4 * arms_lost), self, "claw")
 	Game.sfx.play3d("claw", target.global_position + Vector3(0, 1.2, 0), -6.0, 0.2)
 
 
@@ -529,6 +529,18 @@ func knockdown(dir: Vector3, lie := 1.2) -> void:
 	stagger_t = t
 	attack_pending = 0.0
 	sitting = false
+
+
+var arms_lost := 0
+
+## A cut that didn't kill: maybe lose an arm and keep shambling, weaker.
+func maim(cut_kind: String, impulse: Vector3) -> void:
+	if state == S.DEAD or is_special or cut_kind != "arm":
+		return
+	if rig.has_method("sever_live_arm") and rig.sever_live_arm(impulse):
+		arms_lost += 1
+		Game.sfx.play3d("gore", global_position + Vector3(0, 1.3, 0), -4.0, 0.15)
+		Game.fx.blood_spray(global_position + Vector3(0, 1.3, 0), impulse.normalized(), 14)
 
 
 func on_death() -> void:

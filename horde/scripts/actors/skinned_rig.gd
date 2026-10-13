@@ -822,6 +822,25 @@ static func _rag_swing(bone: String) -> float:
 	return 28.0       # spine / chest
 
 
+## A living body loses an arm (it keeps coming). Returns false if it can't.
+func sever_live_arm(impulse: Vector3) -> bool:
+	if ragdolled or family != "human":
+		return false
+	var sides := []
+	for sd in ["l", "r"]:
+		if parts.has("arm_" + sd) and parts["arm_" + sd].visible:
+			sides.append(sd)
+	if sides.is_empty():
+		return false
+	var side: String = sides.pick_random()
+	_gib_part("arm_" + side, "upperarm." + side, impulse * 0.6 + Vector3(0, 2, 0))
+	if parts.has("hand_" + side):
+		_gib_part("hand_" + side, "hand." + side, impulse * 0.5 + Vector3(0, 2, 0))
+	_add_stump("upperarm." + side, 0.05, Vector3(0.055, 1, 0.055))
+	_spurt_at("upperarm." + side, Vector3.ZERO)
+	return true
+
+
 ## A blade passing through this corpse at physical bone `pb`: shove it and
 ## maybe take the limb off. Returns true if something was severed.
 func chop_corpse(pb: PhysicalBone3D, impulse: Vector3, sever_chance: float) -> bool:
