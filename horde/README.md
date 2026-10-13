@@ -8,7 +8,8 @@ and where the infected come at you.
 Characters are realistic-proportioned CC0 Quaternius bodies driven by the
 Universal Animation Library (including its zombie walk/idle/scratch set),
 with procedural clothing and zombie skin grading. Stylized KayKit models and
-fast placeholder boxes are one toggle away. The city is procedural geometry;
+fast placeholder boxes are one toggle away. The procedural city is dressed with Quaternius' Downtown City MegaKit
+(brick and trim facades, shopfronts, cornices, AC units) via MultiMesh;
 impacts are recorded CC0 sounds and everything else is synthesized.
 
 ## Running it

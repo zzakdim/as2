@@ -312,10 +312,7 @@ func _cloth(c: Color, normal_tex: Texture2D, stain := -1) -> StandardMaterial3D:
 		if stain >= 0:
 			m.albedo_texture = _stain_tex(stain)
 		m.roughness = 0.92
-		if normal_tex:
-			m.normal_enabled = true
-			m.normal_texture = normal_tex
-			m.normal_scale = 0.6
+		# No body normal map: its muscle detail makes clothes read as skin.
 		_tints[key] = m
 	return _tints[key]
 

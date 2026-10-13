@@ -493,13 +493,15 @@ func _pick_heights() -> void:
 			else:
 				var key := Vector2i(x / 4, z / 4)
 				if not block_h.has(key):
-					block_h[key] = rng.randf_range(6.0, 18.0)
+					# Whole floors (3 m) + a 1 m cornice, so facade modules stack cleanly.
+					block_h[key] = rng.randi_range(2, 6) * 3.0 + 1.0
 				heights[i] = block_h[key]
 
 
 # ================================================================ geometry
 
 func _build_geometry() -> void:
+	var dressed := CityDressing.available()
 	var st_city := SurfaceTool.new()
 	st_city.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var st_safe := SurfaceTool.new()
@@ -529,6 +531,14 @@ func _build_geometry() -> void:
 						elif indoor_rect.has_point(Vector2i(x, z)):
 							_add_box(st_pillar, aabb)
 						else:
+							if dressed:
+								# Inset street-facing sides so the facade modules sit in front.
+								for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+									if in_bounds(Vector2i(x + o.x, z + o.y)) and not is_wallish(get_t(x + o.x, z + o.y)):
+										if o.x > 0: aabb.size.x -= 0.25
+										if o.x < 0: aabb.position.x += 0.25; aabb.size.x -= 0.25
+										if o.y > 0: aabb.size.z -= 0.25
+										if o.y < 0: aabb.position.z += 0.25; aabb.size.z -= 0.25
 							_add_box(st_city, aabb)
 			if boundary and run_start < 0:
 				run_start = x
@@ -541,12 +551,17 @@ func _build_geometry() -> void:
 				cs.position = Vector3(run_start * CELL + len * 0.5, 10.0, z * CELL + CELL * 0.5)
 				walls_body.add_child(cs)
 				run_start = -1
-	for pair in [[st_city, Mats.facade()], [st_safe, Mats.saferoom_wall()], [st_pillar, Mats.concrete()]]:
+	for pair in [[st_city, Mats.concrete() if dressed else Mats.facade()], [st_safe, Mats.saferoom_wall()], [st_pillar, Mats.concrete()]]:
 		var st: SurfaceTool = pair[0]
 		var mi := MeshInstance3D.new()
 		mi.mesh = st.commit()
 		mi.material_override = pair[1]
 		add_child(mi)
+
+	if dressed:
+		var dress := CityDressing.new()
+		add_child(dress)
+		dress.build(self)
 
 	# Ground
 	var ground := StaticBody3D.new()
