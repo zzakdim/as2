@@ -105,6 +105,14 @@ func load_map(idx: int) -> void:
 		lvl.generate(seed_base + idx * 7919, idx)
 	if Game.autotest:
 		print("[autotest] map %d generated in %d ms (max_flow %d)" % [idx, Time.get_ticks_msec() - t0, lvl.max_flow])
+	var weather: String = "clear" if Game.mode == "sandbox" else MAP_WEATHER[idx % MAP_WEATHER.size()]
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--weather="):
+			weather = a.substr(10)
+	if weather == "rain":
+		var w := Weather.new()
+		world.add_child(w)
+		w.setup(moon_light, world_env)
 
 	for i in (4 if Game.bots_enabled else 1):
 		var s := Survivor.new()
@@ -169,6 +177,11 @@ func load_map(idx: int) -> void:
 			it.run()
 
 
+var world_env: Environment
+var moon_light: DirectionalLight3D
+const MAP_WEATHER := ["clear", "rain", "clear"]
+
+
 func _build_environment() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -193,6 +206,7 @@ func _build_environment() -> void:
 	env.ssao_intensity = 1.5
 	var we := WorldEnvironment.new()
 	we.environment = env
+	world_env = env
 	world.add_child(we)
 	var moon := DirectionalLight3D.new()
 	moon.light_color = Color(0.55, 0.62, 0.85)
@@ -201,6 +215,7 @@ func _build_environment() -> void:
 	moon.shadow_enabled = true
 	moon.directional_shadow_max_distance = 60.0
 	world.add_child(moon)
+	moon_light = moon
 
 
 func _clear_world() -> void:

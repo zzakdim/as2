@@ -336,6 +336,39 @@ func _build() -> void:
 		var t := float(i) / RATE
 		heli[i] = _rng.randf_range(-1, 1) * (0.25 + 0.25 * sin(TAU * 11.0 * t)) * 0.6
 	sounds["helicopter"] = _wav(heli, true)
+	# Rain: band-limited hiss with a slow swell and scattered droplet ticks.
+	var rain := _buf(4.0)
+	var r1 := 0.0
+	var r2 := 0.0
+	for i in rain.size():
+		var t := float(i) / RATE
+		var x := _rng.randf_range(-1, 1)
+		r1 += 0.35 * (x - r1)
+		r2 += 0.05 * (r1 - r2)
+		var swell := 0.8 + 0.2 * sin(TAU * t / 4.0)
+		var tick := 0.0
+		if _rng.randf() < 0.0015:
+			tick = _rng.randf_range(-0.5, 0.5)
+		rain[i] = ((r1 - r2) * 0.9 * swell + tick) * 0.5
+	# Crossfade the ends so the loop is seamless.
+	var xf := int(0.3 * RATE)
+	for i in xf:
+		var k := float(i) / xf
+		rain[i] = rain[i] * k + rain[rain.size() - xf + i] * (1.0 - k)
+	sounds["rain"] = _wav(rain.slice(0, rain.size() - xf), true)
+	# Thunder: a crack, then a long low rumble.
+	var th := _buf(4.5)
+	var l1 := 0.0
+	var l2 := 0.0
+	for i in th.size():
+		var t := float(i) / RATE
+		var x := _rng.randf_range(-1, 1)
+		l1 += 0.02 * (x - l1)
+		l2 += 0.004 * (x - l2)
+		var rumble := l2 * 14.0 * (1.0 - exp(-t * 6.0)) * exp(-t * 0.8) * (0.7 + 0.3 * sin(TAU * 1.7 * t))
+		var crack := l1 * 3.0 * exp(-t * 9.0)
+		th[i] = clampf(rumble + crack, -1.0, 1.0) * 0.9
+	sounds["thunder"] = _wav(th)
 
 
 func _whoosh(sec: float, f0: float, f1: float, gain: float) -> PackedFloat32Array:

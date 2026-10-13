@@ -71,7 +71,8 @@ plazas and a warehouse → a **crescendo gate** (press the button, hold out
 against waves until it opens) → end saferoom (close the door with everyone
 inside). The last map ends in a **radio finale**: survive the waves and two
 Tanks, then get to the extraction zone. Your health and gear carry over
-between maps.
+between maps. The second map is a storm (L4D2's Hard Rain nod): rain,
+lightning with thunder, and wet streets; `--weather=rain` forces it.
 
 **AI Director** (`scripts/ai/director.gd`). Modeled on Valve's published
 design. It tracks each survivor's intensity (damage taken, incaps, pins, close
@@ -212,5 +213,5 @@ Next up, roughly in order of impact:
   - Loadouts and progression between runs.
 - **More L4D2**: Jockey, rescue closets for dead teammates, ledge hangs, more
   melee weapons, laser sights / incendiary ammo, gas can scavenge finales,
-  weather (Hard Rain).
+  flooding/rising-water set pieces.
 - **Online co-op** (Godot's high-level multiplayer) and versus mode.
