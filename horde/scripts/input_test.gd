@@ -64,18 +64,29 @@ func run() -> void:
 	# 4) movement: sprint, slide out of the sprint, perfect dodge
 	_slot(2)
 	await _wait(0.4)
+	p.stun_t = 0.0
 	Input.action_press("move_forward")
 	Input.action_press("sprint")
-	await _wait(0.6)
+	await _wait(0.8)
 	Input.action_press("crouch")
 	await _wait(0.4)
 	Input.action_release("crouch")
 	Input.action_release("sprint")
 	Input.action_release("move_forward")
 	await _wait(0.4)
+	p.dodges = 3
+	p.dodge_cd = 0.0
+	p.stun_t = 0.0
+	p.riposte_t = 0.0
 	Input.action_press("move_right")
-	await _tap("jump", 0.05, 0.05)
-	p.take_damage(5.0, null, "claw")
+	await _wait(0.1)
+	await _tap("jump", 0.05, 0.0)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if p.dodge_t > 0.0:
+		p.take_damage(5.0, null, "claw")
+	else:
+		print("[input-test] dodge did not start (on floor %s)" % p.is_on_floor())
 	await _wait(0.3)
 	Input.action_release("move_right")
 	if p.riposte_t > 0.0:
