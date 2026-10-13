@@ -22,6 +22,7 @@ var base_fov := 85.0
 var melee_root: Node3D
 var melee_blade_mat: StandardMaterial3D
 var arm_parts: Array = []      # [upper_r, fore_r, hand_r, upper_l, fore_l, hand_l]
+var fp_arms: FPArms           # realistic IK arms (falls back to box forearms)
 var trail: MeshInstance3D
 var trail_mesh: ImmediateMesh
 var trail_pts: Array = []      # [base, tip, age] in camera space
@@ -65,6 +66,10 @@ func _ready() -> void:
 	vm_light.light_specular = 1.5
 	camera.add_child(vm_light)
 	s.rig.visible = false
+	if FPArms.available() and SkinnedRig.style == "human" and not Infected.use_box_rigs:
+		fp_arms = FPArms.new()
+		camera.add_child(fp_arms)
+		fp_arms.setup(s.color.darkened(0.35))
 	s.fired.connect(_on_fired)
 	on_weapon_changed()
 
@@ -309,6 +314,13 @@ func _update_gun_arms() -> void:
 	_limb_between(gun_arms[2], grip_l + (el_l - grip_l).normalized() * 0.34, grip_l, 0.06)
 	gun_arms[3].transform = Transform3D(xf.basis * Basis.from_scale(Vector3(0.075, 0.09, 0.1)), grip_l)
 	var show := vm_root.visible and s.action == ""
+	if fp_arms:
+		fp_arms.visible = show
+		if show:
+			fp_arms.pose(_wrist(grip_r, true), _wrist(grip_l, false))
+		for a in gun_arms:
+			a.visible = false
+		return
 	for a in gun_arms:
 		a.visible = show
 
@@ -364,6 +376,12 @@ func _limb_between(mi: MeshInstance3D, a: Vector3, b: Vector3, thick: float) -> 
 	mi.transform = Transform3D(Basis(x * thick, y * thick, z * l), (a + b) * 0.5)
 
 
+## Pull a grip point back toward the shoulder so the wrist sits behind it.
+static func _wrist(grip: Vector3, right: bool) -> Vector3:
+	var sh := Vector3(0.21 if right else -0.21, -0.34, 0.12)
+	return grip + (sh - grip).normalized() * 0.07
+
+
 func _update_melee_vm(delta: float, bob: float) -> void:
 	var m: Melee = s.melee
 	var xf := m.pose
@@ -375,6 +393,13 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 	var grip: float = m.ms.get("grip", 0.3)
 	var hand_r: Vector3 = xf * Vector3(0, 0, -grip * 0.25)
 	var hand_l: Vector3 = xf * Vector3(0, 0, -grip * 0.8)
+	if fp_arms:
+		fp_arms.visible = true
+		fp_arms.pose(_wrist(hand_r, true), _wrist(hand_l, false))
+		for a in arm_parts:
+			if a != trail:
+				a.visible = false
+		return
 	# Forearms only: from the hands back toward elbows below the screen.
 	var hands := [hand_r, hand_l]
 	var elbows := [Vector3(0.32, -0.78, 0.05), Vector3(-0.22, -0.8, 0.05)]
@@ -527,6 +552,8 @@ func _process(delta: float) -> void:
 	vm_root.position = vm_root.position.lerp(base, min(1.0, delta * 20.0))
 	vm_root.rotation = vm_root.rotation.lerp(rot, min(1.0, delta * 20.0))
 	vm_root.visible = not s.dead and s.pinned_by == null
+	if fp_arms and gun_arms.is_empty() and melee_root == null:
+		fp_arms.visible = false
 	_update_gun_arms()
 	if melee_root:
 		var show := not s.dead and s.pinned_by == null and not s.incapped and s.action == ""

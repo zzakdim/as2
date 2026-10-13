@@ -2,7 +2,7 @@
 """Split a skinned glTF body mesh into dismemberable parts by skin weight.
 
 Usage: split_gltf_parts.py in.gltf out_dir NodeName
-Each triangle goes to the part (head / arm_l / arm_r / leg_l / leg_r / torso)
+Each triangle goes to the part (head / arm_l / arm_r / hand_l / hand_r / leg_l / leg_r / torso)
 of the bone that dominates its vertices. All parts share the original vertex
 buffers and skin, so the intact body renders exactly as before; hiding a part
 cleanly removes that limb. Output nodes are named Human_Head, Human_ArmLeft,
@@ -42,6 +42,10 @@ def group_of(name):
         return "leg_l"
     if name in ("thigh_r", "calf_r", "foot_r", "ball_r"):
         return "leg_r"
+    if name == "hand_l" or (name.endswith("_l") and name.split("_")[0] in ("index", "middle", "ring", "pinky", "thumb")):
+        return "hand_l"
+    if name == "hand_r" or (name.endswith("_r") and name.split("_")[0] in ("index", "middle", "ring", "pinky", "thumb")):
+        return "hand_r"
     if name.endswith("_l") and not name.startswith("clavicle"):
         return "arm_l"
     if name.endswith("_r") and not name.startswith("clavicle"):
@@ -66,7 +70,7 @@ for prim in mesh["primitives"]:
         g = Counter(vgroup[v] for v in tri).most_common(1)[0][0]
         parts.setdefault(g, {}).setdefault(id(prim), (prim, []))[1].extend(tri)
 
-NAMES = {"head": "Human_Head", "arm_l": "Human_ArmLeft", "arm_r": "Human_ArmRight",
+NAMES = {"hand_l": "Human_HandLeft", "hand_r": "Human_HandRight", "head": "Human_Head", "arm_l": "Human_ArmLeft", "arm_r": "Human_ArmRight",
          "leg_l": "Human_LegLeft", "leg_r": "Human_LegRight", "torso": "Human_Body"}
 armature = next(n for n in j["nodes"] if node_i in n.get("children", []))
 new_nodes = []

@@ -18,7 +18,7 @@ const HOLD_FOR_HEAVY := 0.24
 # the blade around that sweep (0 = pointing straight ahead).
 const MOVESETS := {
 	"greatsword": {
-		"length": 1.18, "grip": 0.34, "pivot": Vector3(0.08, -0.36, -0.3),
+		"length": 1.18, "grip": 0.34, "pivot": Vector3(0.07, -0.27, -0.42),
 		"stamina": 4.0, "block_cost": 0.5, "push_cost": 1.0, "block_arc": 0.25,
 		"light": [
 			{"name": "Light 1", "dir": 32.0, "arc": [-60.0, 64.0], "windup": 0.17, "strike": 0.13, "follow": 0.11, "recover": 0.34,
@@ -39,7 +39,7 @@ const MOVESETS := {
 			"damage": 380.0, "cleave": 4.0, "impact": 9.0, "lunge": 5.0, "next_light": 1, "next_heavy": 0},
 	},
 	"fire_axe": {
-		"length": 0.62, "grip": 0.42, "pivot": Vector3(0.12, -0.34, -0.3), "head_mass": true,
+		"length": 0.62, "grip": 0.42, "pivot": Vector3(0.1, -0.26, -0.42), "head_mass": true,
 		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
 		"light": [
 			{"name": "Chop L", "dir": 58.0, "arc": [-58.0, 58.0], "windup": 0.15, "strike": 0.12, "follow": 0.1, "recover": 0.3,
@@ -58,7 +58,7 @@ const MOVESETS := {
 			"damage": 200.0, "cleave": 2.5, "impact": 7.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
 	},
 	"sledgehammer": {
-		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.08, -0.38, -0.3), "head_mass": true,
+		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.07, -0.28, -0.42), "head_mass": true,
 		"stamina": 5.0, "block_cost": 0.35, "push_cost": 0.8, "block_arc": 0.2,
 		"light": [
 			{"name": "Swing L>R", "dir": 15.0, "arc": [-62.0, 66.0], "windup": 0.24, "strike": 0.17, "follow": 0.14, "recover": 0.42,
@@ -76,7 +76,7 @@ const MOVESETS := {
 			"damage": 260.0, "cleave": 4.0, "impact": 13.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
 	},
 	"machete": {
-		"length": 0.52, "grip": 0.14, "pivot": Vector3(0.16, -0.3, -0.3),
+		"length": 0.52, "grip": 0.14, "pivot": Vector3(0.14, -0.24, -0.42),
 		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
 		"light": [
 			{"name": "Slash 1", "dir": 20.0, "arc": [-60.0, 64.0], "windup": 0.1, "strike": 0.1, "follow": 0.08, "recover": 0.24,
@@ -459,7 +459,7 @@ func _windup_pose(charged := false) -> Transform3D:
 
 func idle_pose() -> Transform3D:
 	var v := Vector3(0.12, 0.8, -0.58).normalized()
-	return _blade_xf(Vector3(0.24, -0.4, -0.24), v, Vector3(-1, 0, 0.2).normalized())
+	return _blade_xf(Vector3(0.2, -0.3, -0.36), v, Vector3(-1, 0, 0.2).normalized())
 
 
 func block_pose() -> Transform3D:

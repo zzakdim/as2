@@ -47,7 +47,7 @@ const HUMAN_RAG_BONES := {
 # Generic bone role -> per-family bone name
 const HUMAN_BONES := {"head": "Head", "chest": "spine_03", "hips": "pelvis", "spine": "spine_01",
 	"upperarm.l": "upperarm_l", "upperarm.r": "upperarm_r", "upperleg.l": "thigh_l", "upperleg.r": "thigh_r",
-	"handslot.r": "hand_r", "handslot.l": "hand_l"}
+	"handslot.r": "hand_r", "handslot.l": "hand_l", "hand.l": "hand_l", "hand.r": "hand_r"}
 const KAYKIT_ZOMBIES := ["minion", "warrior", "rogue", "mage"]
 
 static var style := "human"        # "human" (realistic) or "kaykit" (stylized)
@@ -294,12 +294,19 @@ func _outfit(opts: Dictionary, tint: Color) -> Dictionary:
 	out["leg_l"] = bottom_m
 	out["leg_r"] = bottom_m
 	var head: MeshInstance3D = skel.find_child("Human_Head", false, false)
+	# Hands: dark gloves on survivors, the same sickly skin as the head on the infected.
+	var glove := _cloth(Color(0.11, 0.1, 0.09), null)
+	out["hand_l"] = glove
+	out["hand_r"] = glove
 	if head:
 		var skin: Color = opts.get("skin", Color(0.62, 0.7, 0.55) if role != "survivor" else Color(1, 1, 1))
 		if role != "survivor":
 			skin = skin * tint
 		if skin != Color(1, 1, 1):
 			out["head"] = _tinted(head, skin)
+			if role != "survivor":
+				out["hand_l"] = _cloth(Color(0.5, 0.55, 0.45) * tint, null)
+				out["hand_r"] = out["hand_l"]
 	return out
 
 
@@ -349,7 +356,7 @@ static func _stain_tex(v: int) -> Texture2D:
 
 static func _part_key(n: String) -> String:
 	var low := n.to_lower()
-	for pair in [["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["head", "head"],
+	for pair in [["handleft", "hand_l"], ["handright", "hand_r"], ["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["head", "head"],
 			["jaw", "jaw"], ["eyes", "eyes"], ["body", "body"], ["cloak", "cloak"], ["cape", "cloak"], ["helmet", "helmet"]]:
 		if low.ends_with(pair[0]) or low.find("_" + pair[0]) >= 0:
 			return pair[1]
@@ -510,9 +517,10 @@ func gib_head() -> void:
 
 
 func gib_arm() -> void:
-	var k: String = "arm_l" if randf() < 0.5 else "arm_r"
-	if parts.has(k):
-		parts[k].visible = false
+	var side: String = "l" if randf() < 0.5 else "r"
+	for k in ["arm_" + side, "hand_" + side]:
+		if parts.has(k):
+			parts[k].visible = false
 
 
 # ================================================================ ragdoll + gore
@@ -610,6 +618,7 @@ func _apply_cut(cut: String, impulse: Vector3) -> void:
 		"arm":
 			var side: String = ["l", "r"].pick_random()
 			_gib_part("arm_" + side, "upperarm." + side, impulse * 0.6 + Vector3(0, 2, 0))
+			_gib_part("hand_" + side, "hand." + side, impulse * 0.5 + Vector3(0, 2, 0))
 			_spurt_at("upperarm." + side, Vector3.ZERO)
 		"bisect":
 			_gib_part("leg_l", "upperleg.l", impulse * 0.3 + Vector3(-1, 1, 0))
