@@ -281,6 +281,17 @@ func _add_hair(hname: String, tint: Color) -> void:
 			m.material_override = _tinted(m, tint)
 
 
+## Attach point in the left hand, mirroring `held` (forward along -Z).
+func held_left() -> Node3D:
+	var slot := BoneAttachment3D.new()
+	slot.bone_name = b("handslot.l")
+	skel.add_child(slot)
+	var n := Node3D.new()
+	n.rotation = Vector3(PI / 2, 0, 0)
+	slot.add_child(n)
+	return n
+
+
 ## Hang a static prop (shield, blade) on a hand slot.
 func attach_prop(path: String, bone: String) -> void:
 	if not _scenes.has(path):

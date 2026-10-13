@@ -151,6 +151,32 @@ static func greatsword(root: Node3D, steel: Material, brass: Material, leather: 
 	return mi
 
 
+## Scrap riot shield: a dented, rusted steel slab with a rim, a vision slit
+## and rivets, held by a grip at its centre. Faces -Z (away from the hand).
+static func riot_shield(root: Node3D) -> void:
+	var rust := Mats.color(Color(0.3, 0.22, 0.16), 0.8, 0.5)
+	var steel := Mats.color(Color(0.26, 0.27, 0.28), 0.55, 0.75)
+	var plate := []
+	# Slightly curved plate (bent around the bearer).
+	for i in 7:
+		var k := float(i) / 6.0 * 2.0 - 1.0
+		plate.append([Vector3(k * 0.3, 0, -0.08 + 0.05 * k * k), 0.0, 0.0])
+	# Built as boxes along the curve: cheap and reads well at a distance.
+	for i in plate.size() - 1:
+		var a: Vector3 = plate[i][0]
+		var b: Vector3 = plate[i + 1][0]
+		var mid := (a + b) * 0.5
+		var seg := Mats.add_mesh(root, Mats.box(Vector3(a.distance_to(b) + 0.005, 0.95, 0.025)), rust if i % 3 != 1 else steel, mid)
+		seg.rotation.y = -atan2(b.z - a.z, b.x - a.x)
+	Mats.add_mesh(root, Mats.box(Vector3(0.64, 0.04, 0.04)), steel, Vector3(0, 0.47, -0.06))
+	Mats.add_mesh(root, Mats.box(Vector3(0.64, 0.04, 0.04)), steel, Vector3(0, -0.47, -0.06))
+	Mats.add_mesh(root, Mats.box(Vector3(0.2, 0.03, 0.03)), Mats.color(Color(0.02, 0.02, 0.02), 0.9), Vector3(0, 0.3, -0.1))
+	for x in [-0.22, 0.0, 0.22]:
+		for y in [-0.35, 0.0, 0.35]:
+			Mats.add_mesh(root, Mats.sphere(0.012, 6), steel, Vector3(x, y, -0.1 + 0.05 * (x / 0.3) * (x / 0.3)))
+	Mats.add_mesh(root, Mats.box(Vector3(0.03, 0.14, 0.05)), steel, Vector3(0, 0, 0.0))
+
+
 ## Wooden haft with a slight swell toward the butt.
 static func haft(root: Node3D, length: float, r: float, wood: Material) -> void:
 	var path := []

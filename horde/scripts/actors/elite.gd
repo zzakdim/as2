@@ -33,14 +33,25 @@ func _ready() -> void:
 			max_hp = 300.0
 			run_speed = 4.4
 			rig = SkinnedRig.create("warrior", {"tint": Color(0.55, 0.55, 0.6), "glow_eyes": Color(1.0, 0.55, 0.1, 1.0)})
-			if rig is SkinnedRig:
+			if rig is SkinnedRig and rig.family == "human":
+				var sh := Node3D.new()
+				WeaponMesh.riot_shield(sh)
+				# The hand frame's -Z runs down the fingers: stand the slab up.
+				sh.basis = Basis(Vector3(0, 0, 1), PI * 0.3) * Basis(Vector3(1, 0, 0), PI / 2)
+				sh.position = Vector3(0, 0, -0.1)
+				rig.held_left().add_child(sh)
+				rig.held.add_child(WeaponData.build_model("fire_axe"))
+			elif rig is SkinnedRig:
 				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Shield_Large_A.gltf", "handslot.l")
 				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Axe.gltf", "handslot.r")
 		"rager":
 			max_hp = 180.0
 			run_speed = 6.4
 			rig = SkinnedRig.create("rogue", {"tint": Color(0.75, 0.45, 0.42), "glow_eyes": Color(1.0, 0.1, 0.1, 1.0)})
-			if rig is SkinnedRig:
+			if rig is SkinnedRig and rig.family == "human":
+				rig.held.add_child(WeaponData.build_model("machete"))
+				rig.held_left().add_child(WeaponData.build_model("machete"))
+			elif rig is SkinnedRig:
 				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Blade.gltf", "handslot.l")
 				rig.attach_prop("res://assets/kaykit/skeletons/props/Skeleton_Blade.gltf", "handslot.r")
 		"gunner":

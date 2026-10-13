@@ -470,7 +470,11 @@ func run_hit_test(dir: String) -> void:
 					v.visible = false
 	var targets := []
 	for i in 3:
-		var z: Infected = Game.director.spawn_infected("common", p.global_position + p.flat_forward() * 2.6 + p.flat_forward().cross(Vector3.UP) * (i - 1) * 1.1)
+		var hk := "common"
+		for arg in OS.get_cmdline_user_args():
+			if arg.begins_with("--hit-kind="):
+				hk = arg.substr(11)
+		var z: Infected = Game.director.spawn_infected(hk, p.global_position + p.flat_forward() * 2.6 + p.flat_forward().cross(Vector3.UP) * (i - 1) * 1.1)
 		targets.append(z)
 	for z in targets:
 		z.state = Infected.S.IDLE
