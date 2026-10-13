@@ -444,7 +444,8 @@ LMB tap: light chain  ·  LMB hold: charged heavy
 RMB: block  ·  RMB + LMB: push  ·  push, then LMB: push-attack
 Space while strafing/backing: dodge  (dodge an attack = slow-mo + riposte)
 Shift: sprint  ·  Ctrl while sprinting: slide
-V / MMB: weapon special  (sabre parry, messer wrath cut)
+V / MMB: weapon special (greatsword thrust, sabre parry,
+    executioner swift execution, messer wrath cut)
 G: class ability  ·  T: swap blade (sandbox)"""
 
 func toggle_help(show := -1) -> void:

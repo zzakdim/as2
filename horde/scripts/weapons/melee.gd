@@ -19,6 +19,8 @@ const HOLD_FOR_HEAVY := 0.24
 const MOVESETS := {
 	"greatsword": {
 		"length": 1.18, "grip": 0.34, "pivot": Vector3(0.07, -0.27, -0.48),
+		"halfsword": {"name": "Half-sword thrust", "thrust": true, "windup": 0.07, "strike": 0.1, "follow": 0.08, "recover": 0.3,
+			"damage": 300.0, "cleave": 2.0, "impact": 9.0, "lunge": 3.5, "armor": 1.0, "sever": 0.3, "next_light": 0, "next_heavy": 0, "cost": 1.0},
 		"stamina": 4.0, "block_cost": 0.5, "push_cost": 1.0, "block_arc": 0.25,
 		"light": [
 			{"name": "Light 1", "dir": 32.0, "arc": [-60.0, 64.0], "windup": 0.17, "strike": 0.13, "follow": 0.11, "recover": 0.34,
@@ -65,7 +67,7 @@ const MOVESETS := {
 	# Commitment: slow, wide and heavy. Every light is a crowd-cleaving sweep,
 	# the charged heavy goes through a whole line and always cuts bodies in two.
 	"executioner": {
-		"length": 1.0, "grip": 0.36, "pivot": Vector3(0.06, -0.28, -0.5),
+		"length": 1.0, "grip": 0.36, "pivot": Vector3(0.06, -0.28, -0.5), "swift_exec": 2.0,
 		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92, "swish_pitch": 0.72, "move": 0.9, "bite": 1.45,
 		"light": [
 			{"name": "Wide sweep L>R", "dir": 8.0, "arc": [-70.0, 76.0], "windup": 0.26, "strike": 0.19, "follow": 0.16, "recover": 0.46,
@@ -431,6 +433,32 @@ func special() -> void:
 		queued = false
 		_enter("windup")
 		Game.sfx.play3d("whoosh_heavy", s.eye_pos(), 0.0, 0.05, 0.9)
+		if s.controller and s.controller.has_method("on_full_charge"):
+			s.controller.on_full_charge()
+		return
+	if ms.has("halfsword") and state in ["idle", "block", "recover", "follow"] and stamina >= 0.5:
+		# Greatsword: grip the blade and stab through armour.
+		_use_stamina(ms["halfsword"]["cost"])
+		atk = ms["halfsword"]
+		is_heavy = true
+		stopped = false
+		press_t = 0.0
+		queued = false
+		_enter("windup")
+		Game.sfx.play3d("blade_ring", s.eye_pos(), -10.0, 0.05, 1.3)
+		return
+	if ms.has("swift_exec") and state in ["idle", "recover", "follow"] and stamina >= ms["swift_exec"]:
+		# Executioner: skip the charge, full-power Headsman right now.
+		_use_stamina(ms["swift_exec"])
+		atk = ms["heavy"][0].duplicate()
+		atk["_full"] = true
+		is_heavy = true
+		stopped = false
+		press_t = 0.0
+		queued = false
+		_pose_from = pose
+		_begin_strike()
+		Game.sfx.play3d("whoosh_heavy", s.eye_pos(), 0.0, 0.05, 0.7)
 		if s.controller and s.controller.has_method("on_full_charge"):
 			s.controller.on_full_charge()
 		return

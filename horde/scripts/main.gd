@@ -716,6 +716,15 @@ func run_swing_test(arg: String) -> void:
 		for i in 18:
 			await get_tree().create_timer(0.05).timeout
 			await shoot.call()
+	elif mode == "special":
+		Input.action_release("fire")
+		p.melee.stamina = p.melee.ms["stamina"]
+		Input.action_press("special_key")
+		await get_tree().create_timer(0.05).timeout
+		Input.action_release("special_key")
+		for i in 18:
+			await get_tree().create_timer(0.05).timeout
+			await shoot.call()
 	elif mode == "chop":
 		# Kill the line with a heavy, then look down and hack at the bodies.
 		for i in 8:

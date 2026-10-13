@@ -61,7 +61,8 @@ can dodge or turn and block.
 Blocking right before a hit lands is a **perfect block**: no stamina cost,
 and the attacker reels. Heavies held to full charge flash and hit harder.
 Swords, each built around a different idea:
-- **Greatsword** — the all-rounder: cleaving sweeps, heavies cut bodies in half.
+- **Greatsword** — the all-rounder: cleaving sweeps, heavies cut bodies in
+  half. Special (V): a half-sword thrust that punches through armour.
 - **Duelling Sabre** — speed and precision: a four-cut chain that's barely
   slower than clicking, weak cleave, but head hits deal 1.8x and a head-hit
   kill always takes the head off. The heavy is a long lunge. Its special
@@ -71,7 +72,8 @@ Swords, each built around a different idea:
 - **Executioner's Sword** — commitment: slow, wide sweeps that cleave a
   crowd and halve what they hit; the charged Reaping sweep goes through a
   whole line, and a fully charged Headsman overhead splits a body down the
-  middle into two halves.
+  middle into two halves. Special (V): **swift execution** spends two
+  stamina pips on an instant full-power Headsman.
 - **Messer** — momentum: every consecutive hit makes the next swing faster
   (up to +40%, chevrons under the stamina pips); whiff or pause and it's
   gone. Its special (V) spends two or more stacks on a **Wrath cut**: +25%
