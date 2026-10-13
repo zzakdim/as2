@@ -91,6 +91,17 @@ func run() -> void:
 	Input.action_release("move_right")
 	if p.riposte_t > 0.0:
 		seen["perfect_dodge"] = true
+	# 4b) an attack winding up behind us shows a threat chevron
+	var zb: Infected = Game.director.spawn_infected("common", p.global_position - p.flat_forward() * 1.5)
+	await _wait(0.1)
+	zb.target = p
+	zb.attack_pending = 0.3
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if Game.hud.threat_ring.threats.size() > 0:
+		seen["threat_warning"] = true
+	zb.attack_pending = 0.0
+	zb.queue_free()
 	# 5) sabre parry: V just before a zombie's claw lands
 	p.secondary = WeaponData.new_state("sabre")
 	p.active_slot = Survivor.SLOT_SECONDARY
@@ -157,7 +168,7 @@ func _wait(t: float) -> void:
 
 func _report() -> void:
 	var want := ["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry"]
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry", "threat_warning"]
 	var missing := want.filter(func(w): return not seen.has(w))
 	print("[input-test] reached: ", seen.keys())
 	print("[input-test] missing: ", missing)

@@ -26,6 +26,7 @@ var map_label: Label
 var markers: Array = []
 var stamina_bar: StaminaPips
 var ability_icon: AbilityIcon
+var threat_ring: ThreatRing
 var screen_splats: Array = []
 
 var menu: Control
@@ -78,6 +79,11 @@ void fragment() {
 	stamina_bar.set_anchors_preset(Control.PRESET_CENTER)
 	stamina_bar.position = Vector2(0, 34)
 	root.add_child(stamina_bar)
+
+	threat_ring = ThreatRing.new()
+	threat_ring.set_anchors_preset(Control.PRESET_CENTER)
+	threat_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(threat_ring)
 
 	ability_icon = AbilityIcon.new()
 	ability_icon.anchor_left = 0.5
@@ -270,6 +276,7 @@ func _process(delta: float) -> void:
 	ability_icon.label = p.ability_name()
 	ability_icon.visible = not p.dead
 	ability_icon.queue_redraw()
+	_update_threats(p)
 	_update_splats(delta)
 	crosshair.visible = not p.dead and p.action == "" and p.active_slot <= Survivor.SLOT_SECONDARY
 	crosshair.spread = _spread_of(p)
@@ -405,6 +412,29 @@ func _update_splats(delta: float) -> void:
 		if sp[1] <= 0.0:
 			tr.queue_free()
 			screen_splats.erase(sp)
+
+
+## Attacks winding up on the player from outside the view: red chevrons
+## around the crosshair pointing at the attacker (Darktide-style).
+func _update_threats(p) -> void:
+	var list := []
+	var fwd: Vector3 = p.flat_forward()
+	var right := fwd.cross(Vector3.UP)
+	for z in Game.infected:
+		if not is_instance_valid(z) or z.is_dead() or z.attack_pending <= 0.0 or z.target != p:
+			continue
+		var to: Vector3 = z.global_position - p.global_position
+		to.y = 0.0
+		if to.length() > 4.0 or to.length() < 0.01:
+			continue
+		to = to.normalized()
+		if fwd.dot(to) > 0.6:
+			continue        # in plain view
+		# Screen angle: 0 = up (ahead), clockwise to the right.
+		var ang := atan2(right.dot(to), fwd.dot(to))
+		list.append([ang, clampf(z.attack_pending / 0.4, 0.0, 1.0), z is Elite])
+	threat_ring.threats = list
+	threat_ring.queue_redraw()
 
 
 ## "x4" tally under the crosshair when one swing kills several.
@@ -578,6 +608,21 @@ class Crosshair extends Control:
 
 
 ## Combat ability (G): ring fills while recharging, glows when ready.
+class ThreatRing extends Control:
+	var threats := []
+	func _draw() -> void:
+		for t in threats:
+			var ang: float = t[0]
+			# Brighter as the hit gets closer to landing.
+			var a: float = 1.0 - float(t[1]) * 0.6
+			var col := Color(1.0, 0.85, 0.2, a) if t[2] else Color(1.0, 0.15, 0.1, a)
+			var d := Vector2(sin(ang), -cos(ang))
+			var c := d * 95.0
+			var side := Vector2(-d.y, d.x)
+			var pts := PackedVector2Array([c + d * 16.0, c - side * 14.0, c + d * 6.0, c + side * 14.0])
+			draw_colored_polygon(pts, col)
+
+
 class AbilityIcon extends Control:
 	var frac := 1.0
 	var label := ""

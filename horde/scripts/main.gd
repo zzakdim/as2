@@ -204,7 +204,12 @@ func load_map(idx: int) -> void:
 			# --spawn=gunner,rager : spawn these 12 m ahead of the player, already hunting
 			var k := 0
 			for kind in a.substr(8).split(","):
-				var z: Infected = Game.director.spawn_infected(kind, Game.player.global_position + Game.player.flat_forward() * 12.0 + Game.player.flat_forward().cross(Vector3.UP) * (k - 0.5) * 2.5 + Vector3(0, 0.1, 0))
+				# "-common" spawns behind the player, close.
+				var behind: bool = kind.begins_with("-")
+				kind = kind.trim_prefix("-")
+				var fw: Vector3 = Game.player.flat_forward()
+				var at: Vector3 = Game.player.global_position + fw * (-2.5 if behind else 12.0) + fw.cross(Vector3.UP) * (k - 0.5) * 2.5 + Vector3(0, 0.1, 0)
+				var z: Infected = Game.director.spawn_infected(kind, at)
 				z.alert(Game.player)
 				k += 1
 		if a == "--input-test":

@@ -54,6 +54,10 @@ stamina back, and your next melee hit within a second is a **riposte**:
 1.7x damage that always takes a limb or head. Sprinting into a crouch
 slides you forward under the horde's guard.
 
+Attacks winding up on you from outside your view show as red chevrons
+around the crosshair pointing at the attacker (gold for elites), so you
+can dodge or turn and block. 
+
 Blocking right before a hit lands is a **perfect block**: no stamina cost,
 and the attacker reels. Heavies held to full charge flash and hit harder.
 Swords, each built around a different idea:
