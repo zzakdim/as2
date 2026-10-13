@@ -173,6 +173,8 @@ func load_map(idx: int) -> void:
 	if Game.mode == "sandbox":
 		Game.hud.map_label.text = "Melee Sandbox  ·  T swap blade  F5 horde  F6 special  F9 elites  F8 tank  F7 god mode (%s)" % ("on" if Game.god_mode else "off")
 		Game.hud.big_message("Melee Sandbox", Color(0.9, 0.85, 0.75), 3.0)
+		if not Game.autotest:
+			Game.hud.toggle_help(1)
 	else:
 		Game.hud.map_label.text = "%s  ·  %s" % [Game.MAP_NAMES[idx], Game.DIFF_NAMES[Game.difficulty]]
 		Game.hud.big_message(Game.MAP_NAMES[idx], Color(0.9, 0.85, 0.75), 4.0)
@@ -339,6 +341,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				if c.x >= 0:
 					var e: Infected = Game.director.spawn_infected(["shieldbearer", "rager", "gunner"][i % 3], Game.level.cell_center(c))
 					e.alert(Game.player)
+		if event.is_action_pressed("help"):
+			Game.hud.toggle_help()
 		if event.is_action_pressed("sandbox_weapon"):
 			cycle_sandbox_melee()
 		if event.is_action_pressed("sandbox_tank"):

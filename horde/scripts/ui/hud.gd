@@ -437,6 +437,31 @@ func _update_threats(p) -> void:
 	threat_ring.queue_redraw()
 
 
+var help_panel: Label
+
+const MELEE_HELP := """MELEE  (H hides this)
+LMB tap: light chain  ·  LMB hold: charged heavy
+RMB: block  ·  RMB + LMB: push  ·  push, then LMB: push-attack
+Space while strafing/backing: dodge  (dodge an attack = slow-mo + riposte)
+Shift: sprint  ·  Ctrl while sprinting: slide
+V / MMB: weapon special  (sabre parry, messer wrath cut)
+G: class ability  ·  T: swap blade (sandbox)"""
+
+func toggle_help(show := -1) -> void:
+	if help_panel == null:
+		help_panel = Label.new()
+		help_panel.text = MELEE_HELP
+		help_panel.add_theme_font_size_override("font_size", 15)
+		help_panel.add_theme_color_override("font_color", Color(0.95, 0.92, 0.85))
+		help_panel.add_theme_constant_override("outline_size", 5)
+		help_panel.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+		help_panel.position = Vector2(24, 70)
+		root.add_child(help_panel)
+		help_panel.visible = false
+	help_panel.visible = (not help_panel.visible) if show < 0 else show == 1
+	help_panel.modulate.a = 1.0
+
+
 ## "x4" tally under the crosshair when one swing kills several.
 func multi_kill(n: int) -> void:
 	var l := Label.new()
