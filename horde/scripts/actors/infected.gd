@@ -389,6 +389,9 @@ func take_damage(amount: float, attacker = null, part := "body", dmg_type := "bu
 			impact_point = hit_pos
 	var dmg := amount * part_mult(part)
 	hp -= dmg
+	if dmg_type == "bullet" and attacker and is_instance_valid(attacker) and attacker is Node3D and hp > 0.0:
+		# Rounds jolt the body (and snap the head back on headshots).
+		rig.hit_react(global_position - attacker.global_position, clampf(dmg * 0.06, 0.8, 4.0), part)
 	last_attacker = attacker
 	if hit_pos != Vector3.INF:
 		Game.fx.blood(hit_pos, 6 if dmg < 60 else 12)
@@ -500,6 +503,7 @@ func melee_stagger(dir: Vector3, force: float) -> void:
 		if rig.pose == "sit":
 			rig.set_pose("zombie")
 	rig.flinch(rig.global_basis.inverse() * dir, force)
+	rig.hit_react(dir, force)
 
 
 func on_death() -> void:

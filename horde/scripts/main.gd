@@ -152,6 +152,8 @@ func load_map(idx: int) -> void:
 			run_pose_sheet(a.substr(14))
 		if a.begins_with("--lineup="):
 			run_lineup(a.substr(9))
+		if a.begins_with("--hit-test="):
+			run_hit_test(a.substr(11))
 		if a.begins_with("--gun-sheet="):
 			run_gun_sheet(a.substr(12))
 		if a.begins_with("--spawn="):
@@ -420,6 +422,68 @@ func run_gun_sheet(dir: String) -> void:
 	get_tree().quit(0)
 
 
+## --hit-test=/dir : a zombie in front of the camera takes scripted hits;
+## frames show the procedural hit reaction building and settling.
+func run_hit_test(dir: String) -> void:
+	var p: Survivor = Game.player
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	Game.director.set_physics_process(false)
+	p.set_physics_process(false)
+	for c in p.get_children():
+		if c is PlayerController:
+			c.set_process(false)
+			c.set_physics_process(false)
+			for v in c.camera.get_children():
+				if v is Node3D and not v is Light3D:
+					v.visible = false
+	var targets := []
+	for i in 3:
+		var z: Infected = Game.director.spawn_infected("common", p.global_position + p.flat_forward() * 2.6 + p.flat_forward().cross(Vector3.UP) * (i - 1) * 1.1)
+		targets.append(z)
+	for z in targets:
+		z.state = Infected.S.IDLE
+		z.think_t = 999.0
+	await get_tree().create_timer(0.6).timeout
+	for z in targets:
+		z.state = Infected.S.IDLE
+		z.think_t = 999.0
+		z.desired = Vector3.ZERO
+		z.face_dir = -p.flat_forward()
+	await get_tree().create_timer(0.4).timeout
+	var right: Vector3 = p.flat_forward().cross(Vector3.UP)
+	var center := Vector3.ZERO
+	for z in targets:
+		center += z.global_position / targets.size()
+	var cam := get_viewport().get_camera_3d()
+	var span: Vector3 = (targets[2].global_position - targets[0].global_position).normalized()
+	var side := span.cross(Vector3.UP)
+	cam.global_position = center + side * 3.6 + Vector3(0, 1.5, 0)
+	cam.look_at(center + Vector3(0, 1.1, 0))
+	for z in targets:
+		z.face_dir = side
+	var light := OmniLight3D.new()
+	light.omni_range = 10.0
+	light.light_energy = 3.0
+	world.add_child(light)
+	light.global_position = center + side * 2.5 + Vector3(0, 3, 0)
+	var times := [0.0, 0.05, 0.1, 0.18, 0.3, 0.5, 0.9]
+	var n := 0
+	for hit in [["side", span, 6.0, "body"], ["thrust", -side, 6.0, "body"], ["head", -side, 3.0, "head"]]:
+		for z in targets:
+			z.rig.hit_react(hit[1], hit[2], hit[3])
+		var t0 := 0.0
+		for t in times:
+			if t > t0:
+				await get_tree().create_timer(t - t0).timeout
+				t0 = t
+			await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png("%s/%02d_%s_%.2f.png" % [dir, n, hit[0], t])
+			n += 1
+	print("[autotest] hit test: %d frames" % n)
+	get_tree().quit(0)
+
+
 ## --lineup=/dir : every character model in a row (with a light), then kills
 ## half of them with different cuts and screenshots the ragdolls.
 func run_lineup(dir: String) -> void:
@@ -445,7 +509,7 @@ func run_lineup(dir: String) -> void:
 	var kinds := ["common", "shieldbearer", "rager", "gunner", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
 	var actors := []
 	for i in kinds.size():
-		var pos: Vector3 = p.global_position + Vector3((i - 4.5) * 1.05, 0.0, -6.5)
+		var pos: Vector3 = p.global_position + Vector3((i - 4.5) * 1.05, 0.0, -3.6)
 		var z: Infected = Game.director.spawn_infected(kinds[i], pos)
 		z.set_physics_process(false)
 		actors.append(z)
@@ -459,7 +523,7 @@ func run_lineup(dir: String) -> void:
 			r.melee_held = WeaponData.get_def(surv_weapons[i]).get("melee", false)
 		r.held.add_child(WeaponData.build_model(surv_weapons[i]))
 		world.add_child(r)
-		r.global_position = p.global_position + Vector3((i - 1.5) * 1.1, 0.0, -2.8)
+		r.global_position = p.global_position + Vector3((i - 1.5) * 1.1, 0.0, -7.0)
 		r.set_pose("aim")
 		actors.append(r)
 	await get_tree().create_timer(0.3).timeout

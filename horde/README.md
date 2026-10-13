@@ -131,7 +131,9 @@ is exactly what you hit. Feel comes from:
 - a camera punch in the swing direction and a fading swing trail
 - the cleave budget: the horde soaks it up, and armored targets stop the
   blade dead
-- directional staggers and flinches on survivors of a hit
+- directional staggers and flinches on survivors of a hit, plus a
+  procedural hit reaction: every blade or bullet hit springs the torso and
+  head away from the blow on top of the animation (headshots snap the head)
 - ragdolls launched along the swing, with cut-dependent gore: decapitation,
   head splits, lost arms, and heavy sweeps cutting bodies in half
 - blood that follows the edge, stains the blade, and splashes the screen
@@ -143,7 +145,8 @@ state, the medkit, pills and throwables, and fails if any are unreachable.
 `--spawn=gunner,rager` (with `--autotest`) drops those enemies 12 m in front
 of the player, for screenshot checks of a specific fight.
 
-`--gun-sheet=/dir` renders each gun in first person (grip and scale check).
+`--hit-test=/dir` renders three zombies taking scripted side, thrust and
+head hits frame by frame. `--gun-sheet=/dir` renders each gun in first person (grip and scale check).
 
 To check swing arcs without playing, render a pose contact sheet:
 `xvfb-run godot --path horde --rendering-driver opengl3 -- --autotest --sandbox --no-bots --seconds=200 --melee-poses=/tmp/poses`

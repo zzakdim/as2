@@ -20,6 +20,11 @@ func swing(_dur := 0.4) -> void:
 func flinch(_local_dir: Vector3, _force: float) -> void:
 	pass
 
+## Procedural hit reaction: the torso and head spring away from a blow
+## travelling along `world_dir` (on top of whatever animation is playing).
+func hit_react(_world_dir: Vector3, _force: float, _part := "body") -> void:
+	pass
+
 func die(_from_dir: Vector3) -> void:
 	pose = "dead"
 

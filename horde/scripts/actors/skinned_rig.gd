@@ -93,6 +93,7 @@ var model_scale := 0.9
 var head_scale := 0.62
 var melee_held := false
 var family := "kaykit"
+var react: HitReact
 
 
 static func create(model_kind: String, opts := {}) -> Rig:
@@ -221,6 +222,13 @@ func _build(opts: Dictionary) -> void:
 		hs.bone = skel.find_bone("head")
 		hs.amount = head_scale
 		skel.add_child(hs)
+	react = HitReact.new()
+	for e in [["spine", 0.25], ["chest", 0.45], ["head", 0.5]]:
+		var bi := skel.find_bone(b(e[0]))
+		if bi >= 0:
+			react.chain.append([bi, e[1]])
+	react.head = skel.find_bone(b("head"))
+	skel.add_child(react)
 	# Weapon attach point in the right hand (barrel along -Z like our models).
 	var slot := BoneAttachment3D.new()
 	slot.bone_name = b("handslot.r")
@@ -577,6 +585,21 @@ func flinch(_local_dir: Vector3, force: float) -> void:
 	_oneshot("Hit_A" if randf() < 0.5 else "Hit_B", 1.6)
 
 
+func hit_react(world_dir: Vector3, force: float, part := "body") -> void:
+	if react == null or ragdolled:
+		return
+	var d := world_dir
+	d.y = 0.0
+	if d.length_squared() < 0.0001:
+		return
+	d = d.normalized()
+	# Bend the upper body along the blow, with a little twist; the axis is in
+	# skeleton space (the model is turned around and scaled).
+	var axis := Vector3.UP.cross(d) + Vector3.UP * randf_range(-0.35, 0.35)
+	var local := (skel.global_basis.orthonormalized().inverse() * axis).normalized()
+	react.kick(local * clampf(force * 1.5, 1.5, 12.0), part == "head")
+
+
 func die(_from_dir: Vector3) -> void:
 	pose = "dead"
 	_oneshot("Death_A" if randf() < 0.5 else "Death_B", 1.0)
@@ -780,6 +803,56 @@ func _exit_tree() -> void:
 
 
 ## Keeps the head bone scaled down whatever drives the pose.
+## Damped spring that rotates a bone chain away from hits, applied after the
+## animation. `kick` adds angular velocity (skeleton-space rotation vector).
+class HitReact extends SkeletonModifier3D:
+	var chain := []          # [[bone, weight], ...] root to tip
+	var head := -1
+	var ang := Vector3.ZERO
+	var vel := Vector3.ZERO
+	var head_ang := Vector3.ZERO
+	var head_vel := Vector3.ZERO
+
+	func kick(v: Vector3, to_head: bool) -> void:
+		if to_head:
+			head_vel += v * 1.6
+			vel += v * 0.3
+		else:
+			vel += v
+
+	func _spring(a: Vector3, v: Vector3, delta: float) -> Array:
+		v += (-a * 150.0 - v * 11.0) * delta
+		a += v * delta
+		return [a, v]
+
+	func _process_modification_with_delta(delta: float) -> void:
+		delta = minf(delta, 0.05)
+		var r := _spring(ang, vel, delta)
+		ang = r[0]
+		vel = r[1]
+		r = _spring(head_ang, head_vel, delta)
+		head_ang = r[0]
+		head_vel = r[1]
+		if ang.length_squared() < 0.00001 and head_ang.length_squared() < 0.00001:
+			return
+		var sk := get_skeleton()
+		if sk == null:
+			return
+		for e in chain:
+			var bi: int = e[0]
+			var a: Vector3 = ang * e[1]
+			if bi == head:
+				a += head_ang
+			var l := a.length()
+			if l < 0.0001:
+				continue
+			# Rotation given in skeleton space -> this bone's parent space.
+			var parent := sk.get_bone_parent(bi)
+			var pq := sk.get_bone_global_pose(parent).basis.get_rotation_quaternion() if parent >= 0 else Quaternion()
+			var q := pq.inverse() * Quaternion(a / l, l) * pq
+			sk.set_bone_pose_rotation(bi, q * sk.get_bone_pose_rotation(bi))
+
+
 class HeadScaler extends SkeletonModifier3D:
 	var bone := -1
 	var amount := 0.62
