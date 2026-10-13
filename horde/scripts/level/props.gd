@@ -18,7 +18,45 @@ static func static_box(parent: Node3D, pos: Vector3, size: Vector3, rot_y := 0.0
 	return body
 
 
+const CAR_MODELS := ["NormalCar1", "NormalCar2", "SUV", "NormalCar1", "NormalCar2", "SportsCar", "Taxi", "Cop"]
+const CAR_TRIM := ["Black", "Grey", "Headlights", "TailLights", "Windows", "BlueLights", "WhiteLights"]
+static var _car_meshes := {}
+
+
 static func car(parent: Node3D, pos: Vector3, rot_y: float, col: Color, alarm: bool) -> StaticBody3D:
+	var mname: String = CAR_MODELS[randi() % CAR_MODELS.size()]
+	var path := "res://assets/quaternius/cars/%s.obj" % mname
+	if not ResourceLoader.exists(path):
+		return _box_car(parent, pos, rot_y, col, alarm)
+	if not _car_meshes.has(path):
+		_car_meshes[path] = load(path)
+	var mesh: Mesh = _car_meshes[path]
+	var bb := mesh.get_aabb()
+	var body := static_box(parent, pos, Vector3(bb.size.x, bb.size.y * 0.9, bb.size.z), rot_y)
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.rotation.y = PI      # the models face +Z; our cars face -Z
+	body.add_child(mi)
+	# Abandoned cars: repaint the body (taxis and cruisers keep their livery),
+	# dull everything down a bit.
+	var keep_paint := mname == "Taxi" or mname == "Cop"
+	for i in mesh.get_surface_count():
+		var m := mesh.surface_get_material(i)
+		var nm := m.resource_name if m else ""
+		if nm == "":
+			nm = mesh.surface_get_name(i)
+		if nm == "Windows":
+			mi.set_surface_override_material(i, Mats.color(Color(0.05, 0.07, 0.09), 0.08, 0.4))
+		elif not keep_paint and not nm in CAR_TRIM:
+			mi.set_surface_override_material(i, Mats.color(col, 0.45, 0.35))
+	if alarm:
+		var blink := CarAlarm.new()
+		body.add_child(blink)
+		body.set_meta("alarm", blink)
+	return body
+
+
+static func _box_car(parent: Node3D, pos: Vector3, rot_y: float, col: Color, alarm: bool) -> StaticBody3D:
 	var body := static_box(parent, pos, Vector3(1.9, 1.4, 4.2), rot_y)
 	var paint := Mats.color(col, 0.35, 0.4)
 	var glass := Mats.color(Color(0.08, 0.1, 0.12), 0.1, 0.3)
@@ -99,7 +137,7 @@ class CarAlarm extends Node3D:
 	var t := 0.0
 	var sound: AudioStreamPlayer3D
 	func _ready() -> void:
-		lamp = Mats.add_mesh(self, Mats.box(Vector3(0.12, 0.08, 0.12)), Mats.emissive(Color(1, 0.15, 0.1), 3.0), Vector3(0, 1.62, 0.9))
+		lamp = Mats.add_mesh(self, Mats.box(Vector3(0.12, 0.08, 0.12)), Mats.emissive(Color(1, 0.15, 0.1), 3.0), Vector3(0, 0.98, -0.45))   # on the dash
 	func _process(delta: float) -> void:
 		t += delta
 		lamp.visible = fmod(t, 1.4 if not triggered else 0.4) < 0.15
