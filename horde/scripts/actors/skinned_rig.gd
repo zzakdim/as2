@@ -716,16 +716,18 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 		pb.bone_name = bone
 		pb.collision_layer = Ragdoll.LAYER_DEBRIS
 		pb.collision_mask = Game.LAYER_WORLD
-		pb.mass = 3.0 if bone in ["hips", "spine", "chest", "pelvis", "spine_01", "spine_03"] else 1.0
-		pb.linear_damp = 0.2
-		pb.angular_damp = 2.0
+		pb.mass = _rag_mass(bone)
+		pb.linear_damp = 0.15
+		pb.angular_damp = 0.8
 		pb.friction = 0.9
 		if bone == b("hips"):
 			pb.joint_type = PhysicalBone3D.JOINT_TYPE_NONE
 		else:
+			# Loose limbs so bodies fold and crumple instead of falling like
+			# planks; knees/elbows swing furthest, the spine least.
 			pb.joint_type = PhysicalBone3D.JOINT_TYPE_CONE
-			pb.set("joint_constraints/swing_span", 50.0 if bone.begins_with("upperarm") else 35.0)
-			pb.set("joint_constraints/twist_span", 20.0)
+			pb.set("joint_constraints/swing_span", _rag_swing(bone))
+			pb.set("joint_constraints/twist_span", 12.0 if _is_hinge_like(bone) else 25.0)
 		var cs := CollisionShape3D.new()
 		var cap := CapsuleShape3D.new()
 		cap.radius = spec[0]
@@ -749,13 +751,56 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 		if d < nd:
 			nd = d
 			nearest = pb
+	# Realistic masses (~70 kg): the blow mostly moves what it struck and
+	# drags the rest along through the joints, instead of launching the
+	# whole body as one plank.
 	if nearest:
-		nearest.apply_central_impulse(impulse * 0.45)
-	for bn in [b("chest"), b("hips")]:
+		nearest.apply_central_impulse(impulse * 2.6)
+	if bodies.has(b("chest")):
+		bodies[b("chest")].apply_central_impulse(impulse * 2.0)
+	# Dead weight: the hips drop and the knees go out, so bodies fold.
+	var back := -impulse
+	back.y = 0.0
+	back = back.normalized() if back.length_squared() > 0.01 else Vector3.ZERO
+	if bodies.has(b("hips")):
+		bodies[b("hips")].apply_central_impulse(Vector3(0, -14.0, 0) - back * 6.0)
+	for bn in ["calf_l", "calf_r", "lowerleg.l", "lowerleg.r"]:
 		if bodies.has(bn):
-			bodies[bn].apply_central_impulse(impulse * 0.35)
+			bodies[bn].apply_central_impulse(back * 7.0 + Vector3(0, -2.0, 0))
 	_apply_cut(cut, impulse)
 	return true
+
+
+static func _rag_mass(bone: String) -> float:
+	if bone in ["pelvis", "hips"]:
+		return 12.0
+	if bone in ["spine_01", "spine", "spine_03", "chest"]:
+		return 11.0
+	if bone in ["Head", "head"]:
+		return 5.0
+	if bone.begins_with("thigh") or bone.begins_with("upperleg"):
+		return 8.0
+	if bone.begins_with("calf") or bone.begins_with("lowerleg"):
+		return 4.0
+	if bone.begins_with("upperarm"):
+		return 2.5
+	return 1.6
+
+
+static func _is_hinge_like(bone: String) -> bool:
+	return bone.begins_with("calf") or bone.begins_with("lowerarm") or bone.begins_with("lowerleg")
+
+
+static func _rag_swing(bone: String) -> float:
+	if _is_hinge_like(bone):
+		return 85.0
+	if bone.begins_with("thigh") or bone.begins_with("upperleg"):
+		return 70.0
+	if bone.begins_with("upperarm"):
+		return 80.0
+	if bone in ["Head", "head"]:
+		return 45.0
+	return 28.0       # spine / chest
 
 
 func _apply_cut(cut: String, impulse: Vector3) -> void:

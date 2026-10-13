@@ -528,6 +528,25 @@ func run_hit_test(dir: String) -> void:
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png("%s/%02d_knockdown_%.2f.png" % [dir, n, t])
 		n += 1
+	# Kill: a heavy sideways sweep, then watch the ragdolls fall.
+	await get_tree().create_timer(4.0).timeout
+	var cuts := ["", "arm", "decap"]
+	for i in targets.size():
+		var z: Infected = targets[i]
+		if not is_instance_valid(z) or z.is_dead():
+			continue
+		z.impact_dir = (span + Vector3(0, 0.25, 0)).normalized()
+		z.impact_force = 7.0
+		z.impact_point = z.global_position + Vector3(0, 1.2, 0)
+		z.cut = cuts[i]
+		z.take_damage(9999.0, Game.player, "body", "melee", z.impact_point)
+	t1 = 0.0
+	for t in [0.05, 0.15, 0.3, 0.5, 0.8, 1.2, 1.8, 2.6]:
+		await get_tree().create_timer(t - t1).timeout
+		t1 = t
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/%02d_kill_%.2f.png" % [dir, n, t])
+		n += 1
 	print("[autotest] hit test: %d frames" % n)
 	get_tree().quit(0)
 
