@@ -5,9 +5,11 @@ You and three AI teammates fight from saferoom to saferoom through a city
 that's procedurally generated every run, while an AI Director decides when
 and where the infected come at you.
 
-Characters are realistic-proportioned CC0 Quaternius bodies driven by the
-Universal Animation Library (including its zombie walk/idle/scratch set),
-with procedural clothing and zombie skin grading. Stylized KayKit models and
+Characters are realistic-proportioned CC0 Quaternius bodies wearing
+Quaternius' modular outfits (Ranger leathers on the survivors, mostly
+Peasant clothes on the infected, recoloured per character with procedural
+grime and blood), driven by the Universal Animation Library (including its
+zombie walk/idle/scratch set). Stylized KayKit models and
 fast placeholder boxes are one toggle away. The procedural city is dressed with Quaternius' Downtown City MegaKit
 (brick and trim facades, shopfronts, cornices, AC units) via MultiMesh;
 impacts are recorded CC0 sounds and everything else is synthesized.
@@ -190,10 +192,10 @@ To grab screenshots (software rendering works):
 
 Next up, roughly in order of impact:
 
-- **Real clothing and zombie variety.** The free base bodies get procedural
-  outfits; proper clothed/rotting meshes on the same UE-style rig drop
-  straight into `SkinnedRig.HUMAN_MODELS` (run them through
-  `tools/split_gltf_parts.py` for dismemberment). Survivor voice lines.
+- **More clothing and zombie variety.** Any outfit for the Universal Base
+  Characters rig can be added with `tools/build_outfit_model.py` and listed
+  in `SkinnedRig.HUMAN_MODELS`; modern streetwear and rotting variants are
+  the next to find or make. Survivor voice lines.
 - **Hand-authored set pieces** mixed into the procedural layout, plus
   interiors with stairs and multiple floors.
 - **Darktide layer**

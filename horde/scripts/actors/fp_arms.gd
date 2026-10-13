@@ -4,7 +4,8 @@ extends Node3D
 ## camera and posed every frame with an analytic two-bone IK so the hands
 ## grip whatever the viewmodel is holding (sword handle, rifle, pistol).
 
-const MODEL := "res://assets/quaternius/humans/Superhero_Male_FullBody.gltf"
+const MODEL := "res://assets/quaternius/humans/Outfit_Male_Ranger.gltf"
+const MODEL_BARE := "res://assets/quaternius/humans/Superhero_Male_FullBody.gltf"
 
 var model: Node3D
 var skel: Skeleton3D
@@ -15,11 +16,12 @@ var active := true
 
 
 static func available() -> bool:
-	return ResourceLoader.exists(MODEL)
+	return ResourceLoader.exists(MODEL) or ResourceLoader.exists(MODEL_BARE)
 
 
 func setup(shirt: Color) -> void:
-	model = load(MODEL).instantiate()
+	var dressed := ResourceLoader.exists(MODEL)
+	model = load(MODEL if dressed else MODEL_BARE).instantiate()
 	add_child(model)
 	model.rotation.y = PI
 	skel = model.find_child("Skeleton3D", true, false)
@@ -31,7 +33,16 @@ func setup(shirt: Color) -> void:
 			c.visible = keep
 			c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			if keep:
-				c.material_override = glove if String(c.name).contains("Hand") else sleeve
+				if dressed:
+					# Real sleeves and bracers, tinted toward the survivor's colour.
+					for i in c.mesh.get_surface_count():
+						var base: Material = c.mesh.surface_get_material(i)
+						if base and not base.resource_name.contains("Regular") and not base.resource_name.contains("Superhero"):
+							var m: StandardMaterial3D = base.duplicate()
+							m.albedo_color = Color(1, 1, 1).lerp(shirt.lightened(0.35), 0.55)
+							c.set_surface_override_material(i, m)
+				else:
+					c.material_override = glove if String(c.name).contains("Hand") else sleeve
 				# Culling uses the T-pose bounds (beside the camera); the IK
 				# moves the arms in front of it, so don't let them get culled.
 				c.extra_cull_margin = 4.0

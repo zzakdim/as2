@@ -24,6 +24,11 @@ const MODELS := {
 const HUMAN_MODELS := {
 	"human_m": "res://assets/quaternius/humans/Superhero_Male_FullBody.gltf",
 	"human_f": "res://assets/quaternius/humans/Superhero_Female_FullBody.gltf",
+	# Clothed (Modular Character Outfits, built by tools/build_outfit_model.py)
+	"ranger_m": "res://assets/quaternius/humans/Outfit_Male_Ranger.gltf",
+	"ranger_f": "res://assets/quaternius/humans/Outfit_Female_Ranger.gltf",
+	"peasant_m": "res://assets/quaternius/humans/Outfit_Male_Peasant.gltf",
+	"peasant_f": "res://assets/quaternius/humans/Outfit_Female_Peasant.gltf",
 }
 const HUMAN_LIBS := ["res://assets/quaternius/anims/UAL1_Standard.glb", "res://assets/quaternius/anims/UAL2_Standard.glb"]
 # KayKit animation name -> Universal Animation Library name ("@end" = hold last frame)
@@ -116,12 +121,26 @@ static func create(model_kind: String, opts := {}) -> Rig:
 static func _human_kind(k: String, opts: Dictionary) -> String:
 	if opts.has("human"):
 		return opts["human"]
+	if not ResourceLoader.exists(HUMAN_MODELS["ranger_m"]):
+		match k:
+			"rogue_hooded", "rogue":
+				return "human_f"
+			"knight", "barbarian", "adv_mage", "warrior":
+				return "human_m"
+		return "human_m" if randf() < 0.6 else "human_f"
 	match k:
-		"rogue_hooded", "rogue":
-			return "human_f"
-		"knight", "barbarian", "adv_mage", "warrior":
-			return "human_m"
-	return "human_m" if randf() < 0.6 else "human_f"
+		"rogue_hooded":
+			return "ranger_f"
+		"rogue":
+			return "ranger_f" if randf() < 0.5 else "peasant_f"
+		"knight", "warrior":
+			return "ranger_m"
+		"barbarian", "adv_mage":
+			return "peasant_m"
+	var male := randf() < 0.6
+	if randf() < 0.75:
+		return "peasant_m" if male else "peasant_f"
+	return "ranger_m" if male else "ranger_f"
 
 
 ## One shared AnimationLibrary built from the Universal Animation Library glbs.
@@ -166,12 +185,16 @@ func _build(opts: Dictionary) -> void:
 			if anim.has_animation(n):
 				anim.get_animation(n).loop_mode = Animation.LOOP_LINEAR
 	var tint: Color = opts.get("tint", Color(1, 1, 1))
-	var outfit := _outfit(opts, tint) if family == "human" else {}
+	var dressed := kind.begins_with("ranger") or kind.begins_with("peasant")
+	var outfit := _outfit(opts, tint) if family == "human" and not dressed else {}
+	var looks := _looks(opts, tint) if dressed else {}
 	for c in skel.get_children():
 		if c is MeshInstance3D:
 			var key := _part_key(c.name)
 			parts[key] = c
-			if outfit.has(key):
+			if dressed:
+				_dress(c, key, looks)
+			elif outfit.has(key):
 				c.material_override = outfit[key]
 			elif tint != Color(1, 1, 1):
 				c.material_override = _tinted(c, tint)
@@ -308,6 +331,60 @@ func _outfit(opts: Dictionary, tint: Color) -> Dictionary:
 				out["hand_l"] = _cloth(Color(0.5, 0.55, 0.45) * tint, null)
 				out["hand_r"] = out["hand_l"]
 	return out
+
+
+## Colours for a clothed model: the outfit textures are multiplied by a
+## cloth colour (survivor identity colour, or a random dingy hue on the
+## infected) and the skin is graded toward a sickly grey-green.
+func _looks(opts: Dictionary, tint: Color) -> Dictionary:
+	var zombie := role != "survivor"
+	var cloth := Color(1, 1, 1)
+	if opts.has("top"):
+		cloth = Color(1, 1, 1).lerp((opts["top"] as Color).lightened(0.35), 0.55)
+	elif zombie:
+		cloth = Color.from_hsv(randf(), randf_range(0.1, 0.35), randf_range(0.75, 1.0))
+	var skin: Color = opts.get("skin", Color(0.62, 0.7, 0.55) if zombie else Color(1, 1, 1))
+	if zombie:
+		cloth = cloth * tint
+		skin = skin * tint
+	return {"cloth": cloth, "skin": skin, "stain": randi() % 3 if zombie else -1,
+		"hood": opts.get("hood", zombie and randf() < 0.5 or role == "boss"),
+		"eyes": opts.get("glow_eyes", Color(0, 0, 0, 0))}
+
+
+func _dress(mi: MeshInstance3D, key: String, looks: Dictionary) -> void:
+	if key == "helmet" and not looks["hood"]:
+		mi.visible = false
+		parts.erase(key)
+		return
+	for i in mi.mesh.get_surface_count():
+		var base := mi.mesh.surface_get_material(i)
+		if base == null:
+			continue
+		var nm := base.resource_name
+		if nm.contains("Eye"):
+			if looks["eyes"].a > 0.0:
+				mi.set_surface_override_material(i, Mats.emissive(looks["eyes"], 3.0))
+			continue
+		var skin := nm.contains("Regular") or nm.contains("Superhero")
+		var col: Color = looks["skin"] if skin else looks["cloth"]
+		var stain: int = -1 if skin else looks["stain"]
+		if col != Color(1, 1, 1) or stain >= 0:
+			mi.set_surface_override_material(i, _tint_mat(base, col, stain))
+
+
+func _tint_mat(base: Material, col: Color, stain: int) -> Material:
+	var key := "t|%d|%s|%d" % [base.get_instance_id(), col.to_html(), stain]
+	if not _tints.has(key):
+		var m: StandardMaterial3D = base.duplicate()
+		m.albedo_color = m.albedo_color * col
+		if stain >= 0:
+			# Grime and blood multiplied over the cloth texture.
+			m.detail_enabled = true
+			m.detail_albedo = _stain_tex(stain)
+			m.detail_blend_mode = BaseMaterial3D.BLEND_MODE_MUL
+		_tints[key] = m
+	return _tints[key]
 
 
 ## Fabric material; `stain` >= 0 picks one of a few procedural grime/blood maps.
@@ -656,7 +733,8 @@ func _gib_part(part: String, bone: String, impulse: Vector3) -> void:
 	body.global_transform = Transform3D(bone_xf.basis.orthonormalized(), bone_xf.origin)
 	var dup := MeshInstance3D.new()
 	dup.mesh = mi.mesh
-	dup.material_override = mi.material_override if mi.material_override else mi.get_active_material(0)
+	for i in mi.mesh.get_surface_count():
+		dup.set_surface_override_material(i, mi.get_active_material(i))
 	dup.transform = Transform3D(Basis.from_scale(bone_xf.basis.get_scale()), Vector3.ZERO) * rest.affine_inverse()
 	body.add_child(dup)
 	var cs := CollisionShape3D.new()
