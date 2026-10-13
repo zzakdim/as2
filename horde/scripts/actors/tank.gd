@@ -21,7 +21,8 @@ func _ready() -> void:
 	head_y = 2.35
 	leg_y = 0.9
 	tell_sound = ""
-	rig = SkinnedRig.create("warrior", {"tint": Color(0.7, 0.78, 0.62), "scale": 1.75, "role": "boss", "glow_eyes": Color(1.0, 0.3, 0.1, 1.0)})
+	rig = SkinnedRig.create("warrior", {"tint": Color(0.7, 0.78, 0.62), "scale": 1.5, "role": "boss", "glow_eyes": Color(1.0, 0.3, 0.1, 1.0),
+		"bone_scale": {"chest": 1.3, "upperarm.l": 1.4, "upperarm.r": 1.4, "hand.l": 1.3, "hand.r": 1.3, "head": 0.55}})
 	super._ready()
 	Game.sfx.play3d("tank_roar", global_position + Vector3(0, 2, 0), 8.0, 0.0)
 

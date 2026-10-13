@@ -222,6 +222,15 @@ func _build(opts: Dictionary) -> void:
 		hs.bone = skel.find_bone("head")
 		hs.amount = head_scale
 		skel.add_child(hs)
+	# Exaggerated silhouettes (Tank, Charger): per-bone scale, inherited
+	# down the chain.
+	if opts.has("bone_scale"):
+		var bs := BoneScaler.new()
+		for role_name in opts["bone_scale"]:
+			var bi := skel.find_bone(b(role_name))
+			if bi >= 0:
+				bs.scales[bi] = opts["bone_scale"][role_name]
+		skel.add_child(bs)
 	react = HitReact.new()
 	for e in [["spine", 0.25], ["chest", 0.45], ["head", 0.5]]:
 		var bi := skel.find_bone(b(e[0]))
@@ -896,6 +905,17 @@ class HitReact extends SkeletonModifier3D:
 			var pq := sk.get_bone_global_pose(parent).basis.get_rotation_quaternion() if parent >= 0 else Quaternion()
 			var q := pq.inverse() * Quaternion(a / l, l) * pq
 			sk.set_bone_pose_rotation(bi, q * sk.get_bone_pose_rotation(bi))
+
+
+class BoneScaler extends SkeletonModifier3D:
+	var scales := {}     # bone index -> float or Vector3
+	func _process_modification_with_delta(_delta: float) -> void:
+		var sk := get_skeleton()
+		if sk == null:
+			return
+		for bi in scales:
+			var v = scales[bi]
+			sk.set_bone_pose_scale(bi, v if v is Vector3 else Vector3.ONE * float(v))
 
 
 class HeadScaler extends SkeletonModifier3D:
