@@ -231,6 +231,65 @@ static func fence() -> StandardMaterial3D:
 
 
 ## Soft round splat used by blood decals.
+## Screen-blood spray: a dense core, streaks fanning out one way and loose
+## droplets, with darker edges where it pools. `v` picks a variant.
+static func screen_spray(v: int) -> Texture2D:
+	var key := "spray%d" % v
+	if _tex.has(key):
+		return _tex[key]
+	var s := 192
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1234 + v * 77
+	var dens := PackedFloat32Array()
+	dens.resize(s * s)
+	var c := Vector2(s * 0.3, s * 0.5)
+	var stamp := func(p: Vector2, r: float, amt: float):
+		var x0 := maxi(0, int(p.x - r - 1))
+		var x1 := mini(s - 1, int(p.x + r + 1))
+		var y0 := maxi(0, int(p.y - r - 1))
+		var y1 := mini(s - 1, int(p.y + r + 1))
+		for y in range(y0, y1 + 1):
+			for x in range(x0, x1 + 1):
+				var d := Vector2(x, y).distance_to(p) / r
+				if d < 1.0:
+					dens[y * s + x] += amt * (1.0 - d * d)
+	# core
+	for i in 14:
+		stamp.call(c + Vector2(rng.randf_range(-14, 14), rng.randf_range(-14, 14)), rng.randf_range(8, 18), 1.0)
+	# streaks: chains of shrinking blobs fanning toward +X
+	for k in 9:
+		var ang := rng.randf_range(-0.7, 0.7)
+		var d := Vector2(cos(ang), sin(ang))
+		var p := c
+		var r := rng.randf_range(5, 9)
+		var length := rng.randf_range(50, 120)
+		var t := 0.0
+		while t < length and r > 1.2:
+			stamp.call(p + d * t, r, 0.9)
+			t += r * 0.6
+			r *= 0.965
+		stamp.call(p + d * (t + rng.randf_range(4, 12)), r * 1.8, 1.0)   # end drop
+	# loose droplets
+	for i in 40:
+		var ang := rng.randf_range(-0.9, 0.9)
+		var dist := rng.randf_range(20, 150)
+		stamp.call(c + Vector2(cos(ang), sin(ang)) * dist, rng.randf_range(1.2, 4.0), 1.0)
+	for y in s:
+		for x in s:
+			var a: float = clampf(dens[y * s + x] * 1.6, 0.0, 1.0)
+			if a <= 0.01:
+				continue
+			# Thicker = darker; thin edges stay brighter red.
+			var col := Color(0.42, 0.02, 0.02).lerp(Color(0.16, 0.005, 0.005), clampf(dens[y * s + x] - 0.6, 0.0, 1.0))
+			col.a = a * 0.9
+			img.set_pixel(x, y, col)
+	var tex := ImageTexture.create_from_image(img)
+	_tex[key] = tex
+	return tex
+
+
 static func blood_splat() -> Texture2D:
 	if _tex.has("blood"):
 		return _tex["blood"]

@@ -172,6 +172,8 @@ func load_map(idx: int) -> void:
 			run_hit_test(a.substr(11))
 		if a.begins_with("--cut-test="):
 			run_cut_test(a.substr(11))
+		if a.begins_with("--swing-test="):
+			run_swing_test(a.substr(13))
 		if a.begins_with("--gun-sheet="):
 			run_gun_sheet(a.substr(12))
 		if a.begins_with("--kill-bot="):
@@ -630,6 +632,74 @@ func run_cut_test(arg: String) -> void:
 		get_viewport().get_texture().get_image().save_png("%s/%02d_%s_%.2f.png" % [dir, n, cut_kind, t])
 		n += 1
 	print("[autotest] cut test: %d frames" % n)
+	get_tree().quit(0)
+
+
+## --swing-test=/dir:weapon:kind : a line of zombies in front of the player
+## and a real (input-driven) heavy, then a light chain; frames every 50 ms.
+func run_swing_test(arg: String) -> void:
+	var a := arg.split(":")
+	var dir := a[0]
+	var wid := a[1] if a.size() > 1 else "greatsword"
+	var mode := a[2] if a.size() > 2 else "heavy"
+	var p: Survivor = Game.player
+	for c in p.get_children():
+		if c is PlayerController:
+			p.controller = c
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	Game.director.set_physics_process(false)
+	Game.force_input = true
+	Game.god_mode = true
+	p.secondary = WeaponData.new_state(wid)
+	p.active_slot = Survivor.SLOT_SECONDARY
+	p._refresh_held_model()
+	p.controller.on_weapon_changed()
+	var fwd := p.flat_forward()
+	var side := fwd.cross(Vector3.UP)
+	var light := OmniLight3D.new()
+	light.omni_range = 10.0
+	light.light_energy = 3.0
+	world.add_child(light)
+	light.global_position = p.global_position + fwd * 2.5 + Vector3(0, 2.8, 0)
+	var zs := []
+	for i in 5:
+		var pos: Vector3 = p.global_position + fwd * (1.9 + 0.25 * absf(i - 2)) + side * (i - 2) * 0.75
+		var z: Infected = Game.director.spawn_infected("common", pos)
+		zs.append(z)
+	await get_tree().create_timer(0.5).timeout
+	for z in zs:
+		z.state = Infected.S.IDLE
+		z.think_t = 999.0
+		z.desired = Vector3.ZERO
+		z.face_dir = -fwd
+	p.pitch = -0.05
+	await get_tree().create_timer(0.4).timeout
+	var n := [0]
+	var shoot := func():
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/%03d.png" % [dir, n[0]])
+		n[0] += 1
+	Input.action_press("fire")
+	if mode == "heavy":
+		# Hold to charge, release to swing.
+		for i in 8:
+			await get_tree().create_timer(0.07).timeout
+		Input.action_release("fire")
+		for i in 18:
+			await get_tree().create_timer(0.05).timeout
+			await shoot.call()
+	else:
+		await get_tree().create_timer(0.05).timeout
+		Input.action_release("fire")
+		for i in 30:
+			await get_tree().create_timer(0.05).timeout
+			if i % 6 == 3:
+				Input.action_press("fire")
+			if i % 6 == 4:
+				Input.action_release("fire")
+			await shoot.call()
+	print("[autotest] swing test: %d frames" % n[0])
 	get_tree().quit(0)
 
 

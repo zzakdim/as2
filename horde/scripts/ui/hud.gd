@@ -374,28 +374,34 @@ func flash(col: Color, dur: float) -> void:
 
 ## Darktide-style gore on the screen after a close kill.
 func screen_blood() -> void:
+	if screen_splats.size() > 5:
+		return
 	var tr := TextureRect.new()
-	tr.texture = Mats.blood_splat()
+	tr.texture = Mats.screen_spray(randi() % 4)
 	tr.stretch_mode = TextureRect.STRETCH_SCALE
-	var sz := randf_range(160, 380)
+	var sz := randf_range(150, 290)
 	tr.size = Vector2(sz, sz)
 	var vp := root.get_viewport_rect().size
-	tr.position = Vector2(randf_range(0, vp.x - sz), randf_range(0, vp.y * 0.7))
+	# Toward the edges, sprayed inward from the side it lands on.
+	var left := randf() < 0.5
+	var x := randf_range(-sz * 0.35, vp.x * 0.22) if left else randf_range(vp.x * 0.78 - sz, vp.x - sz * 0.65)
+	tr.position = Vector2(x, randf_range(-sz * 0.2, vp.y * 0.65))
 	tr.pivot_offset = tr.size * 0.5
-	tr.rotation = randf() * TAU
-	tr.modulate = Color(1, 1, 1, 0.85)
+	tr.rotation = (0.0 if left else PI) + randf_range(-0.6, 0.6)
+	tr.modulate = Color(1, 1, 1, 0.9)
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(tr)
 	root.move_child(tr, 3)
-	screen_splats.append([tr, 2.5])
+	screen_splats.append([tr, 1.8])
 
 
 func _update_splats(delta: float) -> void:
 	for sp in screen_splats.duplicate():
 		sp[1] -= delta
 		var tr: TextureRect = sp[0]
-		tr.modulate.a = clamp(sp[1] / 1.5, 0.0, 0.85)
-		tr.position.y += delta * 6.0
+		tr.modulate.a = clamp(sp[1] / 1.1, 0.0, 0.9)
+		tr.position.y += delta * 14.0     # drips down
+		tr.scale.y = 1.0 + (1.8 - sp[1]) * 0.12
 		if sp[1] <= 0.0:
 			tr.queue_free()
 			screen_splats.erase(sp)

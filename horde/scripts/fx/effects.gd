@@ -51,8 +51,8 @@ func _make_burst(col: Color, size: float, speed: float, grav: float, emissive :=
 	else:
 		# Droplets stretched along their velocity, shrinking as they fly.
 		var m := SphereMesh.new()
-		m.radius = size * 0.5
-		m.height = size * 3.2
+		m.radius = size * 0.3
+		m.height = size * 2.4
 		m.radial_segments = 5
 		m.rings = 2
 		m.material = blood_mat()
