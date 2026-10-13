@@ -334,6 +334,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				["Field of view: %d  (+5)" % int(Game.fov), func():
 					Game.fov = 70.0 if Game.fov >= 110.0 else Game.fov + 5.0
 					Game.hud.big_message("FOV %d" % int(Game.fov), Color.WHITE, 1.0)],
+				["Head bob: %s" % {0.0: "Off", 0.5: "Low", 1.0: "Normal"}.get(Game.head_bob, "Low"), func():
+					Game.head_bob = {0.0: 0.5, 0.5: 1.0, 1.0: 0.0}.get(Game.head_bob, 0.5)
+					Game.hud.big_message("Head bob: %s" % {0.0: "Off", 0.5: "Low", 1.0: "Normal"}[Game.head_bob], Color.WHITE, 1.0)],
 				["Bot teammates: %s (restarts map)" % ("ON" if Game.bots_enabled else "OFF"), func():
 					Game.bots_enabled = not Game.bots_enabled
 					carry = carry_at_map_start.duplicate(true)

@@ -41,6 +41,7 @@ var playing := false
 var time := 0.0
 var mouse_sensitivity := 0.0022
 var fov := 85.0
+var head_bob := 0.5            # 0 off, 0.5 low (default), 1 normal
 var debug_overlay := false
 var screenshots: Array = []     # [[seconds, path], ...] taken during --autotest
 

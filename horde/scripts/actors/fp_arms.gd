@@ -149,25 +149,69 @@ func _solve(side: String, target_cam: Vector3, pole_dir_cam: Vector3, frame := [
 	_set_global(hd, la_glob, hd_glob)
 
 
-var curl_axis := Vector3(0, 0, 1)
-var curl_angles := [1.2, 1.3, 0.9]
+var _grip_offsets := {}
+
+## Where a closed fist's hole sits relative to the wrist, in the hand's
+## (finger, palm, finger x palm) frame, in camera-space metres. Measured
+## from the curled rest pose, so a handle placed there passes through the
+## fist.
+func grip_offset(side: String) -> Vector3:
+	if _grip_offsets.has(side):
+		return _grip_offsets[side]
+	skel.reset_bone_poses()
+	_curl(side)
+	var h := skel.get_bone_global_pose(bones["hand_" + side]).origin
+	var c := Vector3.ZERO
+	var n := 0
+	for f in ["index", "middle", "ring", "pinky"]:
+		for j in [1, 2, 3]:
+			var bi := skel.find_bone("%s_0%d_%s" % [f, j, side])
+			if bi >= 0:
+				c += skel.get_bone_global_pose(bi).origin
+				n += 1
+	c /= maxi(n, 1)
+	var rf := _rest_frame(side)
+	var f0: Vector3 = rf[0]
+	var p0: Vector3 = (rf[1] - f0 * f0.dot(rf[1])).normalized()
+	var d := c - h
+	var sc := model.scale.x
+	# The joint average sits on the knuckle loop itself; the hole a handle
+	# goes through is a little further in toward the palm.
+	_grip_offsets[side] = Vector3(d.dot(f0) * 0.62, d.dot(p0) + 0.03, d.dot(f0.cross(p0))) * sc
+	skel.reset_bone_poses()
+	return _grip_offsets[side]
+
+
+var curl_angles := [1.25, 1.45, 1.0]
+var thumb_angles := [0.35, 0.5, 0.45]
 var _fingers := {}
 
-## Close the fingers into a grip (rest pose has them straight).
+## Close the fingers into a fist round a handle. Each joint bends about
+## (finger direction x palm direction), worked out from the rest pose and
+## expressed in that bone's own frame, so it curls toward the palm whatever
+## the rig's bone rolls are.
 func _curl(side: String) -> void:
 	if not _fingers.has(side):
+		var rf := _rest_frame(side)
+		var palm: Vector3 = rf[1]
 		var arr := []
-		for f in ["index", "middle", "ring", "pinky"]:
+		for f in ["index", "middle", "ring", "pinky", "thumb"]:
 			for j in 3:
 				var bi := skel.find_bone("%s_0%d_%s" % [f, j + 1, side])
-				if bi >= 0:
-					arr.append([bi, j])
+				if bi < 0:
+					continue
+				var g := skel.get_bone_global_rest(bi)
+				var nxt := skel.find_bone("%s_0%d_%s" % [f, j + 2, side]) if j < 2 else skel.find_bone("%s_04_leaf_%s" % [f, side])
+				var dir: Vector3 = (skel.get_bone_global_rest(nxt).origin - g.origin).normalized() if nxt >= 0 else g.basis.y.normalized()
+				var axis := dir.cross(palm).normalized()
+				var local := (g.basis.orthonormalized().inverse() * axis).normalized()
+				var ang: float = thumb_angles[j] if f == "thumb" else curl_angles[j]
+				arr.append([bi, Quaternion(local, ang)])
 		_fingers[side] = arr
-	var ax: Vector3 = curl_axis if side == "l" else -curl_axis   # mirrored rig
 	for e in _fingers[side]:
 		var bi: int = e[0]
 		var rest := skel.get_bone_rest(bi).basis.get_rotation_quaternion()
-		skel.set_bone_pose_rotation(bi, rest * Quaternion(ax, curl_angles[e[1]]))
+		skel.set_bone_pose_rotation(bi, rest * (e[1] as Quaternion))
 
 
 func _set_global(bone: int, parent_glob: Transform3D, glob: Transform3D) -> void:

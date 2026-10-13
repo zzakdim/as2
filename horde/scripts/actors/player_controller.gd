@@ -388,6 +388,27 @@ func _limb_between(mi: MeshInstance3D, a: Vector3, b: Vector3, thick: float) -> 
 
 
 ## Pull a grip point back toward the shoulder so the wrist sits behind it.
+## A fist closed round a handle at `point` (camera space), `axis` running
+## toward the blade: knuckles along the handle, palm facing it, and the
+## wrist placed so the curled fingers land on the handle. Returns
+## [wrist target, [finger dir, palm dir]] for FPArms.pose.
+func _grip_hand(point: Vector3, axis: Vector3, right: bool) -> Array:
+	# The palm faces the handle from roughly where the elbow is (below and
+	# behind the shoulder); measuring from the shoulder itself goes unstable
+	# when the blade points straight ahead.
+	var elbow: Vector3 = fp_arms.shoulder(right) + Vector3(0.0, -0.38, 0.05)
+	var to := point - elbow
+	var palm := to - axis * axis.dot(to)
+	if palm.length_squared() < 0.0004:
+		palm = Vector3.UP - axis * axis.dot(Vector3.UP)
+	palm = palm.normalized()
+	# Index finger toward the blade: the rest frame's index-pinky direction.
+	var fingers: Vector3 = palm.cross(axis) if right else axis.cross(palm)
+	var o: Vector3 = fp_arms.grip_offset("r" if right else "l")
+	var wrist := point - fingers * o.x - palm * o.y - fingers.cross(palm) * o.z
+	return [wrist, [fingers, palm]]
+
+
 func _wrist(grip: Vector3, right: bool) -> Vector3:
 	var sh: Vector3 = fp_arms.shoulder(right) if fp_arms else Vector3(0.21 if right else -0.21, -0.34, 0.12)
 	return grip + (sh - grip).normalized() * 0.07
@@ -402,12 +423,21 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 		melee_blade_mat.albedo_color = Color(0.62, 0.63, 0.66).lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
 		melee_blade_mat.roughness = lerp(0.25, 0.6, m.blood)
 	var grip: float = m.ms.get("grip", 0.3)
-	var hand_r: Vector3 = xf * Vector3(0, 0, -grip * 0.25)
-	var hand_l: Vector3 = xf * Vector3(0, 0, -grip * 0.8)
+	# Dominant (right) hand up by the guard, left hand toward the pommel;
+	# one-handed weapons leave the left hand down.
+	var two_handed := grip >= 0.25
+	var hand_r: Vector3 = xf * Vector3(0, 0, -grip * (0.78 if two_handed else 0.45))
+	var hand_l: Vector3 = xf * Vector3(0, 0, -grip * 0.22)
 	if fp_arms:
 		fp_arms.visible = true
 		fp_arms.forward = 0.0
-		fp_arms.pose(_wrist(hand_r, true), _wrist(hand_l, false))
+		var axis: Vector3 = (xf.basis * Vector3(0, 0, -1)).normalized()
+		var gr := _grip_hand(hand_r, axis, true)
+		if two_handed:
+			var gl := _grip_hand(hand_l, axis, false)
+			fp_arms.pose(gr[0], gl[0], gr[1], gl[1])
+		else:
+			fp_arms.pose(gr[0], Vector3.INF, gr[1], [])
 		for a in arm_parts:
 			if a != trail:
 				a.visible = false
@@ -517,10 +547,11 @@ func _process(delta: float) -> void:
 		if floorf(bob_t / PI) != before and not s.want_walk:
 			Game.sfx.play2d("step", -16.0 if speed > 3.0 else -22.0)
 	if s.is_on_floor() and not _was_on_floor:
-		land_dip = 0.12
+		land_dip = 0.06
 	_was_on_floor = s.is_on_floor()
 	land_dip = max(0.0, land_dip - delta * 0.8)
-	var bob: float = sin(bob_t) * 0.03 * clamp(speed / 5.0, 0.0, 1.0)
+	# Gentle: a small dip on each footfall rather than a big sine sway.
+	var bob: float = -absf(sin(bob_t)) * 0.016 * Game.head_bob * clamp(speed / 5.0, 0.0, 1.0)
 	var shake: float = Game.fx.shake if Game.fx else 0.0
 	var roll := 0.0
 	if s.incapped:
@@ -548,7 +579,7 @@ func _process(delta: float) -> void:
 	var long_gun: bool = WeaponData.DEFS.has(cur) and WeaponData.get_def(cur).get("slot", 1) == 0
 	var base := Vector3(0.12, -0.17, -0.46) if long_gun else Vector3(0.13, -0.14, -0.34)
 	var rot := Vector3.ZERO
-	base.x += sin(bob_t * 0.5) * 0.01 * clamp(speed / 5.0, 0.0, 1.0)
+	base.x += sin(bob_t * 0.5) * 0.006 * Game.head_bob * clamp(speed / 5.0, 0.0, 1.0)
 	base.y += bob * 0.4 - land_dip
 	base.z += vm_kick * 0.08
 	rot.x += vm_kick * 0.6
