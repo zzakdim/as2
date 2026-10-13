@@ -24,7 +24,7 @@ func setup(shirt: Color) -> void:
 	model.rotation.y = PI
 	skel = model.find_child("Skeleton3D", true, false)
 	sleeve = Mats.color(shirt, 0.92)
-	var glove := Mats.color(Color(0.11, 0.1, 0.09), 0.7)
+	var glove := Mats.color(Color(0.06, 0.055, 0.05), 0.85)
 	for c in skel.get_children():
 		if c is MeshInstance3D:
 			var keep: bool = c.name in ["Human_ArmLeft", "Human_ArmRight", "Human_HandLeft", "Human_HandRight"]

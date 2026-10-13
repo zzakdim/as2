@@ -17,6 +17,7 @@ var progress: ProgressBar
 var progress_label: Label
 var debug_label: Label
 var damage_rect: ColorRect
+var _dmg_amt := 0.0
 var bile_rect: ColorRect
 var bw_rect: ColorRect
 var hitmark: Label
@@ -51,7 +52,21 @@ void fragment() {
 	COLOR = vec4(mix(c, vec3(g), amount), 1.0);
 }""")
 	bw_rect.visible = false
-	damage_rect = _overlay(Color(0.6, 0.0, 0.0, 0.0))
+	# Edge vignette: red for health damage, pale blue when toughness soaks
+	# the hit, strongest on the side the hit came from.
+	damage_rect = _shader_rect("""
+shader_type canvas_item;
+uniform vec4 tint : source_color = vec4(0.6, 0.0, 0.0, 1.0);
+uniform float amount = 0.0;
+uniform float low = 0.0;
+uniform vec2 dir = vec2(0.0);
+void fragment() {
+	vec2 p = UV * 2.0 - 1.0;
+	float edge = smoothstep(0.55, 1.35, length(p * vec2(1.0, 0.8)));
+	float side = 0.6 + 1.4 * max(dot(normalize(p + 1e-4), dir), 0.0) * length(dir);
+	float a = clamp(amount * 0.5 * edge * side + low * edge, 0.0, 0.7);
+	COLOR = vec4(tint.rgb, a);
+}""")
 	bile_rect = _overlay(Color(0.35, 0.5, 0.05, 0.0))
 
 	crosshair = Crosshair.new()
@@ -216,7 +231,20 @@ func _process(delta: float) -> void:
 		low = 0.15 + 0.08 * sin(Game.time * 6.0)
 	if p.incapped:
 		low = 0.3
-	damage_rect.color.a = lerp(damage_rect.color.a, max(hurt * 0.35, low), min(1.0, delta * 12.0))
+	var dm := damage_rect.material as ShaderMaterial
+	var tough: float = p.tough_hit_t / 0.3
+	_dmg_amt = lerp(_dmg_amt, maxf(hurt, tough * 0.6), minf(1.0, delta * 14.0))
+	dm.set_shader_parameter("amount", _dmg_amt * 0.9)
+	dm.set_shader_parameter("low", low * 2.0)
+	dm.set_shader_parameter("tint", Color(0.65, 0.0, 0.0) if hurt >= tough or low > 0.0 else Color(0.55, 0.75, 1.0))
+	# Hit direction in screen space (x right, y down).
+	var hd: Vector3 = p.last_hurt_dir
+	var sd := Vector2.ZERO
+	if hd.length_squared() > 0.01 and maxf(hurt, tough) > 0.0:
+		var fwd: Vector3 = p.flat_forward()
+		var right := fwd.cross(Vector3.UP)
+		sd = Vector2(hd.dot(right), -hd.dot(fwd)).normalized()
+	dm.set_shader_parameter("dir", sd)
 	bile_rect.color.a = lerp(bile_rect.color.a, 0.45 if p.biled_time > 0.0 else 0.0, delta * 3.0)
 	bw_rect.visible = p.is_black_and_white() or p.dead
 	(bw_rect.material as ShaderMaterial).set_shader_parameter("amount", 1.0 if p.dead else 0.85)

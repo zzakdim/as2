@@ -49,7 +49,7 @@ sledgehammer (slow; the overhead slam knocks everything down), machete.
 
 The **Melee Sandbox** on the title screen drops you in an arena with the
 greatsword and an endless horde, with every weapon laid out around you.
-F5 spawns a horde, F6 a special, F9 elites, F8 a Tank, F7 toggles god mode.
+F5 spawns a horde, F6 a special, F9 elites (shield, rager, gunner), F8 a Tank, F7 toggles god mode.
 
 **Options:** the title screen cycles *Characters* between Realistic
 (Quaternius), Stylized (KayKit, `--kaykit`) and placeholder boxes
@@ -101,6 +101,13 @@ along the map) and Witches. Press F3 in game to watch it work.
   with a long, readable windup.
 - **Rager**: closes fast and attacks in three-hit flurries. Block, perfect
   block or dodge them; a push interrupts the flurry.
+- **Gunner**: hangs back and shoots. A blinking red laser telegraphs the
+  aim, then a burst follows. The aim trails you, so sprint across the line
+  of fire, dodge, break line of sight, or close in and cut it down. Bots
+  prioritise them.
+
+Hits soaked by toughness flash the screen edge pale blue; health damage
+flashes red. Either way the flash is strongest on the side the hit came from.
 
 **Survivors**
 - **Toughness** (Darktide): a shield bar above health that soaks most hits.
@@ -129,6 +136,9 @@ is exactly what you hit. Feel comes from:
 
 `--input-test` drives the real first-person controls through every melee
 state, the medkit, pills and throwables, and fails if any are unreachable.
+
+`--spawn=gunner,rager` (with `--autotest`) drops those enemies 12 m in front
+of the player, for screenshot checks of a specific fight.
 
 To check swing arcs without playing, render a pose contact sheet:
 `xvfb-run godot --path horde --rendering-driver opengl3 -- --autotest --sandbox --no-bots --seconds=200 --melee-poses=/tmp/poses`
@@ -189,7 +199,6 @@ Next up, roughly in order of impact:
 - **Darktide layer**
   - Classes with abilities (Veteran, Zealot, Psyker, Ogryn-style).
   - Toughness that regenerates near teammates (coherency).
-  - Armored elites and ranged gunners.
   - Heavy/light melee combos with stamina and blocking.
   - Loadouts and progression between runs.
 - **More L4D2**: Jockey, rescue closets for dead teammates, ledge hangs, more

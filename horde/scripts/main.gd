@@ -152,6 +152,13 @@ func load_map(idx: int) -> void:
 			run_pose_sheet(a.substr(14))
 		if a.begins_with("--lineup="):
 			run_lineup(a.substr(9))
+		if a.begins_with("--spawn="):
+			# --spawn=gunner,rager : spawn these 12 m ahead of the player, already hunting
+			var k := 0
+			for kind in a.substr(8).split(","):
+				var z: Infected = Game.director.spawn_infected(kind, Game.player.global_position + Game.player.flat_forward() * 12.0 + Game.player.flat_forward().cross(Vector3.UP) * (k - 0.5) * 2.5 + Vector3(0, 0.1, 0))
+				z.alert(Game.player)
+				k += 1
 		if a == "--input-test":
 			var it = load("res://scripts/input_test.gd").new()
 			add_child(it)
@@ -270,7 +277,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			for i in 3:
 				var c: Vector2i = Game.director.find_hidden_cell(0, Game.level.max_flow, 10.0)
 				if c.x >= 0:
-					var e: Infected = Game.director.spawn_infected(["shieldbearer", "rager"][i % 2], Game.level.cell_center(c))
+					var e: Infected = Game.director.spawn_infected(["shieldbearer", "rager", "gunner"][i % 3], Game.level.cell_center(c))
 					e.alert(Game.player)
 		if event.is_action_pressed("sandbox_tank"):
 			Game.director.spawn_tank_now()
@@ -403,10 +410,10 @@ func run_lineup(dir: String) -> void:
 	light.light_energy = 2.5
 	world.add_child(light)
 	light.global_position = p.global_position + Vector3(0, 3, -2)
-	var kinds := ["common", "shieldbearer", "rager", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
+	var kinds := ["common", "shieldbearer", "rager", "gunner", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
 	var actors := []
 	for i in kinds.size():
-		var pos: Vector3 = p.global_position + Vector3((i - 4) * 1.15, 0.0, -6.5)
+		var pos: Vector3 = p.global_position + Vector3((i - 4.5) * 1.05, 0.0, -6.5)
 		var z: Infected = Game.director.spawn_infected(kinds[i], pos)
 		z.set_physics_process(false)
 		actors.append(z)

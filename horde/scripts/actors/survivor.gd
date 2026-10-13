@@ -44,6 +44,7 @@ var biled_time := 0.0
 var slow_t := 0.0
 var stun_t := 0.0
 var hurt_t := 0.0
+var tough_hit_t := 0.0    # toughness soaked a hit (HUD edge flash)
 var last_hurt_dir := Vector3.ZERO
 var being_revived_by = null
 var in_safe_room := false
@@ -314,6 +315,7 @@ func _timers(delta: float) -> void:
 	slow_t = max(0.0, slow_t - delta)
 	stun_t = max(0.0, stun_t - delta)
 	hurt_t = max(0.0, hurt_t - delta)
+	tough_hit_t = max(0.0, tough_hit_t - delta)
 	spread_bloom = max(0.0, spread_bloom - delta * 6.0)
 	if biled_time > 0.0:
 		biled_time -= delta
@@ -819,8 +821,11 @@ func take_damage(amount: float, attacker = null, kind := "") -> void:
 		hurt.emit(amount, last_hurt_dir)
 		return
 	# Toughness soaks most hits first (not pins, acid, fire or bleed-outs).
-	if kind in ["claw", "punch", "rock", "charge", "pounce", "explosion", ""] and toughness > 0.0:
+	if kind in ["claw", "punch", "rock", "charge", "pounce", "explosion", "shot", ""] and toughness > 0.0:
 		var soaked: float = min(toughness, amount)
+		if soaked >= amount * 0.99:
+			hurt_t = 0.0          # fully covered: the HUD flashes toughness, not blood
+			tough_hit_t = 0.3
 		toughness -= soaked
 		amount -= soaked * 0.85      # a little damage bleeds through
 		toughness_delay = 3.0
