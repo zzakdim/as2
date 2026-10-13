@@ -146,34 +146,16 @@ static func build_model(id: String, view := false) -> Node3D:
 			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.05, l)), steel if id == "magnum" else dark, Vector3(0, 0.02, -l * 0.5))
 			Mats.add_mesh(root, Mats.box(Vector3(0.035, 0.1, 0.05)), dark, Vector3(0, -0.04, 0.0), Vector3(-0.25, 0, 0))
 		"machete":
-			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.03, 0.14)), wood, Vector3(0, 0, -0.07))
-			var mb := Mats.add_mesh(root, Mats.box(Vector3(0.07, 0.012, 0.5)), steel.duplicate(), Vector3(0.01, 0, -0.4))
-			mb.name = "Blade"
+			WeaponMesh.machete(root, steel.duplicate(), Mats.color(Color(0.22, 0.13, 0.07), 0.75))
 		"fire_axe":
-			var handle := Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.035, 0.95)), wood, Vector3(0, 0, -0.47))
-			handle.name = "Handle"
-			var red := Mats.color(Color(0.62, 0.08, 0.06), 0.4, 0.4)
-			var ab := Mats.add_mesh(root, Mats.box(Vector3(0.2, 0.025, 0.14)), steel.duplicate(), Vector3(0.1, 0, -0.9))
-			ab.name = "Blade"
-			Mats.add_mesh(root, Mats.box(Vector3(0.08, 0.05, 0.12)), red, Vector3(0.0, 0, -0.9))
-			Mats.add_mesh(root, Mats.box(Vector3(0.12, 0.04, 0.05)), red, Vector3(-0.08, 0, -0.9))
+			WeaponMesh.fire_axe(root, steel.duplicate(), Mats.color(Color(0.62, 0.08, 0.06), 0.4, 0.4), wood)
 		"sledgehammer":
-			Mats.add_mesh(root, Mats.box(Vector3(0.045, 0.045, 1.05)), wood, Vector3(0, 0, -0.52))
-			var hb := Mats.add_mesh(root, Mats.box(Vector3(0.3, 0.14, 0.15)), Mats.color(Color(0.35, 0.36, 0.38), 0.45, 0.7).duplicate(), Vector3(0, 0, -1.02))
-			hb.name = "Blade"
+			WeaponMesh.sledgehammer(root, Mats.color(Color(0.35, 0.36, 0.38), 0.45, 0.7).duplicate(), wood)
 		"greatsword":
 			var leather := Mats.color(Color(0.16, 0.1, 0.07), 0.8)
 			var brass := Mats.color(Color(0.55, 0.42, 0.2), 0.35, 0.8)
-			var blade_mat := Mats.color(Color(0.62, 0.63, 0.66), 0.32, 0.55).duplicate()
-			Mats.add_mesh(root, Mats.sphere(0.035, 8), brass, Vector3(0, 0, 0.02))
-			Mats.add_mesh(root, Mats.cylinder(0.022, 0.32, 8), leather, Vector3(0, 0, -0.17), Vector3(PI / 2, 0, 0))
-			Mats.add_mesh(root, Mats.box(Vector3(0.36, 0.045, 0.06)), brass, Vector3(0, 0, -0.35))
-			Mats.add_mesh(root, Mats.box(Vector3(0.1, 0.06, 0.08)), brass, Vector3(0, 0, -0.39))
-			var b := Mats.add_mesh(root, Mats.box(Vector3(0.078, 0.014, 1.08)), blade_mat, Vector3(0, 0, -0.93))
-			b.name = "Blade"
-			var tip := Mats.add_mesh(root, Mats.box(Vector3(0.055, 0.014, 0.055)), blade_mat, Vector3(0, 0, -1.47), Vector3(0, PI / 4, 0))
-			tip.name = "Tip"
-			Mats.add_mesh(root, Mats.box(Vector3(0.016, 0.017, 0.86)), Mats.color(Color(0.3, 0.3, 0.32), 0.3, 0.9), Vector3(0, 0, -0.86))
+			var blade_mat := Mats.color(Color(0.62, 0.63, 0.66), 0.28, 0.75).duplicate()
+			WeaponMesh.greatsword(root, blade_mat, brass, leather)
 		"smg":
 			Mats.add_mesh(root, Mats.box(Vector3(0.06, 0.08, 0.36)), dark, Vector3(0, 0.02, -0.15))
 			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.16, 0.04)), dark, Vector3(0, -0.08, -0.12))
