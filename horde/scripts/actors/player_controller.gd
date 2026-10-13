@@ -17,6 +17,22 @@ var look_target = null       # current usable / teammate under crosshair
 var hold_kind := ""
 var _was_on_floor := true
 var _mouse_delta := Vector2.ZERO
+var _sway := Vector2.ZERO        # (yaw, pitch) lag of the viewmodel, radians
+var _sway_vel := Vector2.ZERO
+
+
+func _sway_step(delta: float) -> void:
+	delta = minf(delta, 0.05)
+	_sway_vel += (-_sway * 160.0 - _sway_vel * 16.0) * delta
+	_sway += _sway_vel * delta
+	_sway = _sway.clamp(Vector2(-0.12, -0.08), Vector2(0.12, 0.08))
+
+
+## Rotate a camera-space viewmodel transform about a pivot near the hands.
+func _apply_sway(xf: Transform3D) -> Transform3D:
+	var piv := Vector3(0.15, -0.3, -0.35)
+	var r := Basis(Vector3.UP, -_sway.x) * Basis(Vector3.RIGHT, -_sway.y)
+	return Transform3D(r, piv - r * piv) * xf
 var base_fov := 85.0
 # Melee viewmodel: the blade is posed directly from Melee.pose (camera space)
 var melee_root: Node3D
@@ -84,6 +100,8 @@ func update(delta: float) -> void:
 	var sens: float = Game.mouse_sensitivity
 	s.yaw = wrapf(s.yaw - _mouse_delta.x * sens, -PI, PI)
 	s.pitch = clamp(s.pitch - _mouse_delta.y * sens, -1.45, 1.45)
+	# Viewmodel inertia: the weapon trails the look a little, then springs back.
+	_sway_vel += Vector2(-_mouse_delta.x, -_mouse_delta.y) * sens * 2.2
 	_mouse_delta = Vector2.ZERO
 
 	var playing: bool = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or Game.force_input
@@ -421,6 +439,7 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 	var m: Melee = s.melee
 	var xf := m.pose
 	xf.origin += Vector3(0, bob * 0.5 - land_dip * 0.5, 0)
+	xf = _apply_sway(xf)
 	melee_root.transform = xf
 	if melee_blade_mat:
 		melee_blade_mat.albedo_color = Color(0.62, 0.63, 0.66).lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
@@ -645,6 +664,9 @@ func _process(delta: float) -> void:
 		base.x = lerp(0.4, -0.1, k)
 	if s.incapped:
 		base.y += 0.05
+	_sway_step(delta)
+	base += Vector3(-_sway.x * 0.25, _sway.y * 0.25, 0.0)
+	rot += Vector3(-_sway.y, -_sway.x, 0.0)
 	vm_root.position = vm_root.position.lerp(base, min(1.0, delta * 20.0))
 	vm_root.rotation = vm_root.rotation.lerp(rot, min(1.0, delta * 20.0))
 	vm_root.visible = not s.dead and s.pinned_by == null
