@@ -13,6 +13,9 @@ var bones := {}       # "upperarm_l" -> index ...
 var lens := {}        # side -> [upper length, lower length]
 var sleeve: Material
 var active := true
+var _skin_mats := []      # [material, clean colour]
+var _cloth_mats := []
+var _blood := -1.0
 var base_pos := Vector3.ZERO
 var forward := 0.0     # shoulders pushed forward (m): more reach for long guns
 
@@ -40,10 +43,15 @@ func setup(shirt: Color) -> void:
 					# Real sleeves and bracers, tinted toward the survivor's colour.
 					for i in c.mesh.get_surface_count():
 						var base: Material = c.mesh.surface_get_material(i)
-						if base and not base.resource_name.contains("Regular") and not base.resource_name.contains("Superhero"):
-							var m: StandardMaterial3D = base.duplicate()
+						if base == null:
+							continue
+						var m: StandardMaterial3D = base.duplicate()
+						if not base.resource_name.contains("Regular") and not base.resource_name.contains("Superhero"):
 							m.albedo_color = Color(1, 1, 1).lerp(shirt.lightened(0.35), 0.55)
-							c.set_surface_override_material(i, m)
+							_cloth_mats.append([m, m.albedo_color])
+						else:
+							_skin_mats.append([m, m.albedo_color])
+						c.set_surface_override_material(i, m)
 				else:
 					c.material_override = glove if String(c.name).contains("Hand") else sleeve
 				# Culling uses the T-pose bounds (beside the camera); the IK
@@ -61,6 +69,18 @@ func setup(shirt: Color) -> void:
 	var sh := skel.get_bone_global_rest(bones["upperarm_l"]).origin
 	model.position = Vector3(0, -0.34 - sh.y * 1.15, 0.12 + sh.z * 1.15)
 	base_pos = model.position
+
+
+## Gore on the hands and sleeves (0..1), following the blade's.
+func set_blood(k: float) -> void:
+	if absf(k - _blood) < 0.02:
+		return
+	_blood = k
+	for e in _skin_mats:
+		(e[0] as StandardMaterial3D).albedo_color = (e[1] as Color).lerp(Color(0.5, 0.08, 0.06), k * 0.55)
+		(e[0] as StandardMaterial3D).roughness = lerpf(0.6, 0.3, k)
+	for e in _cloth_mats:
+		(e[0] as StandardMaterial3D).albedo_color = (e[1] as Color).lerp(Color(0.25, 0.04, 0.03), k * 0.35)
 
 
 ## Shoulder position in camera space (for the wrist pull-back).

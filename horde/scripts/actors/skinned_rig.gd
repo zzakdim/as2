@@ -761,6 +761,11 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 	if cut == "decap" and bodies.has(b("head")):
 		bodies[b("head")].joint_type = PhysicalBone3D.JOINT_TYPE_NONE
 	sim.physical_bones_start_simulation()
+	# The body hitting the ground: one heavy thud a moment later.
+	var thud_pos := global_position
+	Effects.after(self, randf_range(0.35, 0.6), func():
+		if Game.sfx:
+			Game.sfx.play3d("thump", thud_pos + Vector3(0, 0.2, 0), -12.0, 0.15, 0.7))
 	var nearest = null
 	var nd := INF
 	for bn in bodies:

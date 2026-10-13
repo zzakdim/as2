@@ -290,6 +290,52 @@ static func screen_spray(v: int) -> Texture2D:
 	return tex
 
 
+## Floor/wall blood: an irregular pool (noise-edged), a tail of flicked
+## drops in one direction and fine misting. `v` picks a variant.
+static func floor_blood(v: int) -> Texture2D:
+	var key := "fblood%d" % v
+	if _tex.has(key):
+		return _tex[key]
+	var s := 192
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 555 + v * 31
+	var n := FastNoiseLite.new()
+	n.seed = 77 + v
+	n.frequency = 0.035
+	var c := Vector2(s * 0.42, s * 0.5)
+	var pool_r := rng.randf_range(34, 52)
+	var tail := Vector2.from_angle(rng.randf() * TAU)
+	var drops := []
+	for i in 26:
+		var dist := rng.randf_range(pool_r * 0.9, s * 0.5)
+		var ang := tail.angle() + rng.randf_range(-0.45, 0.45)
+		drops.append([c + Vector2.from_angle(ang) * dist, rng.randf_range(1.2, 4.5) * (1.0 - dist / (s * 0.6))])
+	for i in 40:
+		drops.append([Vector2(rng.randf_range(10, s - 10), rng.randf_range(10, s - 10)), rng.randf_range(0.6, 1.4)])
+	for y in s:
+		for x in s:
+			var p := Vector2(x, y)
+			var d := p.distance_to(c)
+			var edge := pool_r * (1.0 + 0.45 * n.get_noise_2dv(p))
+			var a := clampf((edge - d) / 6.0, 0.0, 1.0)
+			for dr in drops:
+				var dd: float = p.distance_to(dr[0])
+				if dd < dr[1]:
+					a = maxf(a, clampf((dr[1] - dd) / 1.2, 0.0, 1.0))
+			if a <= 0.0:
+				continue
+			# Darker where it pools thick in the middle.
+			var thick := clampf((edge - d) / edge, 0.0, 1.0)
+			var col := Color(0.55, 0.035, 0.03).lerp(Color(0.26, 0.01, 0.01), thick)
+			col.a = a * 0.92
+			img.set_pixel(x, y, col)
+	var tex := ImageTexture.create_from_image(img)
+	_tex[key] = tex
+	return tex
+
+
 static func blood_splat() -> Texture2D:
 	if _tex.has("blood"):
 		return _tex["blood"]

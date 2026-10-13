@@ -423,6 +423,8 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 	if melee_blade_mat:
 		melee_blade_mat.albedo_color = Color(0.62, 0.63, 0.66).lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
 		melee_blade_mat.roughness = lerp(0.25, 0.6, m.blood)
+	if fp_arms:
+		fp_arms.set_blood(m.blood)
 	var grip: float = m.ms.get("grip", 0.3)
 	# Dominant (right) hand up by the guard, left hand toward the pommel;
 	# one-handed weapons leave the left hand down.

@@ -284,10 +284,10 @@ func blood_decal(pos: Vector3) -> void:
 		d = _decals.pop_front()
 	else:
 		d = Decal.new()
-		d.texture_albedo = Mats.blood_splat()
 		d.cull_mask = 1
 		add_child(d)
-	var s := randf_range(1.2, 2.2)
+	d.texture_albedo = Mats.floor_blood(randi() % 4)
+	var s := randf_range(1.0, 1.8)
 	d.size = Vector3(s, 1.0, s)
 	d.global_position = Vector3(pos.x, 0.3, pos.z)
 	d.rotation.y = randf() * TAU
@@ -309,8 +309,8 @@ func wall_blood(pos: Vector3, dir: Vector3) -> void:
 		dc = _decals.pop_front()
 	else:
 		dc = Decal.new()
-		dc.texture_albedo = Mats.blood_splat()
 		add_child(dc)
+	dc.texture_albedo = Mats.floor_blood(randi() % 4)
 	var sz := randf_range(0.8, 1.6)
 	dc.size = Vector3(sz, 0.6, sz)
 	dc.global_position = hit["position"]

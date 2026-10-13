@@ -42,7 +42,7 @@ const MOVESETS := {
 	# and guaranteed severing on head hits (crits). The heavy is a lunge.
 	"sabre": {
 		"length": 0.84, "grip": 0.14, "pivot": Vector3(0.13, -0.24, -0.48),
-		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true, "swish_pitch": 1.3,
+		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true, "swish_pitch": 1.3, "move": 1.06,
 		"light": [
 			{"name": "Cut 1", "dir": 28.0, "arc": [-56.0, 60.0], "windup": 0.07, "strike": 0.085, "follow": 0.06, "recover": 0.2,
 				"damage": 105.0, "cleave": 1.6, "impact": 3.0, "lunge": 1.2, "sever": 0.45, "next_light": 1, "next_heavy": 0},
@@ -65,7 +65,7 @@ const MOVESETS := {
 	# the charged heavy goes through a whole line and always cuts bodies in two.
 	"executioner": {
 		"length": 1.0, "grip": 0.36, "pivot": Vector3(0.06, -0.28, -0.5),
-		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92, "swish_pitch": 0.72,
+		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92, "swish_pitch": 0.72, "move": 0.9,
 		"light": [
 			{"name": "Wide sweep L>R", "dir": 8.0, "arc": [-70.0, 76.0], "windup": 0.26, "strike": 0.19, "follow": 0.16, "recover": 0.46,
 				"damage": 230.0, "cleave": 7.0, "impact": 9.0, "lunge": 2.4, "sever": 0.85, "next_light": 1, "next_heavy": 0, "bisect": true},
@@ -257,11 +257,12 @@ func is_busy() -> bool:
 
 ## Movement speed multiplier while charging / blocking.
 func move_mult() -> float:
+	var w: float = ms.get("move", 1.0)
 	match state:
-		"charge": return 0.6
-		"block": return 0.65
-		"strike", "follow": return 0.85
-	return 1.0
+		"charge": return 0.6 * w
+		"block": return 0.65 * w
+		"strike", "follow": return 0.85 * w
+	return w
 
 
 # ===================================================================== update
