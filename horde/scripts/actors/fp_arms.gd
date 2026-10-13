@@ -13,6 +13,8 @@ var bones := {}       # "upperarm_l" -> index ...
 var lens := {}        # side -> [upper length, lower length]
 var sleeve: Material
 var active := true
+var base_pos := Vector3.ZERO
+var forward := 0.0     # shoulders pushed forward (m): more reach for long guns
 
 
 static func available() -> bool:
@@ -57,6 +59,12 @@ func setup(shirt: Color) -> void:
 	# shoulder (x=+0.21, y=1.456) lands at x=-0.21 on screen.
 	var sh := skel.get_bone_global_rest(bones["upperarm_l"]).origin
 	model.position = Vector3(0, -0.34 - sh.y, 0.12 + sh.z)
+	base_pos = model.position
+
+
+## Shoulder position in camera space (for the wrist pull-back).
+func shoulder(right: bool) -> Vector3:
+	return Vector3(0.21 if right else -0.21, -0.34, 0.12 - forward)
 
 
 ## Pose both arms. Targets are wrist positions in camera space; pass
@@ -64,6 +72,7 @@ func setup(shirt: Color) -> void:
 func pose(wrist_r: Vector3, wrist_l: Vector3) -> void:
 	if skel == null:
 		return
+	model.position = base_pos - Vector3(0, 0, forward)
 	skel.reset_bone_poses()
 	_solve("r", wrist_r, Vector3(0.6, -1.0, 0.4))
 	_solve("l", wrist_l, Vector3(-0.6, -1.0, 0.4))

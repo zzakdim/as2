@@ -318,6 +318,7 @@ func _update_gun_arms() -> void:
 	if fp_arms:
 		fp_arms.visible = show
 		if show:
+			fp_arms.forward = 0.14 if long else 0.06
 			fp_arms.pose(_wrist(grip_r, true), _wrist(grip_l, false))
 		for a in gun_arms:
 			a.visible = false
@@ -378,8 +379,8 @@ func _limb_between(mi: MeshInstance3D, a: Vector3, b: Vector3, thick: float) -> 
 
 
 ## Pull a grip point back toward the shoulder so the wrist sits behind it.
-static func _wrist(grip: Vector3, right: bool) -> Vector3:
-	var sh := Vector3(0.21 if right else -0.21, -0.34, 0.12)
+func _wrist(grip: Vector3, right: bool) -> Vector3:
+	var sh: Vector3 = fp_arms.shoulder(right) if fp_arms else Vector3(0.21 if right else -0.21, -0.34, 0.12)
 	return grip + (sh - grip).normalized() * 0.07
 
 
@@ -396,6 +397,7 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 	var hand_l: Vector3 = xf * Vector3(0, 0, -grip * 0.8)
 	if fp_arms:
 		fp_arms.visible = true
+		fp_arms.forward = 0.0
 		fp_arms.pose(_wrist(hand_r, true), _wrist(hand_l, false))
 		for a in arm_parts:
 			if a != trail:
