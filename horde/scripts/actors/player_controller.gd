@@ -108,6 +108,9 @@ func update(delta: float) -> void:
 		s.block_held = false
 		return
 
+	if Input.is_action_just_pressed("ability"):
+		s.want_ability = true
+
 	if Input.is_action_just_pressed("flashlight"):
 		s.flashlight_enabled = not s.flashlight_enabled
 		Game.sfx.play2d("dry_fire", -10.0)
@@ -448,6 +451,11 @@ func on_melee_hit(killed: bool, dist: float) -> void:
 func on_toughness_broken() -> void:
 	Game.sfx.play2d("clank", -6.0)
 	Game.hud.flash(Color(0.5, 0.7, 1.0, 0.15), 0.25)
+
+
+func on_ability() -> void:
+	hit_shake = maxf(hit_shake, 0.8)
+	Game.hud.flash(Color(1, 0.85, 0.55, 0.2), 0.2)
 
 
 func on_perfect_block() -> void:

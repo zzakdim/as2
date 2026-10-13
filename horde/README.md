@@ -30,6 +30,7 @@ and everything else is synthesized.
 | Reload / use (hold to revive) | R / E |
 | Weapons & items | 1 primary · 2 secondary · 3 throwable · 4 medkit · 5 pills · Q last · wheel |
 | Flashlight / ping a special | F / Z |
+| Battle Cry (ability, 30 s cooldown) | G |
 | Stats / Director overlay / pause | Tab / F3 / Esc |
 
 Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
@@ -115,6 +116,9 @@ Hits soaked by toughness flash the screen edge pale blue; health damage
 flashes red. Either way the flash is strongest on the side the hit came from.
 
 **Survivors**
+- **Battle Cry** (Darktide-style combat ability, G): a shout that knocks
+  the nearby horde off its feet, staggers specials and elites, and refills
+  the toughness of everyone in coherency. Bots use it when swarmed.
 - **Toughness** (Darktide): a shield bar above health that soaks most hits.
   It regenerates when you avoid damage for 3 s, faster with teammates
   within 8 m (coherency), and melee kills refill it, so fighting

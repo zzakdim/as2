@@ -25,6 +25,7 @@ var hitmark_t := 0.0
 var map_label: Label
 var markers: Array = []
 var stamina_bar: StaminaPips
+var ability_icon: AbilityIcon
 var screen_splats: Array = []
 
 var menu: Control
@@ -77,6 +78,14 @@ void fragment() {
 	stamina_bar.set_anchors_preset(Control.PRESET_CENTER)
 	stamina_bar.position = Vector2(0, 34)
 	root.add_child(stamina_bar)
+
+	ability_icon = AbilityIcon.new()
+	ability_icon.anchor_left = 0.5
+	ability_icon.anchor_right = 0.5
+	ability_icon.anchor_top = 1.0
+	ability_icon.anchor_bottom = 1.0
+	ability_icon.offset_top = -64
+	root.add_child(ability_icon)
 
 	hitmark = _label("x", 26, Color(1, 1, 1))
 	hitmark.set_anchors_preset(Control.PRESET_CENTER)
@@ -256,6 +265,9 @@ func _process(delta: float) -> void:
 		stamina_bar.blocking = p.melee.is_blocking()
 		stamina_bar.charge = clamp(p.melee.t / p.melee.atk.get("charge", 1.0), 0.0, 1.0) if p.melee.state == "charge" else 0.0
 		stamina_bar.queue_redraw()
+	ability_icon.frac = 1.0 - p.ability_cd / Survivor.ABILITY_COOLDOWN
+	ability_icon.visible = not p.dead
+	ability_icon.queue_redraw()
 	_update_splats(delta)
 	crosshair.visible = not p.dead and p.action == "" and p.active_slot <= Survivor.SLOT_SECONDARY
 	crosshair.spread = _spread_of(p)
@@ -536,6 +548,18 @@ class Crosshair extends Control:
 		draw_line(Vector2(0, -g - l), Vector2(0, -g), c, 2.0)
 		draw_line(Vector2(0, g), Vector2(0, g + l), c, 2.0)
 		draw_circle(Vector2.ZERO, 1.5, c)
+
+
+## Combat ability (G): ring fills while recharging, glows when ready.
+class AbilityIcon extends Control:
+	var frac := 1.0
+	func _draw() -> void:
+		var ready := frac >= 1.0
+		var c := Vector2(0, 22)
+		draw_circle(c, 20.0, Color(0, 0, 0, 0.45))
+		draw_arc(c, 20.0, -PI / 2, -PI / 2 + TAU * frac, 32, Color(1.0, 0.8, 0.45, 0.95) if ready else Color(1, 1, 1, 0.5), 3.0)
+		var font := ThemeDB.fallback_font
+		draw_string(font, c + Vector2(-6, 7), "G", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(1, 0.9, 0.7) if ready else Color(1, 1, 1, 0.4))
 
 
 class StaminaPips extends Control:

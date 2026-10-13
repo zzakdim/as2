@@ -35,6 +35,14 @@ func update(delta: float) -> void:
 	if s.dead:
 		return
 	callout_cd = max(0.0, callout_cd - delta)
+	if s.ability_cd <= 0.0 and not s.incapped:
+		# Shout when swarmed or about to lose toughness in a crowd.
+		var close := 0
+		for z in Game.infected:
+			if is_instance_valid(z) and not z.is_dead() and z.global_position.distance_squared_to(s.global_position) < 12.0:
+				close += 1
+		if close >= 6 or (close >= 3 and s.toughness < 25.0):
+			s.want_ability = true
 	react_t = max(0.0, react_t - delta)
 	scan_t -= delta
 	if scan_t <= 0.0:

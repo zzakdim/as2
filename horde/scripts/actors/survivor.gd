@@ -77,6 +77,9 @@ var fire_held := false          # set every frame by the controller (melee reads
 var block_held := false
 var melee: Melee
 var want_dodge := false
+var want_ability := false
+var ability_cd := 8.0
+const ABILITY_COOLDOWN := 30.0
 var dodge_t := 0.0
 var dodge_cd := 0.0
 var dodges := 3
@@ -263,6 +266,10 @@ func _physics_process(delta: float) -> void:
 	if controller:
 		controller.update(delta)
 	_timers(delta)
+	ability_cd = maxf(0.0, ability_cd - delta)
+	if want_ability:
+		want_ability = false
+		use_ability()
 	_update_melee(delta)
 	_move(delta)
 	_update_action(delta)
@@ -291,6 +298,38 @@ func _update_toughness(delta: float) -> void:
 	if toughness_delay <= 0.0:
 		var rate := 5.0 + 5.0 * coherency
 		toughness = min(toughness_max, toughness + rate * delta)
+
+
+## Battle Cry (combat ability): a shout that knocks down or staggers every
+## enemy within 6.5 m and refills the toughness of everyone in coherency.
+func use_ability() -> bool:
+	if ability_cd > 0.0 or incapped or dead or pinned_by != null:
+		return false
+	ability_cd = ABILITY_COOLDOWN
+	var p := global_position
+	for z in Game.infected.duplicate():
+		if not is_instance_valid(z) or z.is_dead() or z.kind == "witch" or z.kind == "tank":
+			continue
+		var away: Vector3 = z.global_position - p
+		away.y = 0.0
+		if away.length() > 6.5:
+			continue
+		if z.kind == "common":
+			z.knockdown(away, randf_range(1.2, 2.2))
+		else:
+			z.melee_stagger(away.normalized(), 9.0)
+	for o in Game.survivors:
+		if is_instance_valid(o) and not o.dead and o.global_position.distance_to(p) < 8.0:
+			o.restore_toughness(o.toughness_max)
+	Game.sfx.play3d("charger_roar", eye_pos(), 4.0, 0.05)
+	Game.sfx.play3d("tank_punch", p + Vector3(0, 0.3, 0), 0.0, 0.1)
+	Game.fx.shockwave(p + Vector3(0, 0.15, 0), 6.5)
+	Game.fx.add_shake(p, 0.5)
+	Game.make_noise(p, 20.0)
+	Game.callout(self, ["Get back!", "Come on then!", "Back off!"].pick_random())
+	if controller and controller.has_method("on_ability"):
+		controller.on_ability()
+	return true
 
 
 func restore_toughness(amount: float) -> void:

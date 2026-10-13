@@ -259,6 +259,31 @@ func explosion(pos: Vector3, radius: float, damage: float, by) -> void:
 	add_shake(pos, 1.0)
 
 
+## Expanding ground ring (battle cry).
+func shockwave(pos: Vector3, radius: float) -> void:
+	var mi := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 0.85
+	t.outer_radius = 1.0
+	t.rings = 32
+	t.ring_segments = 6
+	mi.mesh = t
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(1.0, 0.85, 0.55, 0.7)
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	mi.global_position = pos
+	mi.scale = Vector3(0.3, 0.3, 0.3)
+	var tw := mi.create_tween().set_parallel(true)
+	tw.tween_property(mi, "scale", Vector3(radius, 0.6, radius), 0.35).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_property(m, "albedo_color:a", 0.0, 0.45)
+	tw.chain().tween_callback(mi.queue_free)
+
+
 func add_shake(pos: Vector3, amount: float) -> void:
 	if Game.player and is_instance_valid(Game.player):
 		var d: float = Game.player.global_position.distance_to(pos)

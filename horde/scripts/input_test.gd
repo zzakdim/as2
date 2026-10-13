@@ -57,6 +57,10 @@ func run() -> void:
 	await _tap("ping", 0.05, 0.3)
 	await _tap("flashlight", 0.05, 0.3)
 	await _tap("use", 0.05, 0.3)
+	p.ability_cd = 0.0
+	await _tap("ability", 0.05, 0.3)
+	if p.ability_cd > 0.0:
+		seen["ability"] = true
 	# 4) movement
 	Input.action_press("move_forward")
 	await _tap("jump", 0.05, 0.6)
@@ -104,7 +108,7 @@ func _wait(t: float) -> void:
 
 func _report() -> void:
 	var want := ["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills"]
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability"]
 	var missing := want.filter(func(w): return not seen.has(w))
 	print("[input-test] reached: ", seen.keys())
 	print("[input-test] missing: ", missing)
