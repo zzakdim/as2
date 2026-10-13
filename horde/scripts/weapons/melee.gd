@@ -615,6 +615,12 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	var dmg: float = atk["damage"]
 	swing_hits += 1
 	var crit := false
+	var riposte: bool = s.riposte_t > 0.0
+	if riposte:
+		# Counter after a perfect dodge: hits like a heavy and always severs.
+		s.riposte_t = 0.0
+		dmg *= 1.7
+		crit = true
 	if part == "head":
 		dmg *= ms.get("head_mult", 1.0)
 		crit = ms.get("crit", false)

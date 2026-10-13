@@ -25,7 +25,9 @@ and everything else is synthesized.
 
 | Action | Key |
 | --- | --- |
-| Move / jump / crouch / walk | WASD / Space / Ctrl / Shift |
+| Move / jump / crouch | WASD / Space / Ctrl |
+| Sprint / walk | Shift / Alt |
+| Slide | Ctrl while sprinting |
 | Fire / shove | LMB / RMB |
 | Reload / use (hold to revive) | R / E |
 | Weapons & items | 1 primary · 2 secondary · 3 throwable · 4 medkit · 5 pills · Q last · wheel |
@@ -44,7 +46,13 @@ Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
 | Block | hold RMB (costs stamina per hit blocked) |
 | Push | LMB while blocking |
 | Push-attack (thrust) | LMB right after a push |
-| Dodge | Space while moving sideways or backwards |
+| Dodge (3 charges) | Space while moving sideways or backwards |
+
+Dodging is a quick grounded dash. Slip an attack mid-dodge — a **perfect
+dodge** — and time slows for a beat, you get a dodge charge and some
+stamina back, and your next melee hit within a second is a **riposte**:
+1.7x damage that always takes a limb or head. Sprinting into a crouch
+slides you forward under the horde's guard.
 
 Blocking right before a hit lands is a **perfect block**: no stamina cost,
 and the attacker reels. Heavies held to full charge flash and hit harder.

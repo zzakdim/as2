@@ -61,7 +61,25 @@ func run() -> void:
 	await _tap("ability", 0.05, 0.3)
 	if p.ability_cd > 0.0:
 		seen["ability"] = true
-	# 4) movement
+	# 4) movement: sprint, slide out of the sprint, perfect dodge
+	_slot(2)
+	await _wait(0.4)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await _wait(0.6)
+	Input.action_press("crouch")
+	await _wait(0.4)
+	Input.action_release("crouch")
+	Input.action_release("sprint")
+	Input.action_release("move_forward")
+	await _wait(0.4)
+	Input.action_press("move_right")
+	await _tap("jump", 0.05, 0.05)
+	p.take_damage(5.0, null, "claw")
+	await _wait(0.3)
+	Input.action_release("move_right")
+	if p.riposte_t > 0.0:
+		seen["perfect_dodge"] = true
 	Input.action_press("move_forward")
 	await _tap("jump", 0.05, 0.6)
 	Input.action_press("crouch")
@@ -80,6 +98,10 @@ func _process(_d: float) -> void:
 			seen["dodged"] = true
 		if p.reloading:
 			seen["reloading"] = true
+		if p.sprinting:
+			seen["sprinted"] = true
+		if p.slide_t > 0.0:
+			seen["slid"] = true
 
 
 func _slot(n: int) -> void:
@@ -108,7 +130,7 @@ func _wait(t: float) -> void:
 
 func _report() -> void:
 	var want := ["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability"]
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge"]
 	var missing := want.filter(func(w): return not seen.has(w))
 	print("[input-test] reached: ", seen.keys())
 	print("[input-test] missing: ", missing)

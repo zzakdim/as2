@@ -96,6 +96,7 @@ func update(delta: float) -> void:
 	var dir := right * mv.x - fwd * mv.y
 	s.move_dir = dir.normalized() if dir.length_squared() > 0.01 else Vector3.ZERO
 	s.want_walk = playing and Input.is_action_pressed("walk")
+	s.want_sprint = playing and Input.is_action_pressed("sprint") and mv.y < -0.3
 	s.want_crouch = playing and Input.is_action_pressed("crouch")
 	if playing and Input.is_action_just_pressed("jump"):
 		# Darktide-style: jump while moving sideways/backwards is a dodge.
@@ -499,6 +500,24 @@ func on_perfect_block() -> void:
 	Game.hud.flash(Color(1, 0.9, 0.6, 0.18), 0.12)
 
 
+var _slowmo_until := 0
+var _slowmo_restore := 1.0
+
+## Perfect dodge: a short beat of slow motion and a whoosh.
+func on_perfect_dodge(_attacker) -> void:
+	Game.sfx.play2d("whoosh_heavy", -4.0)
+	Game.hud.flash(Color(0.75, 0.85, 1.0, 0.1), 0.15)
+	if Engine.time_scale > 0.9 and Engine.time_scale < 1.1:
+		_slowmo_restore = Engine.time_scale
+		Engine.time_scale = 0.45
+		get_tree().create_timer(0.16, true, false, true).timeout.connect(func():
+			Engine.time_scale = _slowmo_restore)
+
+
+func on_slide() -> void:
+	land_dip = 0.0
+
+
 func on_crit() -> void:
 	hit_shake = maxf(hit_shake, 0.45)
 	Game.hud.flash(Color(1, 0.95, 0.85, 0.07), 0.08)
@@ -542,6 +561,8 @@ func _process(delta: float) -> void:
 		eye_h = 0.3
 	elif s.incapped or s.pinned_by != null:
 		eye_h = 0.5
+	elif s.slide_t > 0.0:
+		eye_h = 0.95
 	elif s.want_crouch:
 		eye_h = 1.1
 	camera.position.y = lerp(camera.position.y, eye_h, min(1.0, delta * 10.0))
@@ -571,7 +592,8 @@ func _process(delta: float) -> void:
 		roll + dodge_roll)
 	camera.position.y += bob - land_dip * 0.3
 	flashlight.visible = s.flashlight_enabled and not s.dead
-	camera.fov = lerp(camera.fov, Game.fov + (4.0 if speed > 4.5 else 0.0), min(1.0, delta * 4.0))
+	var fov_add := 7.0 if s.slide_t > 0.0 else (5.0 if s.sprinting else (2.0 if speed > 4.5 else 0.0))
+	camera.fov = lerp(camera.fov, Game.fov + fov_add, min(1.0, delta * 6.0))
 
 	# Viewmodel
 	vm_kick = max(0.0, vm_kick - delta * 6.0)

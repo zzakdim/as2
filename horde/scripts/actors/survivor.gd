@@ -5,6 +5,7 @@ extends CharacterBody3D
 ## weapons, health, incapacitation and being pinned.
 
 const RUN_SPEED := 5.2
+const SPRINT_SPEED := 7.2
 const WALK_SPEED := 2.4
 const CROUCH_SPEED := 1.9
 const EYE := 1.6
@@ -78,6 +79,12 @@ var fire_held := false          # set every frame by the controller (melee reads
 var block_held := false
 var melee: Melee
 var want_dodge := false
+var want_sprint := false
+var sprinting := false
+var slide_t := 0.0            # sliding (crouch while sprinting)
+var slide_v := Vector3.ZERO
+var riposte_t := 0.0          # after a perfect dodge: next melee hit counters
+var dodge_dir := Vector3.ZERO
 var want_ability := false
 var ability_cd := 8.0
 var survivor_class := "zealot"
@@ -470,6 +477,20 @@ func _update_brain_burst(delta: float) -> void:
 		Game.fx.gib_burst(z.global_position + Vector3(0, z.head_y, 0), Vector3.UP, 0.25)
 
 
+## Slipped an attack mid-dodge: a beat of slow motion, stamina back, and
+## the next melee hit within the window is a counter.
+func _perfect_dodge(attacker) -> void:
+	if riposte_t > 0.5:
+		return
+	riposte_t = 1.0
+	dodges = mini(dodges + 1, 3)
+	restore_toughness(8.0)
+	if is_melee_active():
+		melee.stamina = minf(melee.ms["stamina"], melee.stamina + 0.5)
+	if controller and controller.has_method("on_perfect_dodge"):
+		controller.on_perfect_dodge(attacker)
+
+
 func restore_toughness(amount: float) -> void:
 	toughness = min(toughness_max, toughness + amount)
 
@@ -530,6 +551,32 @@ func _move(delta: float) -> void:
 			move_and_slide()
 		return
 	var speed := RUN_SPEED
+	var busy_melee: bool = is_melee_active() and melee.state not in ["idle", "recover"]
+	sprinting = want_sprint and is_on_floor() and not want_crouch and not busy_melee and stun_t <= 0.0 \
+		and not incapped and action == "" and not reloading and move_dir != Vector3.ZERO
+	riposte_t = maxf(0.0, riposte_t - delta)
+	# Slide: crouch while sprinting carries you forward low and fast.
+	if want_crouch and (sprinting or (want_sprint and slide_t <= 0.0 and Vector2(velocity.x, velocity.z).length() > 6.0)) and slide_t <= 0.0 and is_on_floor():
+		slide_t = 0.75
+		slide_v = Vector3(velocity.x, 0, velocity.z).normalized() * 9.0
+		Game.sfx.play3d("step", global_position, -2.0, 0.1)
+		if controller and controller.has_method("on_slide"):
+			controller.on_slide()
+	if slide_t > 0.0:
+		slide_t -= delta
+		if not want_crouch:
+			slide_t = minf(slide_t, 0.08)
+		var k := clampf(slide_t / 0.75, 0.0, 1.0)
+		var v := slide_v * (0.35 + 0.65 * k) + move_dir * 1.2 + melee.lunge
+		velocity.x = v.x
+		velocity.z = v.z
+		velocity.y = -0.5 if is_on_floor() else velocity.y - 14.0 * delta
+		move_and_slide()
+		if is_on_wall():
+			slide_t = 0.0
+		return
+	if sprinting:
+		speed = SPRINT_SPEED
 	if incapped or action in ["heal_self", "heal_other", "revive", "use_hold"]:
 		speed = 0.0
 	elif want_crouch:
@@ -558,16 +605,19 @@ func _move(delta: float) -> void:
 	if want_dodge and is_on_floor() and dodge_cd <= 0.0 and dodges > 0 and stun_t <= 0.0 and not incapped and move_dir != Vector3.ZERO:
 		dodges -= 1
 		dodge_regen = 0.0
-		dodge_t = 0.32
-		dodge_cd = 0.18
-		hv = move_dir * 8.0
-		velocity.y = 1.6
-		Game.sfx.play3d("swing", eye_pos(), -10.0, 0.2)
+		dodge_t = 0.34
+		dodge_cd = 0.2
+		dodge_dir = move_dir
+		hv = move_dir * 10.5
+		Game.sfx.play3d("whoosh", eye_pos(), -8.0, 0.15)
 		if controller and controller.has_method("on_dodge"):
 			controller.on_dodge(move_dir)
 	want_dodge = false
 	if dodge_t > 0.0:
-		a = 4.0
+		# A grounded dash: fast out, easing to a stop.
+		a = 0.0
+		var dk := dodge_t / 0.34
+		hv = dodge_dir * (2.5 + 8.0 * dk * dk)
 	hv = hv.move_toward(target_v, a * delta)
 	velocity.x = hv.x
 	velocity.z = hv.z
@@ -991,7 +1041,8 @@ func take_damage(amount: float, attacker = null, kind := "") -> void:
 		return
 	if Game.autotest and not is_bot and kind != "ff":
 		amount *= 0.25  # keep the soak test running longer
-	if dodge_t > 0.0 and kind == "claw":
+	if dodge_t > 0.0 and kind in ["claw", "shot"]:
+		_perfect_dodge(attacker)
 		return  # dodged
 	if is_melee_active() and not incapped:
 		amount = melee.block_hit(amount, attacker, kind)
