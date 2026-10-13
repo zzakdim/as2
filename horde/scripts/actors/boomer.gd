@@ -13,7 +13,8 @@ func _ready() -> void:
 	hp = max_hp
 	run_speed = 4.2
 	tell_sound = "boomer_gurgle"
-	rig = SkinnedRig.create("minion", {"tint": Color(1.0, 0.92, 0.55), "scale": 1.25})
+	rig = SkinnedRig.create("minion", {"tint": Color(1.0, 0.92, 0.55), "scale": 1.12, "human": "peasant_m",
+		"bone_scale": {"spine": Vector3(1.55, 1.1, 1.6), "chest": Vector3(1.0, 1.0, 0.95), "head": 0.75, "upperarm.l": 0.85, "upperarm.r": 0.85}})
 	super._ready()
 
 

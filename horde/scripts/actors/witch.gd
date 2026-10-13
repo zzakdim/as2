@@ -19,7 +19,8 @@ func _ready() -> void:
 	can_be_shoved = false
 	head_y = 0.85
 	sitting = true
-	rig = SkinnedRig.create("rogue", {"tint": Color(1.35, 1.35, 1.4), "glow_eyes": Color(1.0, 0.15, 0.1, 1.0)})
+	rig = SkinnedRig.create("rogue", {"tint": Color(1.35, 1.35, 1.4), "glow_eyes": Color(1.0, 0.15, 0.1, 1.0), "human": "peasant_f", "hood": false,
+		"bone_scale": {"spine": Vector3(0.85, 1.0, 0.85), "upperarm.l": Vector3(0.9, 1.15, 0.9), "upperarm.r": Vector3(0.9, 1.15, 0.9), "hand.l": 1.25, "hand.r": 1.25}})
 	super._ready()
 	rig.set_pose("sit")
 	cry = Game.sfx.start_loop("witch_cry", self, -2.0)

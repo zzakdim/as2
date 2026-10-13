@@ -12,7 +12,8 @@ func _ready() -> void:
 	hp = max_hp
 	run_speed = 5.4
 	tell_sound = "spitter_hiss"
-	rig = SkinnedRig.create("mage", {"tint": Color(0.6, 1.0, 0.5), "glow_eyes": Color(0.5, 1.0, 0.2, 1.0)})
+	rig = SkinnedRig.create("mage", {"tint": Color(0.6, 1.0, 0.5), "glow_eyes": Color(0.5, 1.0, 0.2, 1.0), "human": "peasant_f",
+		"bone_scale": {"head": Vector3(1.15, 1.25, 1.2), "spine": Vector3(0.85, 1.0, 0.85)}})
 	super._ready()
 
 
