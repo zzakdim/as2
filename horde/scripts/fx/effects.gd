@@ -188,6 +188,42 @@ func blood_spray(pos: Vector3, dir: Vector3, amount := 12) -> void:
 	p.emitting = true
 
 
+var _drip_pool: Array = []
+var _drip_i := 0
+
+## One drop falling from a bloody blade.
+func drip(pos: Vector3) -> void:
+	if _drip_pool.is_empty():
+		for i in 8:
+			var p := CPUParticles3D.new()
+			p.one_shot = true
+			p.emitting = false
+			p.amount = 2
+			p.lifetime = 0.7
+			p.explosiveness = 0.6
+			p.local_coords = false
+			p.direction = Vector3.DOWN
+			p.spread = 8.0
+			p.initial_velocity_min = 0.1
+			p.initial_velocity_max = 0.4
+			p.gravity = Vector3(0, -9.8, 0)
+			var m := SphereMesh.new()
+			m.radius = 0.005
+			m.height = 0.022
+			m.radial_segments = 4
+			m.rings = 2
+			m.material = blood_mat()
+			p.mesh = m
+			p.particle_flag_align_y = true
+			add_child(p)
+			_drip_pool.append(p)
+	var d: CPUParticles3D = _drip_pool[_drip_i]
+	_drip_i = (_drip_i + 1) % _drip_pool.size()
+	d.global_position = pos
+	d.restart()
+	d.emitting = true
+
+
 static var _slash_mat: StandardMaterial3D
 
 ## A thin bright streak at the point of contact, along the blade's travel,

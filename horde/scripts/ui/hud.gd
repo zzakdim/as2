@@ -407,6 +407,25 @@ func _update_splats(delta: float) -> void:
 			screen_splats.erase(sp)
 
 
+## "x4" tally under the crosshair when one swing kills several.
+func multi_kill(n: int) -> void:
+	var l := Label.new()
+	l.text = "x%d" % n
+	l.add_theme_font_size_override("font_size", 22 + 3 * mini(n, 8))
+	l.add_theme_color_override("font_color", Color(1.0, 0.85 - 0.05 * mini(n, 8), 0.6 - 0.06 * mini(n, 8)))
+	l.add_theme_constant_override("outline_size", 6)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	l.set_anchors_preset(Control.PRESET_CENTER)
+	l.position = Vector2(26, 8)
+	root.add_child(l)
+	l.scale = Vector2(1.6, 1.6)
+	var tw := l.create_tween()
+	tw.tween_property(l, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.5)
+	tw.tween_property(l, "modulate:a", 0.0, 0.35)
+	tw.tween_callback(l.queue_free)
+
+
 func big_message(t: String, col := Color.WHITE, dur := 3.0) -> void:
 	big_label.text = t
 	big_label.add_theme_color_override("font_color", col)

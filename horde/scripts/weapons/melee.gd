@@ -170,6 +170,7 @@ const HIT_MASS := {"shieldbearer": 6.0, "rager": 2.0, "common": 1.0, "boomer": 1
 var s                       # Survivor
 var momentum := 0           # consecutive-hit stacks (momentum weapons)
 var cam_roll := 0.0         # kill roll kick, decays
+var _drip_t := 0.0
 var corpses: Array = []     # ragdolls near this swing
 var corpse_hit := {}
 var swing_hits := 0
@@ -276,6 +277,14 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 	_fire_prev = fire_held
 	cam_punch = cam_punch.lerp(Vector2.ZERO, min(1.0, delta * 14.0))
 	cam_roll = lerpf(cam_roll, 0.0, minf(1.0, delta * 10.0))
+	# A bloody blade drips; it slowly runs clean between fights.
+	if blood > 0.12 and state in ["idle", "block", "recover"]:
+		_drip_t -= delta
+		if _drip_t <= 0.0:
+			_drip_t = randf_range(0.25, 0.7) / blood
+			var tip: Vector3 = camera_xform() * pose * Vector3(0, 0, -ms.get("grip", 0.3) - ms.get("length", 1.0) * randf_range(0.3, 0.95))
+			Game.fx.drip(tip)
+	blood = maxf(0.0, blood - delta * 0.004)
 	# Stamina
 	if stamina_delay > 0.0:
 		stamina_delay -= delta
@@ -438,6 +447,10 @@ func parry_pose() -> Transform3D:
 
 
 func _enter(st: String) -> void:
+	if state == "strike" and st != "strike" and kills_this_swing >= 3:
+		# One swing through a crowd.
+		if s.controller and s.controller.has_method("on_multi_kill"):
+			s.controller.on_multi_kill(kills_this_swing)
 	state = st
 	t = 0.0
 	_pose_from = pose

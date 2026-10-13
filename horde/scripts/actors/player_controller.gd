@@ -555,6 +555,12 @@ func on_slide() -> void:
 	land_dip = 0.0
 
 
+func on_multi_kill(n: int) -> void:
+	Game.hud.multi_kill(n)
+	Game.sfx.play2d("blade_ring", -8.0)
+	hit_shake = maxf(hit_shake, 0.3 + 0.05 * n)
+
+
 func on_crit() -> void:
 	hit_shake = maxf(hit_shake, 0.45)
 	Game.hud.flash(Color(1, 0.95, 0.85, 0.07), 0.08)
