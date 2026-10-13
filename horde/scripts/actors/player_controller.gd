@@ -81,7 +81,7 @@ func update(delta: float) -> void:
 	s.pitch = clamp(s.pitch - _mouse_delta.y * sens, -1.45, 1.45)
 	_mouse_delta = Vector2.ZERO
 
-	var playing: bool = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	var playing: bool = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or Game.force_input
 	# Move
 	var mv := Vector2.ZERO
 	if playing:

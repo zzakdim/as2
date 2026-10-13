@@ -54,8 +54,15 @@ Don't startle the Witch. Shove Boomers before you shoot them."""
 	buttons.append(["Melee Sandbox (greatsword, endless horde)", func():
 		Game.mode = "sandbox"
 		start_campaign(Game.Diff.NORMAL)])
-	buttons.append(["Characters: %s" % ("Placeholder boxes (fast)" if Infected.use_box_rigs else "Animated (KayKit)"), func():
-		Infected.use_box_rigs = not Infected.use_box_rigs
+	var style_name := "Placeholder boxes (fast)" if Infected.use_box_rigs else ("Realistic (Quaternius)" if SkinnedRig.style == "human" else "Stylized (KayKit)")
+	buttons.append(["Characters: %s" % style_name, func():
+		if Infected.use_box_rigs:
+			Infected.use_box_rigs = false
+			SkinnedRig.style = "human"
+		elif SkinnedRig.style == "human":
+			SkinnedRig.style = "kaykit"
+		else:
+			Infected.use_box_rigs = true
 		show_title()])
 	buttons.append(["Bot teammates: %s" % ("ON" if Game.bots_enabled else "OFF"), func():
 		Game.bots_enabled = not Game.bots_enabled
@@ -145,6 +152,10 @@ func load_map(idx: int) -> void:
 			run_pose_sheet(a.substr(14))
 		if a.begins_with("--lineup="):
 			run_lineup(a.substr(9))
+		if a == "--input-test":
+			var it = load("res://scripts/input_test.gd").new()
+			add_child(it)
+			it.run()
 
 
 func _build_environment() -> void:

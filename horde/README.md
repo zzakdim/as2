@@ -5,9 +5,11 @@ You and three AI teammates fight from saferoom to saferoom through a city
 that's procedurally generated every run, while an AI Director decides when
 and where the infected come at you.
 
-Art is placeholder-grade but animated: the horde, specials and bot teammates
-use CC0 KayKit characters (see `assets/README.md`), the city is procedural
-geometry, and every sound is synthesized at startup.
+Characters are realistic-proportioned CC0 Quaternius bodies driven by the
+Universal Animation Library (including its zombie walk/idle/scratch set),
+with procedural clothing and zombie skin grading. Stylized KayKit models and
+fast placeholder boxes are one toggle away. The city is procedural geometry;
+impacts are recorded CC0 sounds and everything else is synthesized.
 
 ## Running it
 
@@ -48,8 +50,9 @@ The **Melee Sandbox** on the title screen drops you in an arena with the
 greatsword and an endless horde, with every weapon laid out around you.
 F5 spawns a horde, F6 a special, F9 elites, F8 a Tank, F7 toggles god mode.
 
-**Options:** the title screen toggles *Characters* between the animated
-KayKit models and fast placeholder boxes (`--box-rigs` on the command line),
+**Options:** the title screen cycles *Characters* between Realistic
+(Quaternius), Stylized (KayKit, `--kaykit`) and placeholder boxes
+(`--box-rigs`),
 and the pause menu has FOV and mouse sensitivity.
 
 **Solo testing:** toggle *Bot teammates* on the title screen or pause menu
@@ -123,6 +126,9 @@ is exactly what you hit. Feel comes from:
 - blood that follows the edge, stains the blade, and splashes the screen
   on close kills
 
+`--input-test` drives the real first-person controls through every melee
+state, the medkit, pills and throwables, and fails if any are unreachable.
+
 To check swing arcs without playing, render a pose contact sheet:
 `xvfb-run godot --path horde --rendering-driver opengl3 -- --autotest --sandbox --no-bots --seconds=200 --melee-poses=/tmp/poses`
 
@@ -173,10 +179,10 @@ To grab screenshots (software rendering works):
 
 Next up, roughly in order of impact:
 
-- **Grimmer art.** The KayKit characters are stylized; a zombie set with the
-  same humanoid rig (e.g. Quaternius' Zombie Apocalypse Kit, which needs a
-  browser download) can drop into `SkinnedRig.MODELS`. Recorded sound and
-  survivor voice lines.
+- **Real clothing and zombie variety.** The free base bodies get procedural
+  outfits; proper clothed/rotting meshes on the same UE-style rig drop
+  straight into `SkinnedRig.HUMAN_MODELS` (run them through
+  `tools/split_gltf_parts.py` for dismemberment). Survivor voice lines.
 - **Hand-authored set pieces** mixed into the procedural layout, plus
   interiors with stairs and multiple floors.
 - **Darktide layer**

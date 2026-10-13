@@ -111,7 +111,8 @@ func _ready() -> void:
 	cs.position.y = 0.9
 	add_child(cs)
 	var models := {"Reyes": "knight", "Okafor": "barbarian", "Mags": "rogue_hooded", "Dutch": "adv_mage"}
-	rig = SkinnedRig.create(models.get(survivor_name, "knight"), {"role": "survivor"})
+	rig = SkinnedRig.create(models.get(survivor_name, "knight"), {"role": "survivor",
+		"top": color.darkened(0.35), "bottom": Color(0.17, 0.18, 0.2)})
 	add_child(rig)
 	rig.set_pose("aim")
 	if is_bot:
@@ -241,7 +242,7 @@ func _refresh_held_model() -> void:
 		held_model.queue_free()
 		held_model = null
 	var id := current_item_id()
-	if id == "" or rig == null:
+	if id == "" or rig == null or not is_instance_valid(rig):
 		return
 	if rig is SkinnedRig:
 		rig.melee_held = WeaponData.DEFS.has(id) and WeaponData.get_def(id).get("melee", false)
@@ -253,7 +254,8 @@ func _refresh_held_model() -> void:
 
 func _physics_process(delta: float) -> void:
 	if dead:
-		rig.animate(delta, 0.0)
+		if is_instance_valid(rig):   # a ragdolled corpse is freed after a while
+			rig.animate(delta, 0.0)
 		return
 	if controller:
 		controller.update(delta)

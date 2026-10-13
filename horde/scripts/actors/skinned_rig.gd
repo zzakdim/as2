@@ -1,6 +1,9 @@
 class_name SkinnedRig
 extends Rig
-## Animated KayKit character (CC0) behind the Rig interface.
+## Animated character behind the Rig interface. Two art families:
+##   human  - Quaternius Universal Base Characters (realistic proportions)
+##            driven by the Universal Animation Library 1+2 (incl. zombie set)
+##   kaykit - stylized KayKit skeletons/adventurers
 ##
 ## Locomotion/idle animations are picked from the pose + speed; attacks and
 ## hit reactions play as one-shots on top. On death the skeleton is handed to
@@ -18,6 +21,38 @@ const MODELS := {
 	"rogue_hooded": "res://assets/kaykit/adventurers/Rogue_Hooded.glb",
 	"adv_mage": "res://assets/kaykit/adventurers/Mage.glb",
 }
+const HUMAN_MODELS := {
+	"human_m": "res://assets/quaternius/humans/Superhero_Male_FullBody.gltf",
+	"human_f": "res://assets/quaternius/humans/Superhero_Female_FullBody.gltf",
+}
+const HUMAN_LIBS := ["res://assets/quaternius/anims/UAL1_Standard.glb", "res://assets/quaternius/anims/UAL2_Standard.glb"]
+# KayKit animation name -> Universal Animation Library name ("@end" = hold last frame)
+const HUMAN_ANIM := {
+	"Skeletons_Inactive_Floor_Pose": "Crouch_Idle", "Sit_Floor_Idle": "Crouch_Idle", "Sit_Floor_Pose": "Crouch_Idle",
+	"Lie_Idle": "Death01@end", "Lie_Pose": "Death01@end", "Death_A_Pose": "Death01@end",
+	"Walking_D_Skeletons": "Zombie_Walk_Fwd", "Walking_B": "Zombie_Walk_Fwd", "Walking_C": "Crouch_Fwd", "Walking_A": "Walk",
+	"Running_C": "Sprint", "Running_B": "Sprint", "Running_A": "Jog_Fwd",
+	"Idle_Combat": "Zombie_Idle", "Skeleton_Inactive_Standing_Pose": "Zombie_Idle", "Idle": "Idle",
+	"2H_Melee_Idle": "Sword_Idle", "2H_Ranged_Aiming": "Pistol_Idle",
+	"1H_Melee_Attack_Chop": "Zombie_Scratch", "1H_Melee_Attack_Slice_Diagonal": "Zombie_Scratch",
+	"Unarmed_Melee_Attack_Punch_A": "Punch_Jab", "Unarmed_Melee_Attack_Punch_B": "Melee_Hook",
+	"2H_Melee_Attack_Chop": "Punch_Cross", "2H_Melee_Attack_Slice": "Sword_Regular_A",
+	"Hit_A": "Hit_Chest", "Hit_B": "Hit_Head", "Death_A": "Death01", "Death_B": "Death01",
+}
+const HUMAN_RAG_BONES := {
+	"pelvis": [0.14, 0.12], "spine_01": [0.14, 0.22], "spine_03": [0.16, 0.24], "Head": [0.11, 0.22],
+	"upperarm_l": [0.055, 0.25], "lowerarm_l": [0.045, 0.24], "upperarm_r": [0.055, 0.25], "lowerarm_r": [0.045, 0.24],
+	"thigh_l": [0.075, 0.4], "calf_l": [0.06, 0.42], "thigh_r": [0.075, 0.4], "calf_r": [0.06, 0.42],
+}
+# Generic bone role -> per-family bone name
+const HUMAN_BONES := {"head": "Head", "chest": "spine_03", "hips": "pelvis", "spine": "spine_01",
+	"upperarm.l": "upperarm_l", "upperarm.r": "upperarm_r", "upperleg.l": "thigh_l", "upperleg.r": "thigh_r",
+	"handslot.r": "hand_r", "handslot.l": "hand_l"}
+const KAYKIT_ZOMBIES := ["minion", "warrior", "rogue", "mage"]
+
+static var style := "human"        # "human" (realistic) or "kaykit" (stylized)
+static var _human_lib: AnimationLibrary
+
 const LOOPS := ["Idle", "Idle_B", "Idle_Combat", "Unarmed_Idle", "2H_Melee_Idle", "Walking_A", "Walking_B", "Walking_C",
 	"Walking_D_Skeletons", "Walking_Backwards", "Running_A", "Running_B", "Running_C", "Running_Strafe_Left",
 	"Running_Strafe_Right", "2H_Ranged_Aiming", "Blocking", "Lie_Idle", "Sit_Floor_Idle", "Sit_Chair_Idle",
@@ -52,6 +87,7 @@ var _prev_pose := ""
 var model_scale := 0.9
 var head_scale := 0.62
 var melee_held := false
+var family := "kaykit"
 
 
 static func create(model_kind: String, opts := {}) -> Rig:
@@ -63,24 +99,66 @@ static func create(model_kind: String, opts := {}) -> Rig:
 			"pants": Color(0.25, 0.25, 0.28), "scale": sc, "hunch": 0.15 if opts.get("role", "zombie") == "zombie" else 0.0,
 			"bare_arms": opts.get("role", "zombie") != "survivor"})
 	var r := SkinnedRig.new()
-	r.kind = model_kind
 	r.role = opts.get("role", "zombie")
-	r.model_scale = opts.get("scale", 1.0) * 0.9
-	r.head_scale = opts.get("head_scale", 0.55 if model_kind in ["minion", "warrior", "rogue", "mage"] else 0.68)
+	if style == "human":
+		r.family = "human"
+		r.kind = _human_kind(model_kind, opts)
+		r.model_scale = opts.get("scale", 1.0) * randf_range(0.95, 1.04) if r.role == "zombie" else opts.get("scale", 1.0)
+		r.head_scale = 1.0
+	else:
+		r.kind = model_kind
+		r.model_scale = opts.get("scale", 1.0) * 0.9
+		r.head_scale = opts.get("head_scale", 0.55 if model_kind in KAYKIT_ZOMBIES else 0.68)
 	r._build(opts)
 	return r
 
 
+static func _human_kind(k: String, opts: Dictionary) -> String:
+	if opts.has("human"):
+		return opts["human"]
+	match k:
+		"rogue_hooded", "rogue":
+			return "human_f"
+		"knight", "barbarian", "adv_mage", "warrior":
+			return "human_m"
+	return "human_m" if randf() < 0.6 else "human_f"
+
+
+## One shared AnimationLibrary built from the Universal Animation Library glbs.
+static func human_library() -> AnimationLibrary:
+	if _human_lib:
+		return _human_lib
+	_human_lib = AnimationLibrary.new()
+	for path in HUMAN_LIBS:
+		var sc: Node = load(path).instantiate()
+		var ap: AnimationPlayer = sc.find_child("AnimationPlayer", true, false)
+		for n in ap.get_animation_list():
+			if not _human_lib.has_animation(n):
+				_human_lib.add_animation(n, ap.get_animation(n))
+		sc.free()
+	return _human_lib
+
+
+## Bone name for a generic role in this rig's family.
+func b(role_name: String) -> String:
+	return HUMAN_BONES.get(role_name, role_name) if family == "human" else role_name
+
+
 func _build(opts: Dictionary) -> void:
-	var path: String = MODELS[kind]
+	var path: String = HUMAN_MODELS[kind] if family == "human" else MODELS[kind]
 	if not _scenes.has(path):
 		_scenes[path] = load(path)
 	model = _scenes[path].instantiate()
 	add_child(model)
-	model.rotation.y = PI          # KayKit faces +Z, our actors face -Z
+	model.rotation.y = PI          # models face +Z, our actors face -Z
 	model.scale = Vector3.ONE * model_scale
 	skel = model.find_child("Skeleton3D", true, false)
-	anim = model.find_child("AnimationPlayer", true, false)
+	if family == "human":
+		anim = AnimationPlayer.new()
+		model.add_child(anim)
+		anim.add_animation_library("", human_library())
+	else:
+		anim = model.find_child("AnimationPlayer", true, false)
 	anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	if not _loops_done.has(path):
 		_loops_done[path] = true
@@ -88,11 +166,14 @@ func _build(opts: Dictionary) -> void:
 			if anim.has_animation(n):
 				anim.get_animation(n).loop_mode = Animation.LOOP_LINEAR
 	var tint: Color = opts.get("tint", Color(1, 1, 1))
+	var outfit := _outfit(opts, tint) if family == "human" else {}
 	for c in skel.get_children():
 		if c is MeshInstance3D:
 			var key := _part_key(c.name)
 			parts[key] = c
-			if tint != Color(1, 1, 1):
+			if outfit.has(key):
+				c.material_override = outfit[key]
+			elif tint != Color(1, 1, 1):
 				c.material_override = _tinted(c, tint)
 		elif c is BoneAttachment3D:
 			# Hide the pack's own swords/shields; keep helmets, capes, hats.
@@ -112,13 +193,14 @@ func _build(opts: Dictionary) -> void:
 								m.material_override = _tinted(m, tint)
 	# KayKit is chibi-proportioned; shrink the head toward adult proportions.
 	# A skeleton modifier runs after both animation and ragdoll physics.
-	var hs := HeadScaler.new()
-	hs.bone = skel.find_bone("head")
-	hs.amount = head_scale
-	skel.add_child(hs)
+	if head_scale < 0.99:
+		var hs := HeadScaler.new()
+		hs.bone = skel.find_bone("head")
+		hs.amount = head_scale
+		skel.add_child(hs)
 	# Weapon attach point in the right hand (barrel along -Z like our models).
 	var slot := BoneAttachment3D.new()
-	slot.bone_name = "handslot.r"
+	slot.bone_name = b("handslot.r")
 	skel.add_child(slot)
 	held = Node3D.new()
 	held.rotation = Vector3(PI / 2, 0, 0)
@@ -134,11 +216,65 @@ func attach_prop(path: String, bone: String) -> void:
 	if not _scenes.has(path):
 		_scenes[path] = load(path)
 	var att := BoneAttachment3D.new()
-	att.bone_name = bone
+	att.bone_name = b(bone)
 	skel.add_child(att)
 	var prop: Node3D = _scenes[path].instantiate()
 	att.add_child(prop)
+	if family == "human":
+		prop.scale = Vector3.ONE * 0.62   # KayKit props are sized for chibi hands
 	prop.rotation.y = PI if bone.ends_with(".r") else 0.0
+
+
+## Clothing for the realistic bodies: the free base meshes are bare, so the
+## split parts get fabric materials (shirt on torso+arms, so hands read as
+## gloves; trousers on legs, so feet read as boots). The head keeps its
+## textured skin, tinted for the infected.
+const CLOTH_TOPS := [Color(0.22, 0.24, 0.2), Color(0.3, 0.22, 0.16), Color(0.18, 0.2, 0.26), Color(0.35, 0.33, 0.3),
+	Color(0.4, 0.12, 0.1), Color(0.14, 0.14, 0.15), Color(0.42, 0.4, 0.34)]
+const CLOTH_BOTTOMS := [Color(0.16, 0.18, 0.24), Color(0.22, 0.2, 0.16), Color(0.12, 0.12, 0.12), Color(0.28, 0.26, 0.22)]
+
+func _outfit(opts: Dictionary, tint: Color) -> Dictionary:
+	var top: Color = opts.get("top", CLOTH_TOPS.pick_random() * (0.8 if role == "zombie" else 1.0))
+	var bottom: Color = opts.get("bottom", CLOTH_BOTTOMS.pick_random())
+	if role != "survivor" and tint != Color(1, 1, 1):
+		top = top * tint
+		bottom = bottom * tint
+	var normal_tex: Texture2D = null
+	var body: MeshInstance3D = skel.find_child("Human_Body", false, false)
+	if body:
+		var base := body.get_active_material(0)
+		if base is BaseMaterial3D:
+			normal_tex = base.normal_texture
+	var out := {}
+	var top_m := _cloth(top, normal_tex)
+	var bottom_m := _cloth(bottom, normal_tex)
+	out["body"] = top_m
+	out["arm_l"] = top_m
+	out["arm_r"] = top_m
+	out["leg_l"] = bottom_m
+	out["leg_r"] = bottom_m
+	var head: MeshInstance3D = skel.find_child("Human_Head", false, false)
+	if head:
+		var skin: Color = opts.get("skin", Color(0.62, 0.7, 0.55) if role != "survivor" else Color(1, 1, 1))
+		if role != "survivor":
+			skin = skin * tint
+		if skin != Color(1, 1, 1):
+			out["head"] = _tinted(head, skin)
+	return out
+
+
+func _cloth(c: Color, normal_tex: Texture2D) -> StandardMaterial3D:
+	var key := "cloth|%s|%s" % [c.to_html(), normal_tex != null]
+	if not _tints.has(key):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = c
+		m.roughness = 0.92
+		if normal_tex:
+			m.normal_enabled = true
+			m.normal_texture = normal_tex
+			m.normal_scale = 0.6
+		_tints[key] = m
+	return _tints[key]
 
 
 static func _part_key(n: String) -> String:
@@ -162,10 +298,25 @@ func _tinted(mi: MeshInstance3D, tint: Color) -> Material:
 
 # ================================================================ animation
 
+## Translate a (KayKit-named) animation for this rig's family.
+func _an(n: String) -> String:
+	if family != "human":
+		return n
+	return HUMAN_ANIM.get(n, n)
+
+
+var _hold := false
+
 func _play(n: String, blend: float, spd: float) -> void:
+	n = _an(n)
+	_hold = n.ends_with("@end")
+	if _hold:
+		n = n.trim_suffix("@end")
 	if not anim.has_animation(n):
 		return
 	anim.play(n, blend, spd)
+	if _hold:
+		anim.seek(anim.get_animation(n).length - 0.02, true)
 
 
 func _pick_base(speed: float) -> String:
@@ -223,7 +374,7 @@ func animate(delta: float, speed: float) -> void:
 		if want != base_anim:
 			base_anim = want
 			_play(want, 0.2, 1.0)
-		anim.speed_scale = spd
+		anim.speed_scale = 0.0 if _hold else spd
 	# Animation LOD: far-away characters update less often.
 	_acc += delta
 	_frame += 1
@@ -241,7 +392,9 @@ func animate(delta: float, speed: float) -> void:
 
 
 func _oneshot(n: String, spd: float) -> void:
-	if not anim.has_animation(n):
+	n = _an(n)
+	_hold = false
+	if n.ends_with("@end") or not anim.has_animation(n):
 		return
 	anim.speed_scale = 1.0
 	anim.play(n, 0.08, spd)
@@ -258,9 +411,9 @@ func swing(dur := 0.4) -> void:
 			n = ["2H_Melee_Attack_Chop", "2H_Melee_Attack_Slice"].pick_random()
 		"survivor":
 			n = "2H_Melee_Attack_Slice" if melee_held else "Unarmed_Melee_Attack_Punch_B"
-	if not anim.has_animation(n):
+	if not anim.has_animation(_an(n)):
 		return
-	var length := anim.get_animation(n).length
+	var length := anim.get_animation(_an(n)).length
 	_oneshot(n, clamp(length / max(dur * 2.0, 0.1), 1.0, 2.6))
 
 
@@ -277,7 +430,7 @@ func die(_from_dir: Vector3) -> void:
 
 
 func gib_head() -> void:
-	for k in ["head", "jaw", "eyes", "helmet"]:
+	for k in ["head", "jaw", "eyes", "eyebrows", "helmet"]:
 		if parts.has(k):
 			parts[k].visible = false
 
@@ -316,21 +469,22 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 	skel.add_child(sim)
 	skel.move_child(sim, 0)   # physics first, then the head scaler
 	var bodies := {}
-	for bone in RAG_BONES:
+	var rag: Dictionary = HUMAN_RAG_BONES if family == "human" else RAG_BONES
+	for bone in rag:
 		var bi := skel.find_bone(bone)
 		if bi < 0:
 			continue
-		var spec: Array = RAG_BONES[bone]
+		var spec: Array = rag[bone]
 		var pb := PhysicalBone3D.new()
 		pb.name = "PB_" + bone.replace(".", "_")
 		pb.bone_name = bone
 		pb.collision_layer = Ragdoll.LAYER_DEBRIS
 		pb.collision_mask = Game.LAYER_WORLD
-		pb.mass = 3.0 if bone in ["hips", "spine", "chest"] else 1.0
+		pb.mass = 3.0 if bone in ["hips", "spine", "chest", "pelvis", "spine_01", "spine_03"] else 1.0
 		pb.linear_damp = 0.2
 		pb.angular_damp = 2.0
 		pb.friction = 0.9
-		if bone == "hips":
+		if bone == b("hips"):
 			pb.joint_type = PhysicalBone3D.JOINT_TYPE_NONE
 		else:
 			pb.joint_type = PhysicalBone3D.JOINT_TYPE_CONE
@@ -345,15 +499,15 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 		pb.add_child(cs)
 		sim.add_child(pb)
 		bodies[bone] = pb
-	if cut == "bisect" and bodies.has("spine"):
-		bodies["spine"].joint_type = PhysicalBone3D.JOINT_TYPE_NONE
-	if cut == "decap" and bodies.has("head"):
-		bodies["head"].joint_type = PhysicalBone3D.JOINT_TYPE_NONE
+	if cut == "bisect" and bodies.has(b("spine")):
+		bodies[b("spine")].joint_type = PhysicalBone3D.JOINT_TYPE_NONE
+	if cut == "decap" and bodies.has(b("head")):
+		bodies[b("head")].joint_type = PhysicalBone3D.JOINT_TYPE_NONE
 	sim.physical_bones_start_simulation()
 	var nearest = null
 	var nd := INF
-	for b in bodies:
-		var pb: PhysicalBone3D = bodies[b]
+	for bn in bodies:
+		var pb: PhysicalBone3D = bodies[bn]
 		pb.linear_velocity = velocity
 		var d := pb.global_position.distance_to(point)
 		if d < nd:
@@ -361,9 +515,9 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 			nearest = pb
 	if nearest:
 		nearest.apply_central_impulse(impulse * 0.45)
-	for b in ["chest", "hips"]:
-		if bodies.has(b):
-			bodies[b].apply_central_impulse(impulse * 0.35)
+	for bn in [b("chest"), b("hips")]:
+		if bodies.has(bn):
+			bodies[bn].apply_central_impulse(impulse * 0.35)
 	_apply_cut(cut, impulse)
 	return true
 
@@ -372,13 +526,13 @@ func _apply_cut(cut: String, impulse: Vector3) -> void:
 	match cut:
 		"decap":
 			_gib_part("head", "head", impulse + Vector3(0, 3, 0))
-			for k in ["jaw", "eyes", "helmet"]:
+			for k in ["jaw", "eyes", "eyebrows", "helmet"]:
 				if parts.has(k):
 					parts[k].visible = false
 			_spurt_at("chest", Vector3(0, 0.26, 0))
 		"split":
 			var hp := _bone_pos("head")
-			for k in ["head", "jaw", "eyes", "helmet"]:
+			for k in ["head", "jaw", "eyes", "eyebrows", "helmet"]:
 				if parts.has(k):
 					parts[k].visible = false
 			Game.fx.gib_burst(hp + Vector3(0, 0.15, 0), impulse.normalized(), 0.3)
@@ -399,7 +553,7 @@ func _apply_cut(cut: String, impulse: Vector3) -> void:
 
 
 func _bone_pos(bone: String) -> Vector3:
-	var bi := skel.find_bone(bone)
+	var bi := skel.find_bone(b(bone))
 	return (skel.global_transform * skel.get_bone_global_pose(bi)).origin
 
 
@@ -409,7 +563,7 @@ func _gib_part(part: String, bone: String, impulse: Vector3) -> void:
 		return
 	var mi: MeshInstance3D = parts[part]
 	mi.visible = false
-	var bi := skel.find_bone(bone)
+	var bi := skel.find_bone(b(bone))
 	if bi < 0:
 		return
 	var bone_xf := skel.global_transform * skel.get_bone_global_pose(bi)
@@ -441,11 +595,11 @@ func _gib_part(part: String, bone: String, impulse: Vector3) -> void:
 
 
 func _spurt_at(bone: String, offset: Vector3) -> void:
-	var bi := skel.find_bone(bone)
+	var bi := skel.find_bone(b(bone))
 	if bi < 0:
 		return
 	var att := BoneAttachment3D.new()
-	att.bone_name = bone
+	att.bone_name = b(bone)
 	skel.add_child(att)
 	var p: CPUParticles3D = Game.fx.make_spurt()
 	att.add_child(p)

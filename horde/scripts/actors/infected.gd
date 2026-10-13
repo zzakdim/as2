@@ -70,6 +70,9 @@ func _ready() -> void:
 	floor_snap_length = 0.3
 	if rig == null:
 		setup_common()
+	if rig is SkinnedRig and rig.family == "human" and head_y < 1.55:
+		head_y = 1.62 * rig.model_scale   # realistic adult proportions
+		leg_y = 0.85 * rig.model_scale
 	add_child(rig)
 	shape = CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()
