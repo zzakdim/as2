@@ -1,7 +1,7 @@
 class_name Sfx
 extends Node
-## All sound is synthesized at startup (no audio files needed yet).
-## Placeholder until real recordings are dropped in: play3d()/play2d() take a
+## Melee uses recorded CC0 sounds (assets/oga, assets/kenney); the rest is
+## synthesized at startup. play3d()/play2d() take a
 ## name, so swapping in .ogg files later only touches _build().
 
 const RATE := 22050
@@ -34,8 +34,10 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
 	_load_samples()
+	_setup_buses()
 	for i in 40:
 		var p := AudioStreamPlayer3D.new()
+		p.bus = "World"
 		p.unit_size = 6.0
 		p.max_distance = 70.0
 		p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
@@ -49,6 +51,33 @@ func _ready() -> void:
 	music_ambient = _music_player("music_ambient", -14.0)
 	music_tank = _music_player("music_tank", -80.0)
 	music_crescendo = _music_player("alarm", -80.0)
+
+
+## World sounds get a short room reverb; everything is glued by a gentle
+## compressor and a limiter on the master so stacked hits don't clip.
+func _setup_buses() -> void:
+	if AudioServer.get_bus_index("World") >= 0:
+		return
+	AudioServer.add_bus()
+	var wi := AudioServer.bus_count - 1
+	AudioServer.set_bus_name(wi, "World")
+	AudioServer.set_bus_send(wi, "Master")
+	var rev := AudioEffectReverb.new()
+	rev.room_size = 0.32
+	rev.damping = 0.6
+	rev.wet = 0.1
+	rev.dry = 1.0
+	rev.spread = 0.8
+	AudioServer.add_bus_effect(wi, rev)
+	var comp := AudioEffectCompressor.new()
+	comp.threshold = -14.0
+	comp.ratio = 3.0
+	comp.attack_us = 4000.0
+	comp.release_ms = 140.0
+	AudioServer.add_bus_effect(0, comp)
+	var lim := AudioEffectHardLimiter.new()
+	lim.ceiling_db = -0.5
+	AudioServer.add_bus_effect(0, lim)
 
 
 func _music_player(n: String, db: float) -> AudioStreamPlayer:
@@ -92,11 +121,33 @@ func set_music(state: String) -> void:
 	_music_state = state
 
 
+# CC0/MIT OpenGameArt recordings (assets/oga/audio, see assets/README.md):
+# name -> [file prefix, count]. These replace the synthesized whooshes and
+# the generic impacts for melee.
+const OGA_SETS := {
+	"whoosh": ["swish_", 13], "whoosh_heavy": ["swish_heavy_", 13],
+	"flesh_hit": ["flesh_", 22], "thump": ["thump_", 8], "gore": ["gore_", 5],
+	"splat": ["splat_", 14], "clank": ["clash_", 10], "block": ["block_", 10],
+	"blade_ring": ["blade_ring_", 10],
+	# Older names other systems use.
+	"chop": ["flesh_", 22], "slash": ["gore_", 5], "flesh": ["splat_", 14], "bone": ["thump_", 8],
+	"melee_hit": ["thump_", 8], "claw": ["flesh_", 22],
+}
+
+
 func _load_samples() -> void:
 	for n in SAMPLE_SETS:
 		var arr: Array = []
 		for f in SAMPLE_SETS[n]:
 			var path := "res://assets/kenney/audio/%s.ogg" % f
+			if ResourceLoader.exists(path):
+				arr.append(load(path))
+		if not arr.is_empty():
+			sounds[n] = arr
+	for n in OGA_SETS:
+		var arr: Array = []
+		for i in OGA_SETS[n][1]:
+			var path := "res://assets/oga/audio/%s%02d.ogg" % [OGA_SETS[n][0], i]
 			if ResourceLoader.exists(path):
 				arr.append(load(path))
 		if not arr.is_empty():

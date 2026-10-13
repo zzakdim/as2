@@ -369,7 +369,9 @@ func _begin_strike() -> void:
 	theta = _strike_theta(0.0)
 	theta_prev = theta
 	_enter("strike")
-	Game.sfx.play3d("whoosh_heavy" if is_heavy else "whoosh", s.eye_pos(), -2.0 if is_heavy else -5.0, 0.12)
+	Game.sfx.play3d("whoosh_heavy" if is_heavy else "whoosh", s.eye_pos(), -1.0 if is_heavy else -4.0, 0.12)
+	if is_heavy and ms.get("length", 0.0) > 0.9:
+		Game.sfx.play3d("blade_ring", s.eye_pos(), -12.0, 0.08)
 	# After the strike decides the chain, advance it.
 	light_i = atk.get("next_light", 0)
 	heavy_i = atk.get("next_heavy", 0)
@@ -566,11 +568,16 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 		Game.fx.blood_decal(z.global_position + z.impact_dir * randf_range(0.5, 1.5))
 	if killed or randf() < 0.3:
 		Game.fx.wall_blood(p, z.impact_dir)
-	Game.sfx.play3d("slash" if killed else "chop", p, 0.0 if is_heavy else -2.0, 0.12)
+	# Layered hit: a wet flesh impact on everything struck (quieter as the
+	# blade cleaves on), body weight under the first, gore on kills.
+	var first: bool = hit_set.size() <= 1
+	Game.sfx.play3d("flesh_hit", p, (0.0 if is_heavy else -2.0) - (0.0 if first else 4.0), 0.1)
+	if first:
+		Game.sfx.play3d("thump", p, -3.0 if is_heavy else -8.0, 0.1)
 	if killed:
-		Game.sfx.play3d("flesh", p, -4.0, 0.15)
-	if killed and (z.cut != "" or is_heavy):
-		Game.sfx.play3d("bone", p, -6.0, 0.2)
+		Game.sfx.play3d("gore", p, -3.0 if z.cut != "" else -8.0, 0.15)
+		if z.cut != "" or is_heavy:
+			Game.sfx.play3d("splat", p, -2.0 if z.cut != "" else -6.0, 0.1)
 	blood = min(1.0, blood + 0.06)
 	if s.controller and s.controller.has_method("hit_marker"):
 		s.controller.hit_marker(killed, part == "head")
