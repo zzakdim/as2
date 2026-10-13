@@ -557,6 +557,12 @@ func on_slide() -> void:
 
 func on_multi_kill(n: int) -> void:
 	Game.hud.multi_kill(n)
+	if n >= 5 and Engine.time_scale > 0.9 and Engine.time_scale < 1.1:
+		# A whole rank cut down: the world catches its breath for a beat.
+		_slowmo_restore = Engine.time_scale
+		Engine.time_scale = 0.55
+		get_tree().create_timer(0.1, true, false, true).timeout.connect(func():
+			Engine.time_scale = _slowmo_restore)
 	Game.sfx.play2d("blade_ring", -8.0)
 	hit_shake = maxf(hit_shake, 0.3 + 0.05 * n)
 

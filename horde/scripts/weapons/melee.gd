@@ -880,7 +880,13 @@ func _do_push() -> void:
 		to.y = 0
 		var d := to.length()
 		if d < p["range"] and d > 0.01 and fwd.dot(to / d) > p["arc"]:
-			z.shove(s.global_position, s)
+			var force: float = p.get("force", 5.0)
+			# Heavy weapons bowl over whoever's right in your face.
+			if force >= 7.0 and d < 1.3 and z.kind == "common":
+				z.knockdown(to / d, randf_range(0.6, 1.1))
+			else:
+				z.shove(s.global_position, s)
+			z.rig.hit_react(to / d, force * 0.8)
 			n += 1
 	# Push also knocks specials off teammates.
 	for o in Game.survivors:
@@ -895,7 +901,11 @@ func _do_push() -> void:
 				n += 1
 	cam_punch += Vector2(0.015, 0.0)
 	if n > 0:
-		Game.sfx.play3d("melee_hit", s.eye_pos() + fwd, -2.0, 0.15)
+		Game.sfx.play3d("thump", s.eye_pos() + fwd, -1.0 + minf(n, 4) * 0.8, 0.12, 0.85)
+		Game.sfx.play3d("flesh_hit", s.eye_pos() + fwd, -6.0, 0.15)
+		cam_punch += Vector2(0.012 + 0.004 * minf(n, 4), randf_range(-0.01, 0.01))
+		drag_t = 0.05
+		drag_scale = 0.2
 		if s.controller and s.controller.has_method("hit_marker"):
 			s.controller.hit_marker(false, false)
 
