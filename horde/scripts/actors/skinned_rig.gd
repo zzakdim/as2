@@ -205,10 +205,49 @@ func _build(opts: Dictionary) -> void:
 	held = Node3D.new()
 	held.rotation = Vector3(PI / 2, 0, 0)
 	slot.add_child(held)
+	if family == "human":
+		var hair: Array = opts.get("hair", _random_hair())
+		for h in hair:
+			_add_hair(h, opts.get("hair_color", HAIR_COLORS.pick_random() * (0.8 if role == "zombie" else 1.0)))
 	if opts.get("glow_eyes", Color(0, 0, 0, 0)).a > 0.0 and parts.has("eyes"):
 		parts["eyes"].material_override = Mats.emissive(opts["glow_eyes"], 3.0)
 	_play(_pick_base(0.0), 0.0, 1.0)
 	_acc = randf() * 2.0
+
+
+# The hair textures are greyscale (the paid version tints them in a shader).
+const HAIR_COLORS := [Color(0.22, 0.15, 0.1), Color(0.12, 0.09, 0.07), Color(0.38, 0.26, 0.15), Color(0.55, 0.42, 0.25),
+	Color(0.32, 0.18, 0.1), Color(0.45, 0.43, 0.4)]
+
+func _random_hair() -> Array:
+	if role != "zombie":
+		return []
+	if kind == "human_f":
+		return [["Hair_Long", "Hair_Buns", "Hair_Long"].pick_random()]
+	return [[], ["Hair_Buzzed"], ["Hair_SimpleParted"], ["Hair_Buzzed", "Hair_Beard"]].pick_random()
+
+
+## Hairstyles ship in model space ("origin at 0"), so they hang off the head
+## bone with the inverse of its rest pose.
+func _add_hair(hname: String, tint: Color) -> void:
+	var path := "res://assets/quaternius/hair/%s.gltf" % hname
+	if not ResourceLoader.exists(path):
+		return
+	if not _scenes.has(path):
+		_scenes[path] = load(path)
+	var bi := skel.find_bone("Head")
+	if bi < 0:
+		return
+	var att := BoneAttachment3D.new()
+	att.bone_name = "Head"
+	skel.add_child(att)
+	var h: Node3D = _scenes[path].instantiate()
+	att.add_child(h)
+	h.transform = skel.get_bone_global_rest(bi).affine_inverse()
+	for m in h.find_children("*", "MeshInstance3D", true, false):
+		parts["hair_%d" % parts.size()] = m
+		if tint != Color(1, 1, 1):
+			m.material_override = _tinted(m, tint)
 
 
 ## Hang a static prop (shield, blade) on a hand slot.
@@ -429,10 +468,14 @@ func die(_from_dir: Vector3) -> void:
 	oneshot_t = 999.0
 
 
-func gib_head() -> void:
-	for k in ["head", "jaw", "eyes", "eyebrows", "helmet"]:
-		if parts.has(k):
+func _hide_head_parts() -> void:
+	for k in parts:
+		if k in ["head", "jaw", "eyes", "eyebrows", "helmet"] or k.begins_with("hair_"):
 			parts[k].visible = false
+
+
+func gib_head() -> void:
+	_hide_head_parts()
 
 
 func gib_arm() -> void:
@@ -526,15 +569,11 @@ func _apply_cut(cut: String, impulse: Vector3) -> void:
 	match cut:
 		"decap":
 			_gib_part("head", "head", impulse + Vector3(0, 3, 0))
-			for k in ["jaw", "eyes", "eyebrows", "helmet"]:
-				if parts.has(k):
-					parts[k].visible = false
+			_hide_head_parts()
 			_spurt_at("chest", Vector3(0, 0.26, 0))
 		"split":
 			var hp := _bone_pos("head")
-			for k in ["head", "jaw", "eyes", "eyebrows", "helmet"]:
-				if parts.has(k):
-					parts[k].visible = false
+			_hide_head_parts()
 			Game.fx.gib_burst(hp + Vector3(0, 0.15, 0), impulse.normalized(), 0.3)
 			_spurt_at("chest", Vector3(0, 0.26, 0))
 		"arm":

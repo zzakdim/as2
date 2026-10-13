@@ -406,19 +406,21 @@ func run_lineup(dir: String) -> void:
 	var kinds := ["common", "shieldbearer", "rager", "hunter", "smoker", "boomer", "charger", "spitter", "witch"]
 	var actors := []
 	for i in kinds.size():
-		var pos: Vector3 = p.global_position + Vector3((i - 4) * 1.15, 0.0, -4.0)
+		var pos: Vector3 = p.global_position + Vector3((i - 4) * 1.15, 0.0, -6.5)
 		var z: Infected = Game.director.spawn_infected(kinds[i], pos)
 		z.set_physics_process(false)
 		actors.append(z)
 	var surv_models := ["knight", "barbarian", "rogue_hooded", "adv_mage"]
 	var surv_weapons := ["smg", "greatsword", "pump_shotgun", "fire_axe"]
 	for i in 4:
-		var r: Rig = SkinnedRig.create(surv_models[i], {"role": "survivor"})
+		var hairs := [["Hair_SimpleParted", "Hair_Beard"], ["Hair_Buzzed"], ["Hair_Buns"], ["Hair_Long", "Hair_Beard"]]
+		var cols := [Color(0.85, 0.35, 0.25), Color(0.3, 0.55, 0.9), Color(0.85, 0.75, 0.3), Color(0.45, 0.8, 0.45)]
+		var r: Rig = SkinnedRig.create(surv_models[i], {"role": "survivor", "hair": hairs[i], "top": cols[i].darkened(0.35), "bottom": Color(0.17, 0.18, 0.2)})
 		if r is SkinnedRig:
 			r.melee_held = WeaponData.get_def(surv_weapons[i]).get("melee", false)
 		r.held.add_child(WeaponData.build_model(surv_weapons[i]))
 		world.add_child(r)
-		r.global_position = p.global_position + Vector3((i - 1.5) * 1.3, 0.0, -7.0)
+		r.global_position = p.global_position + Vector3((i - 1.5) * 1.1, 0.0, -2.8)
 		r.set_pose("aim")
 		actors.append(r)
 	await get_tree().create_timer(0.3).timeout

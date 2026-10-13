@@ -111,8 +111,10 @@ func _ready() -> void:
 	cs.position.y = 0.9
 	add_child(cs)
 	var models := {"Reyes": "knight", "Okafor": "barbarian", "Mags": "rogue_hooded", "Dutch": "adv_mage"}
+	var hair := {"Reyes": ["Hair_SimpleParted", "Hair_Beard"], "Okafor": ["Hair_Buzzed"], "Mags": ["Hair_Buns"], "Dutch": ["Hair_Long", "Hair_Beard"]}
 	rig = SkinnedRig.create(models.get(survivor_name, "knight"), {"role": "survivor",
-		"top": color.darkened(0.35), "bottom": Color(0.17, 0.18, 0.2)})
+		"top": color.darkened(0.35), "bottom": Color(0.17, 0.18, 0.2), "hair": hair.get(survivor_name, []),
+		"hair_color": {"Reyes": Color(0.16, 0.11, 0.08), "Okafor": Color(0.08, 0.07, 0.06), "Mags": Color(0.45, 0.22, 0.12), "Dutch": Color(0.4, 0.36, 0.3)}.get(survivor_name, Color(0.2, 0.15, 0.1))})
 	add_child(rig)
 	rig.set_pose("aim")
 	if is_bot:
