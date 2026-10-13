@@ -115,6 +115,14 @@ func _ready() -> void:
 	cs.shape = cap
 	cs.position.y = 0.9
 	add_child(cs)
+	_make_rig()
+	melee = Melee.new(self)
+	_refresh_held_model()
+	if not Game.survivors.has(self):
+		Game.survivors.append(self)
+
+
+func _make_rig() -> void:
 	var models := {"Reyes": "knight", "Okafor": "barbarian", "Mags": "rogue_hooded", "Dutch": "adv_mage"}
 	var hair := {"Reyes": ["Hair_SimpleParted", "Hair_Beard"], "Okafor": ["Hair_Buzzed"], "Mags": ["Hair_Buns"], "Dutch": ["Hair_Long", "Hair_Beard"]}
 	rig = SkinnedRig.create(models.get(survivor_name, "knight"), {"role": "survivor",
@@ -140,10 +148,6 @@ func _ready() -> void:
 		flashlight.light_color = Color(1.0, 0.95, 0.85)
 		flashlight.position = Vector3(0.15, 1.45, -0.3)
 		rig.add_child(flashlight)
-	melee = Melee.new(self)
-	_refresh_held_model()
-	if not Game.survivors.has(self):
-		Game.survivors.append(self)
 
 
 func _exit_tree() -> void:
@@ -954,6 +958,35 @@ func die() -> void:
 		Game.hud.add_callout("", "%s has died." % survivor_name, Color(1, 0.3, 0.3))
 	if Game.director:
 		Game.director.check_wipe()
+		Game.director.on_survivor_died(self)
+
+
+## Rescued from a closet: back on your feet with a pistol and half health.
+func respawn_at(pos: Vector3, facing: Vector3) -> void:
+	if not dead:
+		return
+	if is_instance_valid(rig):
+		rig.queue_free()
+	if name_tag:
+		name_tag.queue_free()
+		name_tag = null
+	flashlight = null
+	_make_rig()
+	dead = false
+	incapped = false
+	incap_count = 0
+	health = 50.0
+	temp_health = 0.0
+	toughness = toughness_max
+	collision_layer = Game.LAYER_SURVIVOR
+	primary = null
+	secondary = WeaponData.new_state("pistol")
+	active_slot = SLOT_SECONDARY
+	velocity = Vector3.ZERO
+	global_position = pos
+	yaw = atan2(-facing.x, -facing.z)
+	_refresh_held_model()
+	Game.callout(self, ["Thanks for getting me out!", "About time!", "I owe you one."].pick_random())
 
 
 func knockback(v: Vector3, stun := 0.8) -> void:

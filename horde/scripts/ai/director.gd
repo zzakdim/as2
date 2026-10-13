@@ -533,6 +533,36 @@ func _win(final: bool) -> void:
 	Game.main.on_map_complete(final)
 
 
+## A bot died: in a while, lock them in a rescue closet ahead of the team.
+func on_survivor_died(s) -> void:
+	if not s.is_bot or Game.mode == "sandbox" or Game.level == null or Game.level.is_finale:
+		return
+	await get_tree().create_timer(15.0 if not Game.autotest else 4.0).timeout
+	if not is_instance_valid(s) or not s.dead or Game.level == null or not is_instance_valid(Game.level):
+		return
+	var lvl = Game.level
+	var lead := _lead_flow()
+	var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+	for attempt in 60:
+		var c: Vector2i = lvl.random_cell_in_flow(lead + 6, lead + 30)
+		if c.x < 0:
+			continue
+		for d in dirs:
+			var w: Vector2i = c + d
+			if lvl.in_bounds(w) and lvl.get_t(w.x, w.y) == lvl.T_WALL and not lvl.indoor_rect.has_point(w):
+				var closet := Props.RescueCloset.new()
+				closet.who = s
+				closet.outward = Vector3(-d.x, 0, -d.y)
+				lvl.add_child(closet)
+				# On the building face, looking out into the street.
+				closet.global_position = lvl.cell_center(c) + Vector3(d.x, 0, d.y) * (lvl.CELL * 0.5 - 0.12)
+				closet.rotation.y = atan2(closet.outward.x, closet.outward.z)
+				if Game.autotest:
+					print("[autotest] rescue closet for %s at %s" % [s.survivor_name, closet.global_position])
+				Game.callout(Game.alive_survivors().pick_random() if not Game.alive_survivors().is_empty() else s, "I hear %s! Up ahead!" % s.survivor_name)
+				return
+
+
 func check_wipe() -> void:
 	if wiped or finished:
 		return

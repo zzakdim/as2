@@ -35,6 +35,9 @@ func update(delta: float) -> void:
 	if s.dead:
 		return
 	callout_cd = max(0.0, callout_cd - delta)
+	for u in Game.usables:
+		if u is Props.RescueCloset and is_instance_valid(u) and u.can_use(s) and u.global_position.distance_to(s.global_position) < 2.2:
+			u.on_use(s)
 	if s.ability_cd <= 0.0 and not s.incapped:
 		# Shout when swarmed or about to lose toughness in a crowd.
 		var close := 0
@@ -212,6 +215,12 @@ func _move(delta: float) -> void:
 			if s.global_position.distance_to(t.global_position) < 1.5 and s.action == "":
 				s.begin_action("revive", 5.0, t)
 			break
+	# 2b) Let a teammate out of a rescue closet nearby.
+	if goal == null:
+		for u in Game.usables:
+			if u is Props.RescueCloset and is_instance_valid(u) and u.can_use(s) and u.global_position.distance_to(s.global_position) < 20.0:
+				goal = u.global_position + u.outward * 0.8
+				break
 	if s.action == "revive":
 		s.move_dir = Vector3.ZERO
 		return

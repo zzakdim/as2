@@ -164,6 +164,14 @@ func load_map(idx: int) -> void:
 			run_hit_test(a.substr(11))
 		if a.begins_with("--gun-sheet="):
 			run_gun_sheet(a.substr(12))
+		if a.begins_with("--kill-bot="):
+			# --kill-bot=6 : a teammate dies after 6 s (rescue closet test)
+			var delay := float(a.substr(11))
+			get_tree().create_timer(delay).timeout.connect(func():
+				for s in Game.survivors:
+					if is_instance_valid(s) and s.is_bot and not s.dead:
+						s.die()
+						return)
 		if a.begins_with("--spawn="):
 			# --spawn=gunner,rager : spawn these 12 m ahead of the player, already hunting
 			var k := 0

@@ -127,7 +127,9 @@ flashes red. Either way the flash is strongest on the side the hit came from.
   within 8 m (coherency), and melee kills refill it, so fighting
   aggressively in melee keeps you alive.
 - Health plus temporary health (pills) that decays.
-- Incap → revive → black & white on your last life → death.
+- Incap → revive → black & white on your last life → death. A dead
+  teammate ends up in a **rescue closet** further along the map, banging on
+  the door; open it (bots will too) and they rejoin with a pistol.
 - Limping at low health. Friendly fire scales with difficulty.
 
 **Melee** (`scripts/weapons/melee.gd`). Movesets are data: each attack is

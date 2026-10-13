@@ -151,6 +151,65 @@ class CarAlarm extends Node3D:
 		Effects.after(sound, 20.0, sound.queue_free)
 
 
+## Rescue closet: a dead teammate bangs on this door further along the map;
+## opening it brings them back (L4D2).
+class RescueCloset extends Usable:
+	var who = null              # dead survivor waiting inside
+	var outward := Vector3.FORWARD
+	var hinge: Node3D
+	var bang_t := 1.0
+	var opened := false
+
+	func _ready() -> void:
+		use_radius = 2.4
+		var frame_m := Mats.color(Color(0.2, 0.2, 0.21), 0.6, 0.4)
+		var door_m := Mats.color(Color(0.32, 0.3, 0.26), 0.55, 0.3)
+		Mats.add_mesh(self, Mats.box(Vector3(1.4, 2.5, 0.12)), frame_m, Vector3(0, 1.25, -0.02))
+		hinge = Node3D.new()
+		hinge.position = Vector3(-0.55, 0, 0.06)
+		add_child(hinge)
+		Mats.add_mesh(hinge, Mats.box(Vector3(1.1, 2.2, 0.06)), door_m, Vector3(0.55, 1.1, 0))
+		Mats.add_mesh(hinge, Mats.box(Vector3(0.12, 0.05, 0.08)), Mats.color(Color(0.7, 0.7, 0.7), 0.3, 0.9), Vector3(0.95, 1.05, 0.04))
+		# A dim light leaking out so it's findable.
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.8, 0.5)
+		l.light_energy = 0.8
+		l.omni_range = 3.5
+		l.position = Vector3(0, 2.4, 0.5)
+		add_child(l)
+
+	func use_point() -> Vector3:
+		return global_position + Vector3(0, 1.2, 0)
+
+	func get_prompt(_s) -> String:
+		return "Open the closet (%s)" % (who.survivor_name if who and is_instance_valid(who) else "")
+
+	func can_use(_s) -> bool:
+		return enabled and not opened
+
+	func on_use(_s) -> void:
+		if opened:
+			return
+		opened = true
+		enabled = false
+		Game.sfx.play3d("door", global_position + Vector3(0, 1.2, 0), 0.0)
+		var tw := hinge.create_tween()
+		tw.tween_property(hinge, "rotation:y", -1.9, 0.35)
+		if who and is_instance_valid(who):
+			who.respawn_at(global_position + outward * 0.9 + Vector3(0, 0.1, 0), outward)
+
+	func _process(delta: float) -> void:
+		if opened:
+			return
+		bang_t -= delta
+		if bang_t <= 0.0:
+			bang_t = randf_range(0.8, 2.2)
+			Game.sfx.play3d("tank_punch", global_position + Vector3(0, 1.3, 0), -12.0, 0.2)
+			hinge.position.z = 0.06 + 0.02
+			var tw := hinge.create_tween()
+			tw.tween_property(hinge, "position:z", 0.06, 0.12)
+
+
 class Door extends Usable:
 	var is_open := false
 	var hinge: Node3D
