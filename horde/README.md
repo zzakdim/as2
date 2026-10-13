@@ -30,7 +30,7 @@ and everything else is synthesized.
 | Reload / use (hold to revive) | R / E |
 | Weapons & items | 1 primary · 2 secondary · 3 throwable · 4 medkit · 5 pills · Q last · wheel |
 | Flashlight / ping a special | F / Z |
-| Battle Cry (ability, 30 s cooldown) | G |
+| Class ability | G |
 | Stats / Director overlay / pause | Tab / F3 / Esc |
 
 Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
@@ -119,9 +119,16 @@ Hits soaked by toughness flash the screen edge pale blue; health damage
 flashes red. Either way the flash is strongest on the side the hit came from.
 
 **Survivors**
-- **Battle Cry** (Darktide-style combat ability, G): a shout that knocks
-  the nearby horde off its feet, staggers specials and elites, and refills
-  the toughness of everyone in coherency. Bots use it when swarmed.
+- **Classes** (Darktide-style), each with a combat ability on G. Pick
+  yours on the title screen; the bots take the others:
+  - *Zealot* — Battle Cry: knocks the nearby horde off its feet, staggers
+    specials and elites, refills everyone's toughness in coherency.
+  - *Veteran* — Volley Fire: fresh magazine, faster and harder-hitting fire
+    for 8 s, and every special and elite in sight marked for the team.
+  - *Ogryn* — Bull Rush: a short charge that bowls commons over and
+    staggers anything bigger.
+  - *Psyker* — Brain Burst: the special or elite under your crosshair has
+    its head swell for a moment, then pop.
 - **Toughness** (Darktide): a shield bar above health that soaks most hits.
   It regenerates when you avoid damage for 3 s, faster with teammates
   within 8 m (coherency), and melee kills refill it, so fighting
@@ -216,8 +223,7 @@ Next up, roughly in order of impact:
 - **Hand-authored set pieces** mixed into the procedural layout, plus
   interiors with stairs and multiple floors.
 - **Darktide layer**
-  - More classes, each with its own ability (Battle Cry is the first;
-    Veteran volley fire, Psyker brain-burst, Ogryn charge next).
+  - Class passives and talent choices on top of the abilities.
   - Loadouts and progression between runs.
 - **More L4D2**: ledge hangs, more
   melee weapons, laser sights / incendiary ammo, gas can scavenge finales,
