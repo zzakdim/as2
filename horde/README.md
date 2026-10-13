@@ -216,9 +216,8 @@ Next up, roughly in order of impact:
 - **Hand-authored set pieces** mixed into the procedural layout, plus
   interiors with stairs and multiple floors.
 - **Darktide layer**
-  - Classes with abilities (Veteran, Zealot, Psyker, Ogryn-style).
-  - Toughness that regenerates near teammates (coherency).
-  - Heavy/light melee combos with stamina and blocking.
+  - More classes, each with its own ability (Battle Cry is the first;
+    Veteran volley fire, Psyker brain-burst, Ogryn charge next).
   - Loadouts and progression between runs.
 - **More L4D2**: ledge hangs, more
   melee weapons, laser sights / incendiary ammo, gas can scavenge finales,
