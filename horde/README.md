@@ -63,7 +63,8 @@ Swords, each built around a different idea:
   kill always takes the head off. The heavy is a long lunge.
 - **Executioner's Sword** — commitment: slow, wide sweeps that cleave a
   crowd and halve what they hit; the charged Reaping sweep goes through a
-  whole line, the Headsman overhead splits anything.
+  whole line, and a fully charged Headsman overhead splits a body down the
+  middle into two halves.
 - **Messer** — momentum: every consecutive hit makes the next swing faster
   (up to +40%, chevrons under the stamina pips); whiff or pause and it's
   gone.

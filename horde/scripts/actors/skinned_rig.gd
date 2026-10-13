@@ -467,7 +467,7 @@ static func _stain_tex(v: int) -> Texture2D:
 
 static func _part_key(n: String) -> String:
 	var low := n.to_lower()
-	for pair in [["handleft", "hand_l"], ["handright", "hand_r"], ["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["chest", "chest"], ["head", "head"],
+	for pair in [["bodyleft", "body_l"], ["bodyright", "body_r"], ["chestleft", "chest_l"], ["chestright", "chest_r"], ["handleft", "hand_l"], ["handright", "hand_r"], ["armleft", "arm_l"], ["armright", "arm_r"], ["legleft", "leg_l"], ["legright", "leg_r"], ["chest", "chest"], ["head", "head"],
 			["jaw", "jaw"], ["eyes", "eyes"], ["body", "body"], ["cloak", "cloak"], ["cape", "cloak"], ["helmet", "helmet"]]:
 		if low.ends_with(pair[0]) or low.find("_" + pair[0]) >= 0:
 			return pair[1]
@@ -701,7 +701,11 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 		var old = ragdolls.pop_front()
 		if is_instance_valid(old):
 			old.queue_free()
-	if cut == "waist" and family == "human" and parts.has("chest") and model_scale <= 1.05:
+	if cut == "vsplit" and family == "human" and parts.has("chest_r") and model_scale <= 1.05:
+		_split_down_the_middle(velocity, impulse, point)
+		cut = ""
+		impulse = impulse * 0.3
+	if cut == "waist" and family == "human" and (parts.has("chest") or parts.has("chest_l")) and model_scale <= 1.05:
 		# Cut in half: the upper body becomes a second ragdoll, the legs stay.
 		_spawn_upper_half(velocity, impulse, point)
 		cut = ""
@@ -709,7 +713,7 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 		impulse = impulse * 0.15
 		velocity = velocity * 0.2
 		for k in parts.keys():
-			if k in ["chest", "arm_l", "arm_r", "hand_l", "hand_r", "head", "helmet", "eyes"] or k.begins_with("hair_"):
+			if k in UPPER_PARTS or k.begins_with("hair_"):
 				parts[k].visible = false
 		_add_stump("spine", 1.0, Vector3(0.12, 1, 0.085))
 		_spurt_at("spine", Vector3(0, 0.12, 0))
@@ -780,6 +784,10 @@ func ragdoll(velocity: Vector3, impulse: Vector3, point: Vector3, cut: String) -
 	# whole body as one plank.
 	if nearest:
 		nearest.apply_central_impulse(impulse * 2.6)
+	if _split_push != Vector3.ZERO:
+		for bn2 in [b("chest"), b("hips"), b("spine")]:
+			if bodies.has(bn2):
+				bodies[bn2].apply_central_impulse(_split_push * 2.5)
 	if bodies.has(b("chest")):
 		bodies[b("chest")].apply_central_impulse(impulse * 2.0)
 	# Dead weight: the hips drop and the knees go out, so bodies fold.
@@ -883,6 +891,70 @@ func chop_corpse(pb: PhysicalBone3D, impulse: Vector3, sever_chance: float) -> b
 	return true
 
 
+const UPPER_PARTS := ["chest", "chest_l", "chest_r", "arm_l", "arm_r", "hand_l", "hand_r", "head", "helmet", "eyes"]
+const LOWER_PARTS := ["body", "body_l", "body_r", "leg_l", "leg_r"]
+const RIGHT_PARTS := ["chest_r", "body_r", "arm_r", "hand_r", "leg_r"]
+
+
+## Split down the middle (a full-power overhead): the right half becomes a
+## second ragdoll, the halves are thrown apart, the head bursts.
+func _split_down_the_middle(velocity: Vector3, impulse: Vector3, point: Vector3) -> void:
+	var o := build_opts.duplicate()
+	o["human"] = kind
+	o["hair"] = []
+	var other: SkinnedRig = SkinnedRig.create("", o)
+	Game.world.add_child(other)
+	other.global_transform = global_transform
+	other.model.transform = model.transform
+	for k in other.parts:
+		var bmi: MeshInstance3D = other.parts[k]
+		bmi.visible = k in RIGHT_PARTS and parts.has(k) and parts[k].visible
+		if parts.has(k):
+			var a: MeshInstance3D = parts[k]
+			bmi.material_override = a.material_override
+			for i in a.mesh.get_surface_count():
+				bmi.set_surface_override_material(i, a.get_surface_override_material(i))
+	for k in RIGHT_PARTS:
+		if parts.has(k):
+			parts[k].visible = false
+	var hp := _bone_pos("head")
+	_hide_head_parts()
+	Game.fx.gib_burst(hp, Vector3.UP, 0.35)
+	Game.fx.blood_mist(_bone_pos("chest"), Vector3.UP, 0.8)
+	for i in skel.get_bone_count():
+		other.skel.set_bone_pose_position(i, skel.get_bone_pose_position(i))
+		other.skel.set_bone_pose_rotation(i, skel.get_bone_pose_rotation(i))
+	other.anim.pause()
+	# Model +X is the body's left.
+	var left_dir: Vector3 = (global_basis * model.basis * Vector3.RIGHT).normalized()
+	left_dir.y = 0.0
+	other.ragdoll(velocity * 0.4, -left_dir * 9.0 + impulse * 0.3 + Vector3(0, 1.5, 0), point, "")
+	other._add_split_cap(-1.0)
+	_add_split_cap(1.0)
+	_split_push = left_dir * 9.0
+	Game.sfx.play3d("splat", point, 0.0, 0.1)
+
+
+var _split_push := Vector3.ZERO
+
+## Raw flesh along the midline of a body split in two (on the cut face).
+func _add_split_cap(side: float) -> void:
+	for e in [["spine", 0.18], ["chest", 0.2]]:
+		var bi := skel.find_bone(b(e[0]))
+		if bi < 0:
+			continue
+		var att := BoneAttachment3D.new()
+		att.bone_name = b(e[0])
+		skel.add_child(att)
+		var cap := MeshInstance3D.new()
+		var bm := BoxMesh.new()
+		bm.size = Vector3(0.012, e[1] * 1.3, 0.2)
+		cap.mesh = bm
+		cap.material_override = _wound_mat()
+		cap.position = Vector3(0.004 * side, e[1] * 0.5, 0.0)
+		att.add_child(cap)
+
+
 ## The torso above the cut, as its own ragdoll: a second copy of this
 ## character in the same pose and materials showing only the upper parts.
 func _spawn_upper_half(velocity: Vector3, impulse: Vector3, point: Vector3) -> void:
@@ -899,12 +971,12 @@ func _spawn_upper_half(velocity: Vector3, impulse: Vector3, point: Vector3) -> v
 			continue
 		var a: MeshInstance3D = parts[k]
 		var bmi: MeshInstance3D = up.parts[k]
-		bmi.visible = a.visible and not (k in ["body", "leg_l", "leg_r"])
+		bmi.visible = a.visible and not (k in LOWER_PARTS)
 		bmi.material_override = a.material_override
 		for i in a.mesh.get_surface_count():
 			bmi.set_surface_override_material(i, a.get_surface_override_material(i))
 	for k in up.parts:
-		if not parts.has(k) and k in ["body", "leg_l", "leg_r"]:
+		if not parts.has(k) and k in LOWER_PARTS:
 			up.parts[k].visible = false
 	for i in skel.get_bone_count():
 		up.skel.set_bone_pose_position(i, skel.get_bone_pose_position(i))

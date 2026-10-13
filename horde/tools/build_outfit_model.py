@@ -61,8 +61,8 @@ def group_of(bone):
 
 
 NAMES = {"hand_l": "Human_HandLeft", "hand_r": "Human_HandRight", "head": "Human_Helmet", "arm_l": "Human_ArmLeft",
-         "arm_r": "Human_ArmRight", "leg_l": "Human_LegLeft", "leg_r": "Human_LegRight", "torso": "Human_Body",
-         "chest": "Human_Chest"}
+         "arm_r": "Human_ArmRight", "leg_l": "Human_LegLeft", "leg_r": "Human_LegRight", "torso_l": "Human_BodyLeft",
+         "torso_r": "Human_BodyRight", "chest_l": "Human_ChestLeft", "chest_r": "Human_ChestRight"}
 
 joint_names = [A["nodes"][i]["name"] for i in A["skins"][0]["joints"]]
 mesh_nodes = [i for i, n in enumerate(A["nodes"]) if "mesh" in n]
@@ -75,10 +75,15 @@ for ni in mesh_nodes:
         weights = read(A, data_a, prim["attributes"]["WEIGHTS_0"])
         vgroup = [group_of(joint_names[js[max(range(4), key=lambda q: ws[q])]]) for js, ws in zip(joints, weights)]
         idx = [t[0] for t in read(A, data_a, prim["indices"])]
+        pos = read(A, data_a, prim["attributes"]["POSITION"])
         by = {}
         for t in range(0, len(idx), 3):
             tri = idx[t:t + 3]
             g = "head" if whole_head else Counter(vgroup[v] for v in tri).most_common(1)[0][0]
+            # Trunk halves (left = +X) so a body can be split down the middle.
+            if g in ("torso", "chest"):
+                cx = sum(pos[v][0] for v in tri) / 3.0
+                g += "_l" if cx >= 0.0 else "_r"
             by.setdefault(g, []).extend(tri)
         for g, tris in by.items():
             while len(data_a) % 4:

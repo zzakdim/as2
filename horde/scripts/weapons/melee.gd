@@ -745,6 +745,9 @@ func _cut_type(z, p: Vector3, part: String) -> String:
 		power += 0.2
 	if z.kind == "tank" or z.kind == "charger":
 		power -= 0.8
+	# A full-power vertical blow splits the whole body down the middle.
+	if not horizontal and atk.get("split", false) and power >= 1.2 and ly > 0.9:
+		return "vsplit"
 	if part == "head":
 		if horizontal:
 			return "decap" if randf() < power + 0.3 else ""
