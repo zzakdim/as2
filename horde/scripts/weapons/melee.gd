@@ -43,6 +43,7 @@ const MOVESETS := {
 	"sabre": {
 		"length": 0.84, "grip": 0.14, "pivot": Vector3(0.13, -0.24, -0.48),
 		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true, "swish_pitch": 1.3, "move": 1.06,
+		"parry": {"active": 0.28, "recover": 0.32, "cost": 0.5},
 		"light": [
 			{"name": "Cut 1", "dir": 28.0, "arc": [-56.0, 60.0], "windup": 0.07, "strike": 0.085, "follow": 0.06, "recover": 0.2,
 				"damage": 105.0, "cleave": 1.6, "impact": 3.0, "lunge": 1.2, "sever": 0.45, "next_light": 1, "next_heavy": 0},
@@ -307,6 +308,14 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 				_enter("idle")
 			elif fire_pressed:
 				_start_push()
+		"parry":
+			t += dt
+			var pr: Dictionary = ms["parry"]
+			pose = _pose_from.interpolate_with(parry_pose(), _ease_out(clampf(t / 0.06, 0.0, 1.0)))
+			if t >= pr["active"]:
+				pose = pose.interpolate_with(idle_pose(), min(1.0, delta * 6.0))
+			if t >= pr["active"] + pr["recover"]:
+				_enter("idle")
 		"push":
 			t += dt
 			var p: Dictionary = ms["push"]
@@ -391,6 +400,22 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 				_enter("block")
 			elif k >= 1.0:
 				_enter("idle")
+
+
+## Weapon special (V / middle mouse). Sabre: parry — a short window that
+## deflects any melee hit from the front, reels the attacker and opens a
+## riposte; mistimed, it leaves you open for a moment.
+func special() -> void:
+	if not ms.has("parry") or state not in ["idle", "block", "recover"] or stamina <= 0.0:
+		return
+	_use_stamina(ms["parry"]["cost"])
+	_enter("parry")
+	Game.sfx.play3d("whoosh", s.eye_pos(), -8.0, 0.1, 1.4)
+
+
+func parry_pose() -> Transform3D:
+	var v := Vector3(-0.85, 0.45, -0.3).normalized()
+	return _blade_xf(Vector3(0.24, -0.16, -0.46), v, Vector3(0, 1, 0.2).normalized())
 
 
 func _enter(st: String) -> void:
@@ -843,6 +868,21 @@ func _do_push() -> void:
 
 ## Called by Survivor.take_damage. Returns the damage that gets through.
 func block_hit(amount: float, attacker, kind: String) -> float:
+	if state == "parry" and t < ms["parry"]["active"] and attacker and is_instance_valid(attacker) and kind in ["claw", "punch"]:
+		var to: Vector3 = attacker.global_position - s.global_position
+		to.y = 0
+		if to.length() < 0.01 or s.flat_forward().dot(to.normalized()) > 0.2:
+			# Clean parry.
+			Game.sfx.play3d("clank", s.eye_pos() + s.flat_forward() * 0.6, 2.0, 0.05)
+			Game.sfx.play3d("blade_ring", s.eye_pos() + s.flat_forward() * 0.6, -2.0, 0.05, 1.2)
+			Game.fx.impact(s.eye_pos() + s.flat_forward() * 0.6, -s.flat_forward())
+			cam_punch += Vector2(0.03, randf_range(-0.02, 0.02))
+			if attacker.has_method("melee_stagger"):
+				attacker.melee_stagger(to.normalized(), 12.0)
+			s.riposte_t = 1.0
+			if s.controller and s.controller.has_method("on_perfect_dodge"):
+				s.controller.on_perfect_dodge(attacker)
+			return 0.0
 	if state != "block" or attacker == null or not is_instance_valid(attacker):
 		return amount
 	if not (kind in ["claw", "punch", "rock", "charge"]):

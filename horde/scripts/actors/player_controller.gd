@@ -148,6 +148,8 @@ func update(delta: float) -> void:
 		# Melee: LMB light/heavy, hold RMB block, LMB while blocking = push.
 		s.fire_held = fire
 		s.block_held = Input.is_action_pressed("shove")
+		if Input.is_action_just_pressed("special") or Input.is_action_just_pressed("special_key"):
+			s.melee.special()
 	else:
 		s.fire_held = false
 		s.block_held = false

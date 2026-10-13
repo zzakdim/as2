@@ -91,6 +91,22 @@ func run() -> void:
 	Input.action_release("move_right")
 	if p.riposte_t > 0.0:
 		seen["perfect_dodge"] = true
+	# 5) sabre parry: V just before a zombie's claw lands
+	p.secondary = WeaponData.new_state("sabre")
+	p.active_slot = Survivor.SLOT_SECONDARY
+	p._refresh_held_model()
+	await _wait(0.5)
+	var z: Infected = Game.director.spawn_infected("common", p.global_position + p.flat_forward() * 1.3)
+	await _wait(0.2)
+	p.riposte_t = 0.0
+	p.melee.stamina = 3.0
+	await _tap("special_key", 0.05, 0.0)
+	await get_tree().physics_frame
+	var hp_before: float = p.health + p.toughness
+	p.take_damage(10.0, z, "claw")
+	if p.melee.state == "parry" and p.riposte_t > 0.0 and p.health + p.toughness >= hp_before:
+		seen["parry"] = true
+	await _wait(0.6)
 	Input.action_press("move_forward")
 	await _tap("jump", 0.05, 0.6)
 	Input.action_press("crouch")
@@ -141,7 +157,7 @@ func _wait(t: float) -> void:
 
 func _report() -> void:
 	var want := ["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge"]
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry"]
 	var missing := want.filter(func(w): return not seen.has(w))
 	print("[input-test] reached: ", seen.keys())
 	print("[input-test] missing: ", missing)

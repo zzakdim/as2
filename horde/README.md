@@ -60,7 +60,10 @@ Swords, each built around a different idea:
 - **Greatsword** — the all-rounder: cleaving sweeps, heavies cut bodies in half.
 - **Duelling Sabre** — speed and precision: a four-cut chain that's barely
   slower than clicking, weak cleave, but head hits deal 1.8x and a head-hit
-  kill always takes the head off. The heavy is a long lunge.
+  kill always takes the head off. The heavy is a long lunge. Its special
+  (V or middle mouse) is a **parry**: a quarter-second window that deflects
+  a frontal hit, sends the attacker reeling and opens a riposte; miss it
+  and you're open for a moment.
 - **Executioner's Sword** — commitment: slow, wide sweeps that cleave a
   crowd and halve what they hit; the charged Reaping sweep goes through a
   whole line, and a fully charged Headsman overhead splits a body down the
