@@ -26,6 +26,7 @@ func setup(shirt: Color) -> void:
 	model = load(MODEL if dressed else MODEL_BARE).instantiate()
 	add_child(model)
 	model.rotation.y = PI
+	model.scale = Vector3.ONE * 1.15   # viewmodel arms are cheated a bit longer
 	skel = model.find_child("Skeleton3D", true, false)
 	sleeve = Mats.color(shirt, 0.92)
 	var glove := Mats.color(Color(0.06, 0.055, 0.05), 0.85)
@@ -58,7 +59,7 @@ func setup(shirt: Color) -> void:
 	# Put the shoulders just below and behind the eye: rotated PI, the left
 	# shoulder (x=+0.21, y=1.456) lands at x=-0.21 on screen.
 	var sh := skel.get_bone_global_rest(bones["upperarm_l"]).origin
-	model.position = Vector3(0, -0.34 - sh.y, 0.12 + sh.z)
+	model.position = Vector3(0, -0.34 - sh.y * 1.15, 0.12 + sh.z * 1.15)
 	base_pos = model.position
 
 
@@ -69,18 +70,38 @@ func shoulder(right: bool) -> Vector3:
 
 ## Pose both arms. Targets are wrist positions in camera space; pass
 ## Vector3.INF for an arm that should hang out of view.
-func pose(wrist_r: Vector3, wrist_l: Vector3) -> void:
+## `frame_r` / `frame_l`: optional [finger direction, palm direction] in
+## camera space to orient the hand (e.g. wrapped round a pistol grip);
+## empty keeps the hand in line with the forearm.
+func pose(wrist_r: Vector3, wrist_l: Vector3, frame_r := [], frame_l := []) -> void:
 	if skel == null:
 		return
 	model.position = base_pos - Vector3(0, 0, forward)
 	skel.reset_bone_poses()
-	_solve("r", wrist_r, Vector3(0.6, -1.0, 0.4))
-	_solve("l", wrist_l, Vector3(-0.6, -1.0, 0.4))
+	_solve("r", wrist_r, Vector3(0.6, -1.0, 0.4), frame_r)
+	_solve("l", wrist_l, Vector3(-0.6, -1.0, 0.4), frame_l)
 	_curl("r")
 	_curl("l")
 
 
-func _solve(side: String, target_cam: Vector3, pole_dir_cam: Vector3) -> void:
+var _rest_frames := {}
+
+## The hand's rest frame in skeleton space: [finger dir, palm-facing dir].
+func _rest_frame(side: String) -> Array:
+	if _rest_frames.has(side):
+		return _rest_frames[side]
+	var h := skel.get_bone_global_rest(bones["hand_" + side]).origin
+	var mid := skel.get_bone_global_rest(skel.find_bone("middle_01_" + side)).origin
+	var idx := skel.get_bone_global_rest(skel.find_bone("index_01_" + side)).origin
+	var pky := skel.get_bone_global_rest(skel.find_bone("pinky_01_" + side)).origin
+	var f := (mid - h).normalized()
+	var across := (idx - pky).normalized()
+	var palm := f.cross(across).normalized() if side == "l" else across.cross(f).normalized()
+	_rest_frames[side] = [f, palm]
+	return _rest_frames[side]
+
+
+func _solve(side: String, target_cam: Vector3, pole_dir_cam: Vector3, frame := []) -> void:
 	var ua: int = bones["upperarm_" + side]
 	var la: int = bones["lowerarm_" + side]
 	var hd: int = bones["hand_" + side]
@@ -113,6 +134,15 @@ func _solve(side: String, target_cam: Vector3, pole_dir_cam: Vector3) -> void:
 	var q2 := Quaternion(la_rest.basis.y.normalized(), (W - E).normalized())
 	var la_glob := Transform3D(Basis(q2) * la_rest.basis, E)
 	var hd_glob := Transform3D(Basis(q2) * hd_rest.basis, W)
+	if frame.size() == 2:
+		var rf := _rest_frame(side)
+		var fd: Vector3 = (to_skel.basis * (frame[0] as Vector3)).normalized()
+		var pd: Vector3 = to_skel.basis * (frame[1] as Vector3)
+		pd = (pd - fd * fd.dot(pd)).normalized()
+		var f0: Vector3 = rf[0]
+		var p0: Vector3 = (rf[1] - f0 * f0.dot(rf[1])).normalized()
+		var r := Basis(fd, pd, fd.cross(pd)) * Basis(f0, p0, f0.cross(p0)).inverse()
+		hd_glob.basis = r * hd_rest.basis
 	var cl_glob := skel.get_bone_global_pose(cl)
 	_set_global(ua, cl_glob, ua_glob)
 	_set_global(la, ua_glob, la_glob)

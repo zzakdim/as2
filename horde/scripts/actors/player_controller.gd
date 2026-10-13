@@ -321,8 +321,14 @@ func _update_gun_arms() -> void:
 	if fp_arms:
 		fp_arms.visible = show
 		if show:
-			fp_arms.forward = 0.14 if long else 0.06
-			fp_arms.pose(_wrist(grip_r, true), _wrist(grip_l, false))
+			fp_arms.forward = 0.24 if long else 0.06
+			# Grip frames in gun space: right hand round the pistol grip (palm
+			# to the grip, knuckles forward); left hand under the handguard
+			# (palm up) or wrapped over the right on a pistol.
+			var b := xf.basis
+			var fr := [b * Vector3(0, -0.25, -1), b * Vector3(-1, 0, 0)]
+			var fl := [b * Vector3(1, 0, -0.5), b * Vector3(0, 1, 0)] if long else [b * Vector3(0.4, -0.4, -1), b * Vector3(1, 0.4, 0)]
+			fp_arms.pose(_wrist(grip_r, true), _wrist(grip_l, false), fr, fl)
 		for a in gun_arms:
 			a.visible = false
 		return
@@ -537,7 +543,10 @@ func _process(delta: float) -> void:
 	vm_melee = max(0.0, vm_melee - delta)
 	if vm_reload > 0.0:
 		vm_reload = max(0.0, vm_reload - delta)
-	var base := Vector3(0.14, -0.14, -0.3)
+	# Long guns sit further out so the stock doesn't reach the camera plane.
+	var cur := s.current_item_id()
+	var long_gun: bool = WeaponData.DEFS.has(cur) and WeaponData.get_def(cur).get("slot", 1) == 0
+	var base := Vector3(0.12, -0.17, -0.46) if long_gun else Vector3(0.13, -0.14, -0.34)
 	var rot := Vector3.ZERO
 	base.x += sin(bob_t * 0.5) * 0.01 * clamp(speed / 5.0, 0.0, 1.0)
 	base.y += bob * 0.4 - land_dip
