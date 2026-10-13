@@ -57,6 +57,8 @@ func _ready() -> void:
 			Infected.use_box_rigs = true
 		if a == "--kaykit":
 			SkinnedRig.style = "kaykit"
+		if a.begins_with("--class="):
+			player_class = a.substr(8)
 		if a == "--no-bots":
 			bots_enabled = false
 		if a.begins_with("--seconds="):
