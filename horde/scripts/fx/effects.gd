@@ -247,7 +247,10 @@ func explosion(pos: Vector3, radius: float, damage: float, by) -> void:
 			z.impact_point = z.global_position + Vector3(0, 0.6, 0)
 			z.take_damage(dmg, by, "body", "explosion", z.global_position + Vector3(0, 1, 0))
 			if not z.is_dead():
-				z.shove(pos, by)
+				if k > 0.45 and z.kind == "common":
+					z.knockdown(z.global_position - pos, randf_range(1.0, 2.2))
+				else:
+					z.shove(pos, by)
 	for s in Game.survivors:
 		if is_instance_valid(s) and not s.dead:
 			var d: float = s.global_position.distance_to(pos)

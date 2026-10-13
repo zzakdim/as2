@@ -25,6 +25,11 @@ func flinch(_local_dir: Vector3, _force: float) -> void:
 func hit_react(_world_dir: Vector3, _force: float, _part := "body") -> void:
 	pass
 
+## Knocked off its feet: fall, lie for `lie` seconds, get up. Returns the
+## total time it takes, or 0 if this rig can't do it.
+func knockdown(_lie: float) -> float:
+	return 0.0
+
 func die(_from_dir: Vector3) -> void:
 	pose = "dead"
 

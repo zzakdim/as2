@@ -520,11 +520,45 @@ func set_pose(p: String) -> void:
 		_oneshot("Skeletons_Awaken_Floor", 2.2)
 
 
+var _kd := []    # knockdown phases: [[anim, seconds, hold], ...]
+var _kd_t := 0.0
+
+func knockdown(lie: float) -> float:
+	if family != "human" or ragdolled or not anim.has_animation("Hit_Knockback") or not anim.has_animation("LayToIdle"):
+		return 0.0
+	var fall := anim.get_animation("Hit_Knockback").length
+	var up := anim.get_animation("LayToIdle").length / 1.3
+	_kd = [["Hit_Knockback", fall, false], ["", lie, true], ["LayToIdle", up, false]]
+	_kd_t = 0.0
+	_next_kd()
+	return fall + lie + up
+
+
+func _next_kd() -> void:
+	if _kd.is_empty():
+		oneshot_t = 0.0
+		base_anim = ""
+		return
+	var ph: Array = _kd[0]
+	_kd_t = ph[1]
+	oneshot_t = 999.0
+	if ph[2]:
+		anim.speed_scale = 0.0       # stay down
+	else:
+		anim.speed_scale = 1.0
+		anim.play(ph[0], 0.1 if ph[0] == "Hit_Knockback" else 0.25, 1.0 if ph[0] == "Hit_Knockback" else 1.3)
+
+
 func animate(delta: float, speed: float) -> void:
 	if ragdolled:
 		_rag_age += delta
 		return
-	if oneshot_t > 0.0:
+	if not _kd.is_empty():
+		_kd_t -= delta
+		if _kd_t <= 0.0:
+			_kd.pop_front()
+			_next_kd()
+	elif oneshot_t > 0.0:
 		oneshot_t -= delta
 	else:
 		var want := _pick_base(speed)
@@ -580,7 +614,7 @@ func swing(dur := 0.4) -> void:
 
 
 func flinch(_local_dir: Vector3, force: float) -> void:
-	if force < 2.0 or oneshot_t > 0.2:
+	if force < 2.0 or oneshot_t > 0.2 or not _kd.is_empty():
 		return
 	_oneshot("Hit_A" if randf() < 0.5 else "Hit_B", 1.6)
 

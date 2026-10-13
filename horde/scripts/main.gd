@@ -480,6 +480,16 @@ func run_hit_test(dir: String) -> void:
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png("%s/%02d_%s_%.2f.png" % [dir, n, hit[0], t])
 			n += 1
+	# Knockdown: fall, lie, get up.
+	for z in targets:
+		z.knockdown(-side, 1.0)
+	var t1 := 0.0
+	for t in [0.15, 0.4, 0.8, 1.3, 2.0, 2.6, 3.2, 3.8]:
+		await get_tree().create_timer(t - t1).timeout
+		t1 = t
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("%s/%02d_knockdown_%.2f.png" % [dir, n, t])
+		n += 1
 	print("[autotest] hit test: %d frames" % n)
 	get_tree().quit(0)
 

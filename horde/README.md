@@ -48,7 +48,8 @@ Medkit: select it (4), hold LMB to heal yourself or hold RMB on a teammate.
 Blocking right before a hit lands is a **perfect block**: no stamina cost,
 and the attacker reels. Heavies held to full charge flash and hit harder.
 Weapons: greatsword (cleaving sweeps), fire axe (armor-cracking chops),
-sledgehammer (slow; the overhead slam knocks everything down), machete.
+sledgehammer (slow; the overhead slam knocks everything down — they fall,
+lie there a moment and climb back up, as do commons near a blast), machete.
 
 The **Melee Sandbox** on the title screen drops you in an arena with the
 greatsword and an endless horde, with every weapon laid out around you.

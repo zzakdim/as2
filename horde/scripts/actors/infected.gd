@@ -506,6 +506,29 @@ func melee_stagger(dir: Vector3, force: float) -> void:
 	rig.hit_react(dir, force)
 
 
+## Knocked flat (slams, blasts): falls away from `dir`, lies there, gets up.
+func knockdown(dir: Vector3, lie := 1.2) -> void:
+	if state == S.DEAD:
+		return
+	if is_special or kind != "common":
+		melee_stagger(dir, 10.0)
+		return
+	var t := rig.knockdown(lie)
+	if t <= 0.0:
+		melee_stagger(dir, 10.0)
+		return
+	var d := dir
+	d.y = 0.0
+	d = d.normalized() if d.length_squared() > 0.001 else -face_dir
+	face_dir = -d                 # the fall animation goes over backwards
+	rig.rotation.y = atan2(-face_dir.x, -face_dir.z)
+	velocity = d * 3.0 + Vector3(0, 1.5, 0)
+	state = S.STAGGER
+	stagger_t = t
+	attack_pending = 0.0
+	sitting = false
+
+
 func on_death() -> void:
 	if randf() < 0.3:
 		Game.sfx.play3d("zombie_die", global_position + Vector3(0, 1.2, 0), -6.0, 0.25)

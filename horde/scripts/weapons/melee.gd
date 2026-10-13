@@ -630,7 +630,7 @@ func _slam(radius: float) -> void:
 				z.impact_force = 8.0
 				z.take_damage(120.0, s, "body", "melee", z.global_position + Vector3(0, 0.8, 0))
 			if not z.is_dead():
-				z.melee_stagger(away, 10.0)
+				z.knockdown(away, randf_range(0.8, 1.6))
 
 
 func _do_push() -> void:
