@@ -44,8 +44,14 @@ func update(delta: float) -> void:
 		for z in Game.infected:
 			if is_instance_valid(z) and not z.is_dead() and z.global_position.distance_squared_to(s.global_position) < 12.0:
 				close += 1
-		if close >= 6 or (close >= 3 and s.toughness < 25.0):
-			s.want_ability = true
+		match s.survivor_class:
+			"veteran", "psyker":
+				# Spend it on a special or elite they're fighting.
+				if target and is_instance_valid(target) and (target.is_special or target is Elite):
+					s.want_ability = true
+			_:
+				if close >= 6 or (close >= 3 and s.toughness < 25.0):
+					s.want_ability = true
 	react_t = max(0.0, react_t - delta)
 	scan_t -= delta
 	if scan_t <= 0.0:

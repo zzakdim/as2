@@ -80,7 +80,29 @@ var melee: Melee
 var want_dodge := false
 var want_ability := false
 var ability_cd := 8.0
-const ABILITY_COOLDOWN := 30.0
+var survivor_class := "zealot"
+var buff_t := 0.0               # Volley Fire active
+var rush_t := 0.0               # Bull Rush active
+var rush_dir := Vector3.ZERO
+var rush_hit := {}
+var burst_target = null         # Brain Burst charging on this enemy
+var burst_t := 0.0
+# Darktide-style classes: [display name, ability name, cooldown]
+const CLASSES := {
+	"zealot": ["Zealot", "Battle Cry", 30.0],
+	"veteran": ["Veteran", "Volley Fire", 30.0],
+	"ogryn": ["Ogryn", "Bull Rush", 20.0],
+	"psyker": ["Psyker", "Brain Burst", 16.0],
+}
+const CLASS_ORDER := ["zealot", "veteran", "ogryn", "psyker"]
+
+
+func ability_cooldown() -> float:
+	return CLASSES[survivor_class][2]
+
+
+func ability_name() -> String:
+	return CLASSES[survivor_class][1]
 var dodge_t := 0.0
 var dodge_cd := 0.0
 var dodges := 3
@@ -272,6 +294,8 @@ func _physics_process(delta: float) -> void:
 		controller.update(delta)
 	_timers(delta)
 	ability_cd = maxf(0.0, ability_cd - delta)
+	buff_t = maxf(0.0, buff_t - delta)
+	_update_brain_burst(delta)
 	if want_ability:
 		want_ability = false
 		use_ability()
@@ -310,7 +334,22 @@ func _update_toughness(delta: float) -> void:
 func use_ability() -> bool:
 	if ability_cd > 0.0 or incapped or dead or pinned_by != null:
 		return false
-	ability_cd = ABILITY_COOLDOWN
+	var ok := false
+	match survivor_class:
+		"veteran": ok = _volley_fire()
+		"ogryn": ok = _bull_rush()
+		"psyker": ok = _brain_burst()
+		_: ok = _battle_cry()
+	if ok:
+		ability_cd = ability_cooldown()
+		if Game.autotest:
+			print("[autotest] %s used %s" % [survivor_name, ability_name()])
+		if controller and controller.has_method("on_ability"):
+			controller.on_ability()
+	return ok
+
+
+func _battle_cry() -> bool:
 	var p := global_position
 	for z in Game.infected.duplicate():
 		if not is_instance_valid(z) or z.is_dead() or z.kind == "witch" or z.kind == "tank":
@@ -332,9 +371,103 @@ func use_ability() -> bool:
 	Game.fx.add_shake(p, 0.5)
 	Game.make_noise(p, 20.0)
 	Game.callout(self, ["Get back!", "Come on then!", "Back off!"].pick_random())
-	if controller and controller.has_method("on_ability"):
-		controller.on_ability()
 	return true
+
+
+## Veteran: 8 s of faster, harder-hitting fire, a fresh magazine, and every
+## special and elite in sight marked for the team.
+func _volley_fire() -> bool:
+	buff_t = 8.0
+	var w: Variant = current_weapon()
+	if w != null and WeaponData.DEFS.has(w["id"]) and not WeaponData.get_def(w["id"]).get("melee", false):
+		w["mag"] = WeaponData.get_def(w["id"]).get("mag", w["mag"])
+		reloading = false
+	for z in Game.infected:
+		if is_instance_valid(z) and not z.is_dead() and (z.is_special or z is Elite):
+			if z.global_position.distance_to(global_position) < 45.0 and Game.level.los(eye_pos(), z.global_position + Vector3(0, 1, 0)):
+				Game.hud.ping_marker(z)
+	Game.sfx.play3d("reload", eye_pos(), 2.0, 0.0)
+	Game.callout(self, ["Targets marked!", "Volley fire!", "Eyes on!"].pick_random())
+	return true
+
+
+## Ogryn: a short charge that bowls the horde over.
+func _bull_rush() -> bool:
+	rush_t = 0.55
+	rush_dir = flat_forward()
+	rush_hit.clear()
+	Game.sfx.play3d("charger_roar", eye_pos(), 2.0, 0.1)
+	Game.callout(self, ["Coming through!", "Out the way!"].pick_random())
+	return true
+
+
+func _update_rush() -> void:
+	for z in Game.infected.duplicate():
+		if not is_instance_valid(z) or z.is_dead() or rush_hit.has(z):
+			continue
+		var to: Vector3 = z.global_position - global_position
+		to.y = 0.0
+		if to.length() < 1.7 and rush_dir.dot(to.normalized()) > -0.2:
+			rush_hit[z] = true
+			var side := rush_dir * 0.6 + to.normalized() * 0.8
+			if z.kind == "common":
+				z.knockdown(side, randf_range(1.0, 1.8))
+				z.take_damage(25.0, self, "body", "melee", z.global_position + Vector3(0, 1, 0))
+			elif z.kind != "tank":
+				z.melee_stagger(side.normalized(), 9.0)
+			Game.sfx.play3d("bone", z.global_position + Vector3(0, 1, 0), -4.0, 0.2)
+			Game.fx.add_shake(global_position, 0.15)
+
+
+## Psyker: pick the special/elite under the crosshair (else any enemy); its
+## head swells for a moment, then pops.
+func _brain_burst() -> bool:
+	var eye := eye_pos()
+	var fwd := aim_dir()
+	var best = null
+	var best_score := -INF
+	for z in Game.infected:
+		if not is_instance_valid(z) or z.is_dead():
+			continue
+		var head: Vector3 = z.global_position + Vector3(0, z.head_y, 0)
+		var to := head - eye
+		var d := to.length()
+		if d > 50.0 or d < 1.0:
+			continue
+		var dot := fwd.dot(to / d)
+		if dot < 0.96:
+			continue
+		var score := dot * 10.0 - d * 0.02 + (3.0 if z.is_special or z is Elite else 0.0)
+		if score > best_score and Game.level.los(eye, head):
+			best_score = score
+			best = z
+	if best == null:
+		return false
+	burst_target = best
+	burst_t = 0.7
+	Game.sfx.play3d("smoker_cough", eye, -6.0, 0.3)
+	return true
+
+
+func _update_brain_burst(delta: float) -> void:
+	if burst_target == null:
+		return
+	if not is_instance_valid(burst_target) or burst_target.is_dead() or dead or incapped:
+		burst_target = null
+		return
+	burst_t -= delta
+	if randf() < delta * 30.0:
+		Game.fx.impact(burst_target.global_position + Vector3(0, burst_target.head_y, 0), Vector3.UP)
+	if burst_t <= 0.0:
+		var z = burst_target
+		burst_target = null
+		z.cut = "split"
+		z.impact_dir = Vector3.UP
+		z.impact_force = 3.0
+		var dmg := 260.0 if z.kind == "tank" else 900.0
+		z.take_damage(dmg, self, "head", "melee", z.global_position + Vector3(0, z.head_y, 0))
+		Game.sfx.play3d("flesh", z.global_position + Vector3(0, 1.6, 0), 4.0, 0.1)
+		Game.fx.gib_burst(z.global_position + Vector3(0, z.head_y, 0), Vector3.UP, 0.25)
 
 
 func restore_toughness(amount: float) -> void:
@@ -377,7 +510,19 @@ func _timers(delta: float) -> void:
 			_finish_reload_step()
 
 
+var _last_delta := 0.016
+
 func _move(delta: float) -> void:
+	_last_delta = delta
+	if rush_t > 0.0 and pinned_by == null and not incapped:
+		rush_t -= _last_delta
+		velocity = rush_dir * 13.0 + Vector3(0, velocity.y - 20.0 * _last_delta, 0)
+		move_and_slide()
+		_update_rush()
+		if is_on_wall():
+			rush_t = 0.0
+			Game.fx.add_shake(global_position, 0.4)
+		return
 	if pinned_by != null:
 		velocity = Vector3.ZERO
 		if ride_vel != Vector3.ZERO:
@@ -502,7 +647,7 @@ func try_fire() -> void:
 		start_reload()
 		return
 	w["mag"] -= 1
-	fire_cd = def["rate"]
+	fire_cd = def["rate"] * (0.75 if buff_t > 0.0 else 1.0)
 	var origin := eye_pos()
 	var base := aim_dir()
 	var spread_deg: float = def["spread"]
@@ -552,7 +697,7 @@ func _hitscan(origin: Vector3, dir: Vector3, def: Dictionary) -> Vector3:
 		mask |= Game.LAYER_SURVIVOR
 	var from := origin
 	var to := origin + dir * rng_m
-	var dmg: float = def["damage"]
+	var dmg: float = def["damage"] * (1.4 if buff_t > 0.0 else 1.0)
 	var hits := 0
 	for step in 8:
 		var q := PhysicsRayQueryParameters3D.create(from, to, mask, exclude)

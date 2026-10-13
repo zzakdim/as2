@@ -35,6 +35,7 @@ var autotest_seconds := 90.0
 var mode := "campaign"        # "campaign" or "sandbox" (melee test arena)
 var god_mode := false
 var force_input := false        # input test: treat input as live without a captured mouse
+var player_class := "zealot"      # zealot, veteran, ogryn, psyker
 var bots_enabled := true       # teammates; turn off for solo testing (menu toggle or --no-bots)
 var playing := false
 var time := 0.0

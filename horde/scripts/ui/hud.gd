@@ -265,7 +265,8 @@ func _process(delta: float) -> void:
 		stamina_bar.blocking = p.melee.is_blocking()
 		stamina_bar.charge = clamp(p.melee.t / p.melee.atk.get("charge", 1.0), 0.0, 1.0) if p.melee.state == "charge" else 0.0
 		stamina_bar.queue_redraw()
-	ability_icon.frac = 1.0 - p.ability_cd / Survivor.ABILITY_COOLDOWN
+	ability_icon.frac = 1.0 - p.ability_cd / p.ability_cooldown()
+	ability_icon.label = p.ability_name()
 	ability_icon.visible = not p.dead
 	ability_icon.queue_redraw()
 	_update_splats(delta)
@@ -553,6 +554,7 @@ class Crosshair extends Control:
 ## Combat ability (G): ring fills while recharging, glows when ready.
 class AbilityIcon extends Control:
 	var frac := 1.0
+	var label := ""
 	func _draw() -> void:
 		var ready := frac >= 1.0
 		var c := Vector2(0, 22)
@@ -560,6 +562,7 @@ class AbilityIcon extends Control:
 		draw_arc(c, 20.0, -PI / 2, -PI / 2 + TAU * frac, 32, Color(1.0, 0.8, 0.45, 0.95) if ready else Color(1, 1, 1, 0.5), 3.0)
 		var font := ThemeDB.fallback_font
 		draw_string(font, c + Vector2(-6, 7), "G", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(1, 0.9, 0.7) if ready else Color(1, 1, 1, 0.4))
+		draw_string(font, c + Vector2(-80, 40), label, HORIZONTAL_ALIGNMENT_CENTER, 160, 13, Color(1, 1, 1, 0.6))
 
 
 class StaminaPips extends Control:

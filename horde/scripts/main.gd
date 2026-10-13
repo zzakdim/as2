@@ -40,7 +40,7 @@ func show_title() -> void:
 Fight from saferoom to saferoom with three AI teammates.
 
 WASD move  ·  Mouse aim  ·  LMB fire  ·  RMB shove  ·  R reload  ·  E use / revive (hold)
-1-5 weapons & items  ·  Q last weapon  ·  F flashlight  ·  Z ping  ·  Ctrl crouch  ·  Shift walk
+1-5 weapons & items  ·  Q last weapon  ·  F flashlight  ·  Z ping  ·  G class ability  ·  Ctrl crouch
 Tab stats  ·  F3 director overlay  ·  Esc pause
 
 Medkit: select (4), hold LMB to heal yourself or RMB on a teammate.
@@ -63,6 +63,11 @@ Don't startle the Witch. Shove Boomers before you shoot them."""
 			SkinnedRig.style = "kaykit"
 		else:
 			Infected.use_box_rigs = true
+		show_title()])
+	var cls: Array = Survivor.CLASSES[Game.player_class]
+	buttons.append(["Class: %s (%s)" % [cls[0], cls[1]], func():
+		var order := Survivor.CLASS_ORDER
+		Game.player_class = order[(order.find(Game.player_class) + 1) % order.size()]
 		show_title()])
 	buttons.append(["Bot teammates: %s" % ("ON" if Game.bots_enabled else "OFF"), func():
 		Game.bots_enabled = not Game.bots_enabled
@@ -118,6 +123,9 @@ func load_map(idx: int) -> void:
 		var s := Survivor.new()
 		var info: Array = SURVIVORS[i]
 		s.setup(info[0], info[1], i != 0)
+		# The player's class first; the bots take the others.
+		var others := Survivor.CLASS_ORDER.filter(func(c): return c != Game.player_class)
+		s.survivor_class = Game.player_class if i == 0 else others[(i - 1) % others.size()]
 		s.position = lvl.spawn_points[i]
 		s.yaw = PI   # face +Z, out of the saferoom
 		world.add_child(s)
