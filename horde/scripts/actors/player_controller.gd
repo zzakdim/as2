@@ -487,7 +487,7 @@ func _update_trail(delta: float) -> void:
 	trail_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	for tp in trail_pts:
 		var a: float = clamp(1.0 - tp[2] / TRAIL_LIFE, 0.0, 1.0)
-		a = a * a * (0.55 if not heavy else 0.75)
+		a = a * a * (0.38 if not heavy else 0.52)
 		trail_mesh.surface_set_color(Color(tint.r, tint.g, tint.b, 0.0))
 		trail_mesh.surface_add_vertex(tp[0])
 		trail_mesh.surface_set_color(Color(tint.r, tint.g, tint.b, a))

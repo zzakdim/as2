@@ -114,6 +114,22 @@ func load_map(idx: int) -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--weather="):
 			weather = a.substr(10)
+	if Game.mode == "sandbox" and world_env:
+		# Arena: floodlit so the gore reads (the campaign keeps its night).
+		world_env.ambient_light_energy = 0.9
+		world_env.tonemap_exposure = 1.3
+		var cc: Vector3 = lvl.spawn_points[0]
+		for i in 4:
+			var fl := SpotLight3D.new()
+			var ang := TAU * (i + 0.5) / 4.0
+			fl.position = cc + Vector3(cos(ang) * 11.0, 9.0, sin(ang) * 11.0)
+			world.add_child(fl)
+			fl.look_at(cc + Vector3(0, 0, 0), Vector3.UP)
+			fl.spot_range = 30.0
+			fl.spot_angle = 48.0
+			fl.light_energy = 3.2
+			fl.light_color = Color(1.0, 0.9, 0.78)
+			fl.shadow_enabled = i % 2 == 0
 	if weather == "rain":
 		var w := Weather.new()
 		world.add_child(w)

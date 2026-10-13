@@ -75,6 +75,10 @@ static func blood_mat() -> StandardMaterial3D:
 		_blood_mat.albedo_color = Color(0.26, 0.012, 0.01)
 		_blood_mat.roughness = 0.15
 		_blood_mat.metallic_specular = 0.9
+		# Droplets right in front of the lens would read as big red shards.
+		_blood_mat.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_DITHER
+		_blood_mat.distance_fade_min_distance = 0.5
+		_blood_mat.distance_fade_max_distance = 1.3
 	return _blood_mat
 
 
