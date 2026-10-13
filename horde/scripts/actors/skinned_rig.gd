@@ -285,8 +285,9 @@ func _outfit(opts: Dictionary, tint: Color) -> Dictionary:
 		if base is BaseMaterial3D:
 			normal_tex = base.normal_texture
 	var out := {}
-	var top_m := _cloth(top, normal_tex)
-	var bottom_m := _cloth(bottom, normal_tex)
+	var grime := role != "survivor"
+	var top_m := _cloth(top, normal_tex, randi() % 3 if grime else -1)
+	var bottom_m := _cloth(bottom, normal_tex, randi() % 3 if grime else -1)
 	out["body"] = top_m
 	out["arm_l"] = top_m
 	out["arm_r"] = top_m
@@ -302,11 +303,14 @@ func _outfit(opts: Dictionary, tint: Color) -> Dictionary:
 	return out
 
 
-func _cloth(c: Color, normal_tex: Texture2D) -> StandardMaterial3D:
-	var key := "cloth|%s|%s" % [c.to_html(), normal_tex != null]
+## Fabric material; `stain` >= 0 picks one of a few procedural grime/blood maps.
+func _cloth(c: Color, normal_tex: Texture2D, stain := -1) -> StandardMaterial3D:
+	var key := "cloth|%s|%s|%d" % [c.to_html(), normal_tex != null, stain]
 	if not _tints.has(key):
 		var m := StandardMaterial3D.new()
 		m.albedo_color = c
+		if stain >= 0:
+			m.albedo_texture = _stain_tex(stain)
 		m.roughness = 0.92
 		if normal_tex:
 			m.normal_enabled = true
@@ -314,6 +318,36 @@ func _cloth(c: Color, normal_tex: Texture2D) -> StandardMaterial3D:
 			m.normal_scale = 0.6
 		_tints[key] = m
 	return _tints[key]
+
+
+static var _stains := {}
+
+## White cloth with dirt mottling and dark blood splotches (multiplied by the
+## cloth colour), generated once per variant.
+static func _stain_tex(v: int) -> Texture2D:
+	if _stains.has(v):
+		return _stains[v]
+	var n := FastNoiseLite.new()
+	n.seed = 100 + v * 17
+	n.frequency = 0.012
+	n.fractal_octaves = 4
+	var n2 := FastNoiseLite.new()
+	n2.seed = 300 + v * 31
+	n2.frequency = 0.03
+	var size := 256
+	var img := Image.create(size, size, false, Image.FORMAT_RGB8)
+	for y in size:
+		for x in size:
+			var dirt := 0.75 + 0.25 * n2.get_noise_2d(x, y)
+			var b := n.get_noise_2d(x, y)
+			var col := Color(dirt, dirt * 0.97, dirt * 0.92)
+			if b > 0.28:
+				var k: float = clamp((b - 0.28) * 6.0, 0.0, 1.0)
+				col = col.lerp(Color(0.38, 0.05, 0.04), k)
+			img.set_pixel(x, y, col)
+	var t := ImageTexture.create_from_image(img)
+	_stains[v] = t
+	return t
 
 
 static func _part_key(n: String) -> String:
