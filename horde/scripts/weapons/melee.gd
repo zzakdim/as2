@@ -42,7 +42,7 @@ const MOVESETS := {
 	# and guaranteed severing on head hits (crits). The heavy is a lunge.
 	"sabre": {
 		"length": 0.84, "grip": 0.14, "pivot": Vector3(0.13, -0.24, -0.48),
-		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true, "swish_pitch": 1.3, "move": 1.06,
+		"stamina": 3.0, "block_cost": 0.7, "push_cost": 1.0, "block_arc": 0.35, "head_mult": 1.8, "crit": true, "swish_pitch": 1.3, "move": 1.06, "bite": 0.6,
 		"parry": {"active": 0.28, "recover": 0.32, "cost": 0.5},
 		"light": [
 			{"name": "Cut 1", "dir": 28.0, "arc": [-56.0, 60.0], "windup": 0.07, "strike": 0.085, "follow": 0.06, "recover": 0.2,
@@ -66,7 +66,7 @@ const MOVESETS := {
 	# the charged heavy goes through a whole line and always cuts bodies in two.
 	"executioner": {
 		"length": 1.0, "grip": 0.36, "pivot": Vector3(0.06, -0.28, -0.5),
-		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92, "swish_pitch": 0.72, "move": 0.9,
+		"stamina": 5.0, "block_cost": 0.4, "push_cost": 1.2, "block_arc": 0.2, "speed": 0.92, "swish_pitch": 0.72, "move": 0.9, "bite": 1.45,
 		"light": [
 			{"name": "Wide sweep L>R", "dir": 8.0, "arc": [-70.0, 76.0], "windup": 0.26, "strike": 0.19, "follow": 0.16, "recover": 0.46,
 				"damage": 230.0, "cleave": 7.0, "impact": 9.0, "lunge": 2.4, "sever": 0.85, "next_light": 1, "next_heavy": 0, "bisect": true},
@@ -86,7 +86,7 @@ const MOVESETS := {
 	# Momentum: the swings get faster with every consecutive hit (up to +40%);
 	# whiffing or pausing loses it. Rewards staying in the crowd.
 	"messer": {
-		"length": 0.76, "grip": 0.19, "pivot": Vector3(0.12, -0.25, -0.48), "momentum": true, "swish_pitch": 1.1,
+		"length": 0.76, "grip": 0.19, "pivot": Vector3(0.12, -0.25, -0.48), "momentum": true, "swish_pitch": 1.1, "bite": 0.85,
 		"wrath": {"name": "Wrath cut", "dir": 35.0, "arc": [-64.0, 70.0], "windup": 0.1, "strike": 0.13, "follow": 0.1, "recover": 0.36,
 			"damage": 220.0, "cleave": 4.0, "impact": 8.0, "lunge": 3.0, "sever": 0.7, "next_light": 0, "next_heavy": 0, "bisect": true},
 		"stamina": 3.5, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
@@ -750,8 +750,10 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 		z.cut = ""
 	# Feel: blade drags, camera punches with the swing, blood follows the edge.
 	var heavy_target: bool = z.is_special
-	drag_t = 0.07 if heavy_target else (0.045 if killed else 0.06)
-	drag_scale = 0.06 if heavy_target else 0.18
+	# Hit drag: how long and how hard the blade bites, per weapon weight.
+	var bite: float = ms.get("bite", 1.0)
+	drag_t = (0.07 if heavy_target else (0.045 if killed else 0.06)) * bite * (1.2 if is_heavy else 1.0)
+	drag_scale = clampf((0.06 if heavy_target else 0.18) / bite, 0.03, 0.4)
 	var local_t := cam.basis.inverse() * tangent
 	cam_punch += Vector2(-local_t.y, -local_t.x) * (0.012 if not is_heavy else 0.02)
 	Game.fx.blood_spray(p, z.impact_dir, 14 if killed else 8)

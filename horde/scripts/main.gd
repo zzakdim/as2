@@ -452,8 +452,10 @@ func run_pose_sheet(dir: String) -> void:
 	for k in [0.0, 0.5, 1.0]:
 		shots.append(["push_attack", 0, "strike", k])
 	var n := 0
+	if p.melee.ms.has("parry"):
+		shots.insert(2, ["parry", 0, "", 0.0])
 	for sh in shots:
-		p.melee.pose = p.melee.pose_for(sh[0], sh[1], sh[2], sh[3])
+		p.melee.pose = p.melee.parry_pose() if sh[0] == "parry" else p.melee.pose_for(sh[0], sh[1], sh[2], sh[3])
 		await get_tree().process_frame
 		await get_tree().process_frame
 		await RenderingServer.frame_post_draw
