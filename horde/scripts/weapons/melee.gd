@@ -652,48 +652,31 @@ const VIEW_FLAT := 0.6         # blade depth component scale
 const VIEW_HALF_W := 0.9       # tan(half hfov) at the default 85 deg FOV, 16:9
 const VIEW_HALF_H := 0.52
 const VIEW_MIN_DEPTH := 0.42   # hands stay at least this far from the eye
-const SHOULDER_R := Vector3(0.21, -0.34, 0.12)
-const SHOULDER_L := Vector3(-0.21, -0.34, 0.12)
-const VIEW_REACH := 0.66       # fp arm length (shoulder to wrist, a bit short of full)
-const VIEW_EDGE := 1.32        # leading hand ends up just past the frame edge
+const VIEW_EDGE := 1.0         # upper fist centred on the frame edge (half visible)
+const VIEW_MAX_DROP := 0.45
 
 func view_pose(xf: Transform3D) -> Transform3D:
 	var o := xf.origin
 	o = Vector3(o.x * 1.05, o.y - VIEW_DROP, o.z * VIEW_NEAR)
 	var d := -xf.basis.z
 	d = Vector3(d.x, d.y, d.z * VIEW_FLAT).normalized()
-	# Keep the hands just outside the frame: if the leading hand (up the
-	# grip) would land on screen, slide the whole weapon radially out past
-	# the nearest edge. The blade, much longer, stays in view.
 	var g: float = ms.get("grip", 0.3)
 	# Never let a fist come right up to the lens.
 	for frac in [0.8, 0.2]:
 		var hz: float = (o + d * g * frac).z
 		if -hz < VIEW_MIN_DEPTH:
 			o.z -= VIEW_MIN_DEPTH + hz
-	# Slide the weapon (mostly downward, toward the shoulders) until both
-	# fists are just past the frame edge, but never out of arm's reach.
-	var best := o
-	for i in 24:
-		var inside := false
-		for frac in [0.8, 0.2]:
-			var hand: Vector3 = o + d * g * frac
-			var depth := maxf(-hand.z, 0.12)
-			var r := sqrt((hand.x / depth / VIEW_HALF_W) ** 2 + (hand.y / depth / VIEW_HALF_H) ** 2)
-			if r < VIEW_EDGE:
-				inside = true
-		var hr: Vector3 = o + d * g * 0.8
-		var hl: Vector3 = o + d * g * 0.2
-		if hr.distance_to(SHOULDER_R) > VIEW_REACH or hl.distance_to(SHOULDER_L) > VIEW_REACH:
-			break
-		best = o
-		if not inside:
-			break
-		var c: Vector3 = o + d * g * 0.5
-		var out := Vector2(c.x, c.y).normalized() if Vector2(c.x, c.y).length() > 0.001 else Vector2.DOWN
-		var step := (out * 0.35 + Vector2(0, -1)).normalized() * 0.018
-		o += Vector3(step.x, step.y, 0)
-	o = best
+	# Drop the weapon until the upper fist sits on the bottom edge of the
+	# frame (half cut off, like Darktide); a fist already off the side
+	# edge doesn't need it. The blade, much longer, stays in view.
+	var drop := 0.0
+	for frac in [0.8, 0.2]:
+		var hand: Vector3 = o + d * g * frac
+		var depth := maxf(-hand.z, 0.12)
+		if absf(hand.x) / depth > VIEW_HALF_W * VIEW_EDGE:
+			continue
+		drop = maxf(drop, hand.y + VIEW_HALF_H * VIEW_EDGE * depth)
+	o.y -= minf(drop, VIEW_MAX_DROP)
 	return _blade_xf(o, d, xf.basis.x)
 
 

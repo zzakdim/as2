@@ -138,6 +138,12 @@ func _solve(side: String, target_cam: Vector3, pole_dir_cam: Vector3, frame := [
 	var l1: float = lens[side][0]
 	var l2: float = lens[side][1]
 	var to_t := T - S
+	# Out of reach: the shoulder follows the hand (it's off screen) rather
+	# than the fist stopping short of the handle.
+	var reach := (l1 + l2) * 0.985
+	if to_t.length() > reach:
+		S += to_t.normalized() * (to_t.length() - reach)
+		to_t = T - S
 	var d: float = clamp(to_t.length(), 0.05, l1 + l2 - 0.002)
 	var dir := to_t.normalized()
 	var a := (l1 * l1 - l2 * l2 + d * d) / (2.0 * d)
