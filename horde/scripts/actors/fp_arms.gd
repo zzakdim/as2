@@ -46,7 +46,13 @@ func setup(shirt: Color) -> void:
 						if base == null:
 							continue
 						var m: StandardMaterial3D = base.duplicate()
-						if not base.resource_name.contains("Regular") and not base.resource_name.contains("Superhero"):
+						var skin: bool = base.resource_name.contains("Regular") or base.resource_name.contains("Superhero")
+						if String(c.name).contains("Hand"):
+							# Worn leather gloves over the whole hand: a closed
+							# glove reads as a grip from any angle.
+							m = _glove_mat()
+							_skin_mats.append([m, m.albedo_color])
+						elif not skin:
 							m.albedo_color = Color(1, 1, 1).lerp(shirt.lightened(0.35), 0.55)
 							_cloth_mats.append([m, m.albedo_color])
 						else:
@@ -69,6 +75,30 @@ func setup(shirt: Color) -> void:
 	var sh := skel.get_bone_global_rest(bones["upperarm_l"]).origin
 	model.position = Vector3(0, -0.34 - sh.y * 1.15, 0.12 + sh.z * 1.15)
 	base_pos = model.position
+
+
+static func _glove_mat() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.2, 0.135, 0.09)
+	m.roughness = 0.62
+	m.metallic_specular = 0.35
+	# Creased, worn leather.
+	var n := FastNoiseLite.new()
+	n.frequency = 0.09
+	n.fractal_octaves = 4
+	var tex := NoiseTexture2D.new()
+	tex.noise = n
+	tex.width = 256
+	tex.height = 256
+	tex.as_normal_map = true
+	tex.bump_strength = 4.0
+	tex.seamless = true
+	m.normal_enabled = true
+	m.normal_texture = tex
+	m.normal_scale = 0.6
+	m.uv1_triplanar = true
+	m.uv1_scale = Vector3.ONE * 6.0
+	return m
 
 
 ## Gore on the hands and sleeves (0..1), following the blade's.

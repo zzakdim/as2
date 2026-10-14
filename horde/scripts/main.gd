@@ -192,6 +192,8 @@ func load_map(idx: int) -> void:
 			run_cut_test(a.substr(11))
 		if a.begins_with("--swing-test="):
 			run_swing_test(a.substr(13))
+		if a == "--mash-test":
+			run_mash_test()
 		if a.begins_with("--gun-sheet="):
 			run_gun_sheet(a.substr(12))
 		if a.begins_with("--kill-bot="):
@@ -751,6 +753,67 @@ func run_swing_test(arg: String) -> void:
 			await shoot.call()
 	print("[autotest] swing test: %d frames" % n[0])
 	get_tree().quit(0)
+
+
+## --mash-test : headless. Mashes the attack button with human-ish click
+## timings on every melee weapon and counts swings that turned into heavies
+## (should be none: spamming lights chains lights forever).
+func run_mash_test() -> void:
+	var p: Survivor = Game.player
+	for c in p.get_children():
+		if c is PlayerController:
+			p.controller = c
+	for z in Game.infected.duplicate():
+		z.queue_free()
+	Game.director.set_physics_process(false)
+	Game.force_input = true
+	Game.god_mode = true
+	var bad := 0
+	for wid in SANDBOX_MELEE:
+		p.secondary = WeaponData.new_state(wid)
+		p.active_slot = Survivor.SLOT_SECONDARY
+		p._refresh_held_model()
+		p.controller.on_weapon_changed()
+		await get_tree().create_timer(0.3).timeout
+		var lights := 0
+		var heavies := 0
+		var prev := ""
+		var t := 0.0
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 7
+		while t < 10.0:
+			Input.action_press("fire")
+			var hold := rng.randf_range(0.05, 0.16)
+			var gap := rng.randf_range(0.06, 0.2)
+			var e := 0.0
+			while e < hold + gap:
+				if e >= hold:
+					Input.action_release("fire")
+				await get_tree().physics_frame
+				var dt := get_physics_process_delta_time()
+				e += dt
+				var st: String = p.melee.state
+				if st != prev:
+					if st == "charge":
+						heavies += 1
+					elif st == "windup":
+						lights += 1
+					prev = st
+			t += hold + gap
+		Input.action_release("fire")
+		await get_tree().create_timer(1.2).timeout
+		# A real hold must still charge a heavy.
+		Input.action_press("fire")
+		var charged := false
+		for i in 40:
+			await get_tree().physics_frame
+			charged = charged or p.melee.state == "charge"
+		Input.action_release("fire")
+		await get_tree().create_timer(1.2).timeout
+		print("[mash] %-13s swings %3d  heavies %d  hold->heavy %s" % [wid, lights, heavies, charged])
+		bad += heavies + (0 if charged else 1)
+	print("[mash] %s" % ("PASS" if bad == 0 else "FAIL: %d accidental heavies" % bad))
+	get_tree().quit(0 if bad == 0 else 1)
 
 
 ## --lineup=/dir : every character model in a row (with a light), then kills

@@ -299,8 +299,12 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 		drag_t -= delta
 		dt *= drag_scale
 	dt *= tempo()
+	# How long the *current* press has been held (mashing never adds up
+	# to a heavy).
 	if fire_held:
 		press_t += delta
+	else:
+		press_t = 0.0
 	lunge = Vector3.ZERO
 
 	match state:

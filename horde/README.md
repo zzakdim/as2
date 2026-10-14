@@ -197,6 +197,10 @@ is exactly what you hit. Feel comes from:
 `--input-test` drives the real first-person controls through every melee
 state, the medkit, pills and throwables, and fails if any are unreachable.
 
+`--mash-test` (with `--autotest --sandbox`) mashes the attack button on every
+melee weapon and fails if spamming lights ever turns into a heavy, or if a
+real hold doesn't.
+
 `--spawn=gunner,rager` (with `--autotest`) drops those enemies 12 m in front
 of the player, for screenshot checks of a specific fight.
 
