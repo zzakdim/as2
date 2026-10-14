@@ -23,7 +23,7 @@ const DEFS := {
 		"range": 2.3, "arc": 70.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
 	},
 	"fire_axe": {
-		"name": "Fire Axe", "slot": 1, "tier": 0, "melee": true, "moveset": "fire_axe", "damage": 190.0, "rate": 0.5,
+		"name": "Bearded Axe", "slot": 1, "tier": 0, "melee": true, "moveset": "fire_axe", "damage": 190.0, "rate": 0.5,
 		"range": 2.2, "arc": 60.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
 	},
 	"sledgehammer": {
@@ -166,7 +166,8 @@ static func build_model(id: String, view := false) -> Node3D:
 		"machete":
 			WeaponMesh.machete(root, steel.duplicate(), Mats.color(Color(0.22, 0.13, 0.07), 0.75))
 		"fire_axe":
-			WeaponMesh.fire_axe(root, steel.duplicate(), Mats.color(Color(0.62, 0.08, 0.06), 0.4, 0.4), wood)
+			var axe_steel := Mats.color(Color(0.46, 0.46, 0.48), 0.4, 0.8).duplicate()
+			WeaponMesh.fire_axe(root, axe_steel, null, Mats.color(Color(0.24, 0.15, 0.09), 0.75))
 		"sledgehammer":
 			WeaponMesh.sledgehammer(root, Mats.color(Color(0.35, 0.36, 0.38), 0.45, 0.7).duplicate(), wood)
 		"sabre", "executioner", "messer":

@@ -82,7 +82,13 @@ Swords, each built around a different idea:
   gone. Its special (V) spends two or more stacks on a **Wrath cut**: +25%
   damage, more cleave and more severing per stack.
 
-Other melee: fire axe (armor-cracking chops),
+- **Bearded Axe** — hew: fast alternating chops that crack armour and bite
+  into the body they stop in, hold a beat, then rip free in a gout of blood.
+  Heavies: a Skullsplitter overhead and a sweep that takes the legs out from
+  under a line. Special (V): the **beard hook** drags the front rank off
+  their feet toward you; anything lying down takes double damage.
+
+Other melee:
 sledgehammer (slow; the overhead slam knocks everything down — they fall,
 lie there a moment and climb back up, as do commons near a blast), machete.
 

@@ -502,6 +502,7 @@ func restore_toughness(amount: float) -> void:
 
 func _update_melee(delta: float) -> void:
 	if melee_frozen:
+		melee._update_view_roll(delta)
 		return
 	if is_melee_active() and can_act() and not incapped and action == "":
 		melee.set_weapon(current_item_id())

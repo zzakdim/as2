@@ -110,24 +110,35 @@ const MOVESETS := {
 		"push_attack": {"name": "Nagel jab", "thrust": true, "windup": 0.07, "strike": 0.1, "follow": 0.08, "recover": 0.28,
 			"damage": 220.0, "cleave": 2.0, "impact": 6.0, "lunge": 3.5, "next_light": 0, "next_heavy": 0},
 	},
+	# Bearded axe — hew. Commits to whoever's in front: every swing bites into
+	# the body it stops in and rips free in a gout of blood. Fast alternating
+	# chops, a skull-splitting overhead, a sweep that takes the legs out, and
+	# the beard hook (special) that drags a zombie down at your feet, where
+	# the axe does double damage.
 	"fire_axe": {
-		"length": 0.62, "grip": 0.42, "pivot": Vector3(0.1, -0.26, -0.48), "head_mass": true,
+		"length": 0.6, "grip": 0.4, "pivot": Vector3(0.1, -0.26, -0.48), "head_mass": true,
 		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
+		"bite": 1.3, "embed": true, "view_roll": 0.55, "downed_mult": 2.0, "swish_pitch": 0.85,
+		"idle_o": Vector3(0.3, -0.34, -0.5), "idle_v": Vector3(0.1, 0.8, -0.55),
 		"light": [
-			{"name": "Chop L", "dir": 58.0, "arc": [-58.0, 58.0], "windup": 0.15, "strike": 0.12, "follow": 0.1, "recover": 0.3,
-				"damage": 190.0, "cleave": 1.6, "impact": 5.0, "lunge": 1.2, "next_light": 1, "next_heavy": 0, "split": true},
-			{"name": "Chop R", "dir": 122.0, "arc": [-58.0, 58.0], "windup": 0.15, "strike": 0.12, "follow": 0.1, "recover": 0.3,
-				"damage": 190.0, "cleave": 1.6, "impact": 5.0, "lunge": 1.2, "next_light": 2, "next_heavy": 0, "split": true},
-			{"name": "Sweep", "dir": 12.0, "arc": [-60.0, 64.0], "windup": 0.16, "strike": 0.14, "follow": 0.1, "recover": 0.32,
-				"damage": 140.0, "cleave": 3.0, "impact": 5.0, "lunge": 1.4, "next_light": 0, "next_heavy": 0},
+			{"name": "Hew L", "dir": 55.0, "arc": [-58.0, 56.0], "windup": 0.13, "strike": 0.1, "follow": 0.08, "recover": 0.26,
+				"damage": 230.0, "cleave": 1.3, "impact": 6.5, "lunge": 1.3, "sever": 0.75, "next_light": 1, "next_heavy": 0, "split": true},
+			{"name": "Hew R", "dir": 125.0, "arc": [-58.0, 56.0], "windup": 0.13, "strike": 0.1, "follow": 0.08, "recover": 0.26,
+				"damage": 230.0, "cleave": 1.3, "impact": 6.5, "lunge": 1.3, "sever": 0.75, "next_light": 2, "next_heavy": 1, "split": true},
+			{"name": "Low hew", "dir": 16.0, "arc": [-60.0, 60.0], "windup": 0.14, "strike": 0.11, "follow": 0.08, "recover": 0.28,
+				"damage": 200.0, "cleave": 1.8, "impact": 6.0, "lunge": 1.4, "sever": 0.9, "next_light": 0, "next_heavy": 1},
 		],
 		"heavy": [
-			{"name": "Overhead chop", "dir": 90.0, "arc": [-58.0, 60.0], "windup": 0.06, "strike": 0.13, "follow": 0.12, "recover": 0.4,
-				"damage": 420.0, "cleave": 1.2, "impact": 9.0, "lunge": 2.5, "charge": 0.42, "next_light": 1, "next_heavy": 0, "split": true},
+			{"name": "Skullsplitter", "dir": 90.0, "arc": [-60.0, 62.0], "windup": 0.06, "strike": 0.12, "follow": 0.12, "recover": 0.38,
+				"damage": 520.0, "cleave": 1.2, "impact": 10.0, "lunge": 2.6, "charge": 0.45, "sever": 0.9, "next_light": 0, "next_heavy": 1, "split": true},
+			{"name": "Bearded sweep", "dir": 172.0, "arc": [-64.0, 66.0], "windup": 0.07, "strike": 0.17, "follow": 0.12, "recover": 0.4,
+				"damage": 260.0, "cleave": 5.0, "impact": 9.0, "lunge": 2.6, "charge": 0.5, "sever": 0.6, "next_light": 1, "next_heavy": 0, "trip": true},
 		],
+		"hook": {"name": "Beard hook", "dir": 176.0, "arc": [-52.0, 46.0], "windup": 0.07, "strike": 0.12, "follow": 0.08, "recover": 0.28,
+			"damage": 8.0, "cleave": 5.0, "impact": 3.0, "lunge": 2.2, "sever": 0.0, "hook": true, "cost": 1.0, "next_light": 0, "next_heavy": 0},
 		"push": {"windup": 0.05, "active": 0.1, "recover": 0.28, "range": 2.4, "arc": 0.38, "force": 5.5},
-		"push_attack": {"name": "Hook", "dir": 165.0, "arc": [-50.0, 50.0], "windup": 0.08, "strike": 0.11, "follow": 0.1, "recover": 0.3,
-			"damage": 200.0, "cleave": 2.5, "impact": 7.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
+		"push_attack": {"name": "Haft jab", "thrust": true, "windup": 0.07, "strike": 0.1, "follow": 0.08, "recover": 0.28,
+			"damage": 160.0, "cleave": 2.0, "impact": 8.0, "lunge": 3.0, "next_light": 0, "next_heavy": 0},
 	},
 	"sledgehammer": {
 		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.07, -0.28, -0.48), "head_mass": true, "swish_pitch": 0.65,
@@ -196,6 +207,9 @@ var hit_set := {}
 var kills_this_swing := 0
 var candidates: Array = []
 var stamina := 4.0
+var _last_hit_p := Vector3.INF
+var _embed_p := Vector3.INF
+var _embed_dir := Vector3.FORWARD
 var stamina_delay := 0.0
 var push_window := 0.0
 var idle_t := 0.0
@@ -298,6 +312,8 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 	if drag_t > 0.0:
 		drag_t -= delta
 		dt *= drag_scale
+		if drag_t <= 0.0 and _embed_p != Vector3.INF:
+			_rip()
 	dt *= tempo()
 	# How long the *current* press has been held (mashing never adds up
 	# to a heavy).
@@ -306,6 +322,7 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 	else:
 		press_t = 0.0
 	lunge = Vector3.ZERO
+	_update_view_roll(delta)
 
 	match state:
 		"idle":
@@ -439,6 +456,18 @@ func special() -> void:
 		Game.sfx.play3d("whoosh_heavy", s.eye_pos(), 0.0, 0.05, 0.9)
 		if s.controller and s.controller.has_method("on_full_charge"):
 			s.controller.on_full_charge()
+		return
+	if ms.has("hook") and state in ["idle", "block", "recover", "follow"] and stamina >= 0.5:
+		# Axe: hook the beard round a leg or neck and drag them down.
+		_use_stamina(ms["hook"]["cost"])
+		atk = ms["hook"]
+		is_heavy = false
+		stopped = false
+		swing_hits = 0
+		press_t = 0.0
+		queued = false
+		_enter("windup")
+		Game.sfx.play3d("whoosh", s.eye_pos(), -6.0, 0.05, 0.8)
 		return
 	if ms.has("halfsword") and state in ["idle", "block", "recover", "follow"] and stamina >= 0.5:
 		# Greatsword: grip the blade and stab through armour.
@@ -681,11 +710,48 @@ func view_pose(xf: Transform3D) -> Transform3D:
 			continue
 		drop = maxf(drop, hand.y + VIEW_HALF_H * VIEW_EDGE * depth)
 	o.y -= minf(drop, VIEW_MAX_DROP)
-	return _blade_xf(o, d, xf.basis.x)
+	var out := _blade_xf(o, d, xf.basis.x)
+	# Axe and hammer heads twist round the haft toward the camera so they
+	# read as shapes instead of edge-on slivers (see _update_view_roll).
+	if _view_roll != 0.0:
+		out.basis = out.basis * Basis(Vector3(0, 0, 1), _view_roll)
+	return out
+
+
+var _view_roll := 0.0
+
+## Roll the drawn head about the haft until its face shows: the angle that
+## turns the edge direction across the view, nearest the weapon's resting
+## twist, eased in over ~0.1 s so it reads as a turn of the wrist.
+func _update_view_roll(delta: float) -> void:
+	var base: float = ms.get("view_roll", 0.0)
+	if base == 0.0:
+		_view_roll = 0.0
+		return
+	var keep := _view_roll
+	_view_roll = 0.0
+	var b := view_pose(pose).basis
+	_view_roll = keep
+	var A: float = b.x.z
+	var B: float = b.y.z
+	var target := base
+	var e_base: float = absf(A * cos(base) + B * sin(base))
+	if e_base > 0.35:
+		var phi := atan2(B, A)
+		var r1 := wrapf(phi + PI / 2.0, base - PI, base + PI)
+		var r2 := wrapf(phi - PI / 2.0, base - PI, base + PI)
+		var root := r1 if absf(r1 - base) < absf(r2 - base) else r2
+		var w := smoothstep(0.35, 0.85, e_base)
+		target = base + clampf(root - base, -1.3, 1.3) * w
+	_view_roll = lerp_angle(_view_roll, target, minf(1.0, delta * 14.0))
 
 
 func idle_pose() -> Transform3D:
 	# Low and out to the right, blade angled up and across the screen.
+	# Short heavy-headed weapons rest on the right instead, head clear of
+	# the crosshair.
+	if ms.has("idle_v"):
+		return _blade_xf(ms["idle_o"], (ms["idle_v"] as Vector3).normalized(), Vector3(-1, -0.1, 0.25).normalized())
 	var v := Vector3(-0.22, 0.78, -0.58).normalized()
 	return _blade_xf(Vector3(0.2, -0.36, -0.52), v, Vector3(-1, -0.1, 0.25).normalized())
 
@@ -795,6 +861,10 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	dmg *= cleave_k
 	if atk.get("_full", false):
 		dmg *= 1.25
+	var downed: bool = z.has_method("is_downed") and z.is_downed()
+	if downed:
+		dmg *= ms.get("downed_mult", 1.0)
+	_last_hit_p = p
 	# Armor (Darktide "carapace"-lite): sweeps glance off, strikedowns go through.
 	var armored: bool = z.has_method("is_armored") and z.is_armored()
 	if armored:
@@ -827,7 +897,15 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	if killed:
 		kills_this_swing += 1
 	else:
-		z.melee_stagger(z.impact_dir, force)
+		if atk.get("hook", false):
+			# Dragged off their feet toward you.
+			var to_me: Vector3 = s.global_position - z.global_position
+			z.knockdown(to_me, randf_range(1.3, 1.8))
+			Game.sfx.play3d("thump", p, -4.0, 0.1, 0.8)
+		elif atk.get("trip", false):
+			z.knockdown(tangent, randf_range(1.0, 1.5))
+		else:
+			z.melee_stagger(z.impact_dir, force)
 		if z.cut == "arm" and z.has_method("maim"):
 			z.maim("arm", z.impact_dir * force)
 		z.cut = ""
@@ -908,8 +986,30 @@ func _stop(z) -> void:
 	drag_t = 0.12
 	drag_scale = 0.0
 	cam_punch += Vector2(0.03, 0.0)
+	if ms.get("embed", false) and not atk.get("hook", false) and _last_hit_p != Vector3.INF:
+		# The axe buries itself: a beat stuck in the body, then wrenched out.
+		drag_t = 0.15 if not is_heavy else 0.2
+		_embed_p = _last_hit_p
+		_embed_dir = s.flat_forward()
+		Game.sfx.play3d("thump", _embed_p, -2.0, 0.08, 0.75)
+		cam_punch += Vector2(0.015, 0.0)
 	if z.kind == "tank" or z.kind == "charger" or z.kind == "witch":
 		Game.sfx.play3d("clank", z.global_position + Vector3(0, 1.2, 0), -2.0)
+
+
+## Wrench a buried axe free: blood follows it out toward you.
+func _rip() -> void:
+	var p := _embed_p
+	_embed_p = Vector3.INF
+	var back := (-_embed_dir + Vector3(0, 0.6, 0)).normalized()
+	Game.fx.blood_spray(p, back, 16)
+	Game.fx.blood_mist(p, back, 0.45)
+	Game.sfx.play3d("splat", p, -4.0, 0.12, 0.9)
+	Game.sfx.play3d("flesh_hit", p, -8.0, 0.15, 0.7)
+	cam_punch += Vector2(-0.02, randf_range(-0.01, 0.01))
+	blood = minf(1.0, blood + 0.05)
+	if (s.eye_pos() - p).length() < 1.6 and randf() < 0.3 and Game.hud:
+		Game.hud.screen_blood()
 
 
 ## Ground slam: everything around the impact point is knocked flat.

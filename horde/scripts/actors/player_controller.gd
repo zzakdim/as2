@@ -37,6 +37,7 @@ var base_fov := 85.0
 # Melee viewmodel: the blade is posed directly from Melee.pose (camera space)
 var melee_root: Node3D
 var melee_blade_mat: StandardMaterial3D
+var _blade_base := Color(0.62, 0.63, 0.66)
 var arm_parts: Array = []      # [upper_r, fore_r, hand_r, upper_l, fore_l, hand_l]
 var fp_arms: FPArms           # realistic IK arms (falls back to box forearms)
 var trail: MeshInstance3D
@@ -382,6 +383,8 @@ func _build_melee_vm(id: String) -> void:
 	melee_root.add_child(model)
 	var blade := model.get_node_or_null("Blade") as MeshInstance3D
 	melee_blade_mat = blade.material_override as StandardMaterial3D if blade else null
+	if melee_blade_mat:
+		_blade_base = melee_blade_mat.albedo_color
 	var tip := model.get_node_or_null("Tip") as MeshInstance3D
 	if tip and melee_blade_mat:
 		tip.material_override = melee_blade_mat
@@ -460,7 +463,7 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 	xf = _apply_sway(xf)
 	melee_root.transform = xf
 	if melee_blade_mat:
-		melee_blade_mat.albedo_color = Color(0.62, 0.63, 0.66).lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
+		melee_blade_mat.albedo_color = _blade_base.lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
 		melee_blade_mat.roughness = lerp(0.25, 0.6, m.blood)
 	if fp_arms:
 		fp_arms.set_blood(m.blood)

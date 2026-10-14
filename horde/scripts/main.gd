@@ -709,7 +709,8 @@ func run_swing_test(arg: String) -> void:
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png("%s/%03d.png" % [dir, n[0]])
 		n[0] += 1
-	Input.action_press("fire")
+	if mode != "special":
+		Input.action_press("fire")
 	if mode == "heavy":
 		# Hold to charge, release to swing.
 		for i in 8:
@@ -719,7 +720,6 @@ func run_swing_test(arg: String) -> void:
 			await get_tree().create_timer(0.05).timeout
 			await shoot.call()
 	elif mode == "special":
-		Input.action_release("fire")
 		p.melee.stamina = p.melee.ms["stamina"]
 		Input.action_press("special_key")
 		await get_tree().create_timer(0.05).timeout

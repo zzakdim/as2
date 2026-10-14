@@ -213,27 +213,39 @@ static func machete(root: Node3D, steel: Material, wood: Material) -> MeshInstan
 	return mi
 
 
-## Fire axe: long haft, red-painted head with a wide bit (+X) and a pick (-X).
-static func fire_axe(root: Node3D, steel: Material, red: Material, wood: Material) -> MeshInstance3D:
-	haft(root, 0.95, 0.019, wood)
+## Bearded axe: a dark ash haft with leather wraps and a broad forged
+## head, its edge (+X) hanging down in a long beard toward the hands so the
+## silhouette reads at a glance. Takes the "fire_axe" slot.
+static func fire_axe(root: Node3D, steel: Material, _red: Material, wood: Material) -> MeshInstance3D:
+	haft(root, 0.9, 0.018, wood)
+	var leather := Mats.color(Color(0.13, 0.085, 0.06), 0.85)
+	for z in [-0.02, -0.12, -0.24]:
+		Mats.add_mesh(root, tube([Vector3(0, 0, z + 0.03), Vector3(0, 0, z - 0.03)], [0.022, 0.022], 7), leather)
+	var hz := -0.85
 	var head := []
-	for i in 7:
-		var k := float(i) / 6.0      # 0 = eye, 1 = edge
-		var x := 0.03 + k * 0.17
-		head.append([Vector3(x, 0, -0.9), lerp(0.04, 0.1, k * k), lerp(0.026, 0.002, k)])
+	for i in 10:
+		var k := float(i) / 9.0     # 0 = eye, 1 = edge
+		var x := 0.022 + k * 0.19
+		var hw: float = lerp(0.034, 0.118, pow(k, 1.5))
+		var beard: float = 0.07 * k * k
+		var th: float = lerp(0.021, 0.0022, pow(k, 0.8))
+		head.append([Vector3(x, 0, hz + beard), hw, th])
 	var bit := MeshInstance3D.new()
 	bit.mesh = _reorient_x(head, box_profile())
 	bit.name = "Blade"
 	bit.material_override = steel
 	root.add_child(bit)
-	Mats.add_mesh(root, Mats.box(Vector3(0.08, 0.055, 0.12)), red, Vector3(0.0, 0, -0.9))
-	var pick := []
-	var pr := []
-	for i in 5:
-		var k := float(i) / 4.0
-		pick.append(Vector3(-0.03 - k * 0.12, 0, -0.9 + 0.02 * k * k))
-		pr.append(lerp(0.018, 0.003, k))
-	Mats.add_mesh(root, tube(pick, pr, 5), red)
+	# Bright honed edge.
+	var edge := []
+	for i in 2:
+		var k := 0.93 + 0.07 * i
+		edge.append([Vector3(0.022 + k * 0.19 + 0.001, 0, hz + 0.07 * k * k), lerp(0.034, 0.118, pow(k, 1.5)) + 0.001, 0.0035])
+	var hone := Mats.color(Color(0.85, 0.86, 0.88), 0.18, 0.95)
+	Mats.add_mesh(root, _reorient_x(edge, box_profile()), hone)
+	# Eye socket round the haft, and a short hammer poll behind it.
+	var iron := Mats.color(Color(0.2, 0.2, 0.21), 0.45, 0.8)
+	Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.044, 0.095)), iron, Vector3(0.0, 0, hz))
+	Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.038, 0.05)), iron, Vector3(-0.045, 0, hz))
 	return bit
 
 

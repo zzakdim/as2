@@ -5,7 +5,7 @@ extends Node
 ## effects, HUD, the survivor and infected lists) hangs off this node.
 
 ## Bump on every pushed change so a running build can be identified.
-const VERSION := "0.13.2 — leather gloves, endless light chains"
+const VERSION := "0.14.0 — the bearded axe"
 
 enum Diff { EASY, NORMAL, ADVANCED, EXPERT }
 const DIFF_NAMES := ["Easy", "Normal", "Advanced", "Expert"]
