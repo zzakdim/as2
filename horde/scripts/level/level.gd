@@ -205,7 +205,7 @@ func generate_arena(seed_v: int) -> void:
 			Props.lamp(self, pos, pos - Vector3(side * 2.0, 0, 0), false)
 		z += 12
 	var c := cell_center(start_door)
-	var ring := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete", "pump_shotgun", "assault_rifle", "ammo", "medkit", "pills", "pipe_bomb", "molotov", "bile_jar"]
+	var ring := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete", "stick", "pump_shotgun", "assault_rifle", "ammo", "medkit", "pills", "pipe_bomb", "molotov", "bile_jar"]
 	for i in ring.size():
 		var a := TAU * i / ring.size()
 		add_child(Pickup.create(ring[i], c + Vector3(cos(a), 0, sin(a)) * 3.0))

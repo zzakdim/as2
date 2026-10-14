@@ -22,6 +22,10 @@ const DEFS := {
 		"name": "Machete", "slot": 1, "tier": 0, "melee": true, "moveset": "machete", "damage": 200.0, "rate": 0.55,
 		"range": 2.3, "arc": 70.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
 	},
+	"stick": {
+		"name": "Stick", "slot": 1, "tier": 0, "melee": true, "moveset": "stick", "damage": 30.0, "rate": 0.4,
+		"range": 2.0, "arc": 70.0, "sound": "swing", "noise": 4.0, "kick": 0.0,
+	},
 	"fire_axe": {
 		"name": "Bearded Axe", "slot": 1, "tier": 0, "melee": true, "moveset": "fire_axe", "damage": 190.0, "rate": 0.5,
 		"range": 2.2, "arc": 60.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
@@ -165,6 +169,8 @@ static func build_model(id: String, view := false) -> Node3D:
 			Mats.add_mesh(root, Mats.box(Vector3(0.035, 0.1, 0.05)), dark, Vector3(0, -0.04, 0.0), Vector3(-0.25, 0, 0))
 		"machete":
 			WeaponMesh.machete(root, steel.duplicate(), Mats.color(Color(0.22, 0.13, 0.07), 0.75))
+		"stick":
+			WeaponMesh.stick(root, Mats.color(Color(0.2, 0.16, 0.12), 0.95).duplicate())
 		"fire_axe":
 			var axe_steel := Mats.color(Color(0.46, 0.46, 0.48), 0.4, 0.8).duplicate()
 			WeaponMesh.fire_axe(root, axe_steel, null, Mats.color(Color(0.24, 0.15, 0.09), 0.75))

@@ -158,6 +158,27 @@ const MOVESETS := {
 		"push_attack": {"name": "Uppercut", "dir": 270.0, "arc": [-50.0, 55.0], "windup": 0.1, "strike": 0.14, "follow": 0.12, "recover": 0.4,
 			"damage": 260.0, "cleave": 4.0, "impact": 13.0, "lunge": 2.0, "next_light": 0, "next_heavy": 0},
 	},
+	# A stick. Where everyone starts. Quick bonks that stagger whatever they
+	# hit but never cut anything; a body takes two, a head one.
+	"stick": {
+		"length": 0.62, "grip": 0.16, "pivot": Vector3(0.13, -0.25, -0.48), "blunt": true,
+		"stamina": 2.0, "block_cost": 0.9, "push_cost": 1.0, "block_arc": 0.4, "swish_pitch": 1.45, "move": 1.05, "bite": 0.5, "lean": 0.7,
+		"light": [
+			{"name": "Bonk", "dir": 40.0, "arc": [-54.0, 56.0], "windup": 0.09, "strike": 0.09, "follow": 0.06, "recover": 0.22,
+				"damage": 30.0, "cleave": 1.2, "impact": 7.0, "lunge": 1.0, "sever": 0.0, "next_light": 1, "next_heavy": 0},
+			{"name": "Bonk back", "dir": 150.0, "arc": [-54.0, 56.0], "windup": 0.09, "strike": 0.09, "follow": 0.06, "recover": 0.22,
+				"damage": 30.0, "cleave": 1.2, "impact": 7.0, "lunge": 1.0, "sever": 0.0, "next_light": 2, "next_heavy": 0},
+			{"name": "Whack", "dir": 95.0, "arc": [-54.0, 56.0], "windup": 0.11, "strike": 0.09, "follow": 0.07, "recover": 0.24,
+				"damage": 35.0, "cleave": 1.0, "impact": 8.0, "lunge": 1.2, "sever": 0.0, "next_light": 0, "next_heavy": 0},
+		],
+		"heavy": [
+			{"name": "Big bonk", "dir": 88.0, "arc": [-58.0, 60.0], "windup": 0.06, "strike": 0.11, "follow": 0.1, "recover": 0.32,
+				"damage": 60.0, "cleave": 1.0, "impact": 11.0, "lunge": 2.0, "charge": 0.35, "sever": 0.0, "next_light": 0, "next_heavy": 0},
+		],
+		"push": {"windup": 0.05, "active": 0.1, "recover": 0.28, "range": 2.3, "arc": 0.4, "force": 5.0},
+		"push_attack": {"name": "Poke", "thrust": true, "windup": 0.06, "strike": 0.09, "follow": 0.06, "recover": 0.24,
+			"damage": 25.0, "cleave": 1.0, "impact": 8.0, "lunge": 2.4, "next_light": 0, "next_heavy": 0},
+	},
 	"machete": {
 		"length": 0.52, "grip": 0.14, "pivot": Vector3(0.14, -0.24, -0.48),
 		"stamina": 3.0, "block_cost": 0.6, "push_cost": 1.0, "block_arc": 0.3,
@@ -986,6 +1007,9 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 func _cut_type(z, p: Vector3, part: String) -> String:
 	if atk.get("thrust", false):
 		return ""
+	if ms.get("blunt", false):
+		# Nothing comes off; a hard enough blow to the head caves it in.
+		return "split" if part == "head" and is_heavy and randf() < 0.5 else ""
 	var dir: float = atk.get("dir", 0.0)
 	var horizontal: bool = abs(sin(dir * DEG)) < 0.5
 	var sc: float = z.rig.model_scale if z.rig is SkinnedRig else 1.0

@@ -412,7 +412,7 @@ func _physics_process(delta: float) -> void:
 		_autotest_finish(0)
 
 
-const SANDBOX_MELEE := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete"]
+const SANDBOX_MELEE := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete", "stick"]
 
 ## Sandbox: T swaps the melee weapon in hand.
 func cycle_sandbox_melee() -> void:

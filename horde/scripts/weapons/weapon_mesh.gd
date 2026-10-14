@@ -249,6 +249,34 @@ static func fire_axe(root: Node3D, steel: Material, _red: Material, wood: Materi
 	return bit
 
 
+## A stick: a gnarled branch, thicker at the hand end, with a kink, a
+## couple of snapped-off twigs and a knot. Returns the "Blade" mesh (the
+## branch itself, so it takes blood).
+static func stick(root: Node3D, bark: Material) -> MeshInstance3D:
+	var path := []
+	var rr := []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1337
+	for i in 11:
+		var k := float(i) / 10.0
+		var wob := Vector3(sin(k * 7.0) * 0.012 + (0.03 * k * k), cos(k * 5.0) * 0.01, 0.0)
+		path.append(Vector3(0, 0, 0.06 - k * 0.84) + wob)
+		rr.append(lerpf(0.024, 0.014, k) * rng.randf_range(0.88, 1.12))
+	var mi := MeshInstance3D.new()
+	mi.mesh = tube(path, rr, 7)
+	mi.name = "Blade"
+	mi.material_override = bark
+	root.add_child(mi)
+	# Snapped twigs.
+	for tw in [[0.42, Vector3(0.6, 0.3, -1.0)], [0.66, Vector3(-0.5, 0.4, -1.0)]]:
+		var at: Vector3 = path[int(float(tw[0]) * 10.0)]
+		var dir: Vector3 = (tw[1] as Vector3).normalized()
+		Mats.add_mesh(root, tube([at, at + dir * 0.07], [0.008, 0.004], 5), bark)
+	# A knot.
+	Mats.add_mesh(root, tube([(path[3] as Vector3) + Vector3(0.012, 0, 0), (path[3] as Vector3) + Vector3(0.024, 0.004, -0.01)], [0.012, 0.006], 6), bark)
+	return mi
+
+
 ## Sledgehammer: long haft, heavy chamfered steel head across the haft.
 static func sledgehammer(root: Node3D, steel: Material, wood: Material) -> MeshInstance3D:
 	haft(root, 1.02, 0.021, wood)
