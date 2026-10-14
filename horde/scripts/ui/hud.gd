@@ -80,6 +80,13 @@ void fragment() {
 	stamina_bar.position = Vector2(0, 34)
 	root.add_child(stamina_bar)
 
+	var ver := _label("v" + Game.VERSION, 11, Color(1, 1, 1, 0.35))
+	ver.anchor_left = 1.0
+	ver.anchor_right = 1.0
+	ver.offset_left = -330
+	ver.offset_top = 6
+	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
 	threat_ring = ThreatRing.new()
 	threat_ring.set_anchors_preset(Control.PRESET_CENTER)
 	threat_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE

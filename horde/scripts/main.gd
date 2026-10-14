@@ -73,7 +73,7 @@ Don't startle the Witch. Shove Boomers before you shoot them."""
 		Game.bots_enabled = not Game.bots_enabled
 		show_title()])
 	buttons.append(["Quit", func(): get_tree().quit()])
-	Game.hud.show_menu("AFTER DARK", body, buttons)
+	Game.hud.show_menu("AFTER DARK", body + "\n\nv" + Game.VERSION, buttons)
 
 
 func start_campaign(diff: int) -> void:

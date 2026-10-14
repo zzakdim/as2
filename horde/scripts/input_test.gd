@@ -102,6 +102,19 @@ func run() -> void:
 		seen["threat_warning"] = true
 	zb.attack_pending = 0.0
 	zb.queue_free()
+	# 4c) T swaps the melee weapon in the sandbox (a real key event)
+	var before_id: String = p.secondary["id"]
+	var ev := InputEventKey.new()
+	ev.physical_keycode = KEY_T
+	ev.pressed = true
+	Input.parse_input_event(ev)
+	await get_tree().process_frame
+	ev = ev.duplicate()
+	ev.pressed = false
+	Input.parse_input_event(ev)
+	await _wait(0.2)
+	if p.secondary["id"] != before_id:
+		seen["swap_blade"] = true
 	# 5) sabre parry: V just before a zombie's claw lands
 	p.secondary = WeaponData.new_state("sabre")
 	p.active_slot = Survivor.SLOT_SECONDARY
@@ -168,7 +181,7 @@ func _wait(t: float) -> void:
 
 func _report() -> void:
 	var want := ["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry", "threat_warning"]
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry", "threat_warning", "swap_blade"]
 	var missing := want.filter(func(w): return not seen.has(w))
 	print("[input-test] reached: ", seen.keys())
 	print("[input-test] missing: ", missing)

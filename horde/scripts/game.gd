@@ -4,6 +4,9 @@ extends Node
 ## Everything that several systems need to reach (the level, director, sound,
 ## effects, HUD, the survivor and infected lists) hangs off this node.
 
+## Bump on every pushed change so a running build can be identified.
+const VERSION := "0.12.0 — four swords, specials, cuts"
+
 enum Diff { EASY, NORMAL, ADVANCED, EXPERT }
 const DIFF_NAMES := ["Easy", "Normal", "Advanced", "Expert"]
 const MAPS := 3
@@ -48,6 +51,7 @@ var screenshots: Array = []     # [[seconds, path], ...] taken during --autotest
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	print("After Dark v%s" % VERSION)
 	_setup_inputs()
 	var args := OS.get_cmdline_user_args()
 	autotest = "--autotest" in args
