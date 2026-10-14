@@ -309,6 +309,12 @@ func _build() -> void:
 	sounds["slash"] = _wav(_mix(_mix(_shot(0.22, 16.0, 2200, 0, 0.0, 0.7), _shot(0.3, 12.0, 300, 70, 1.0, 0.7)), _squelch(0.25), 0.02))
 	sounds["chop"] = _wav(_mix(_shot(0.18, 22.0, 1800, 0, 0.0, 0.6), _shot(0.25, 14.0, 250, 90, 1.2, 0.8)))
 	sounds["bone"] = _wav(_mix(_shot(0.06, 60.0, 6000, 0, 0.0, 0.5), _shot(0.1, 35.0, 900, 160, 0.8, 0.5), 0.01))
+	# Splintering bone: three dry crackles a few ms apart over a low knock.
+	var crk := _shot(0.14, 28.0, 650, 105, 1.0, 0.55)
+	crk = _mix(crk, _shot(0.045, 95.0, 7500, 0, 0.0, 0.55), 0.0)
+	crk = _mix(crk, _shot(0.035, 110.0, 5200, 0, 0.0, 0.42), 0.013)
+	crk = _mix(crk, _shot(0.05, 85.0, 3800, 0, 0.0, 0.35), 0.029)
+	sounds["crack"] = _wav(crk)
 	sounds["clank"] = _wav(_mix(_tone(0.6, 1250, 1210, "tri", 0.001, 7.0, 0.002, 0.35), _tone(0.5, 2730, 2700, "sin", 0.001, 9.0, 0.0, 0.2)))
 	sounds["block"] = _wav(_mix(_tone(0.35, 980, 950, "tri", 0.001, 12.0, 0.0, 0.35), _shot(0.12, 30.0, 3000, 0, 0.0, 0.5)))
 	sounds["melee_hit"] = _wav(_shot(0.2, 25.0, 600, 60, 1.0, 0.9))

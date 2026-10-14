@@ -255,7 +255,14 @@ func set_weapon(id: String) -> void:
 	ms = MOVESETS.get(def.get("moveset", "machete"), MOVESETS["machete"])
 	stamina = ms["stamina"]
 	reset()
-	pose = idle_pose()
+	# Drawn up from below the frame, tip first, settling into the guard.
+	var d := idle_pose()
+	d.origin += Vector3(0.12, -0.45, 0.1)
+	d.basis = d.basis * Basis(Vector3(1, 0, 0), -0.7)
+	pose = d
+	if s and not s.is_bot and Game.sfx:
+		var hm: bool = ms.get("head_mass", false)
+		Game.sfx.play3d("thump" if hm else "blade_ring", s.eye_pos(), -14.0 if hm else -16.0, 0.1, 0.9 if hm else 1.5)
 
 
 func reset() -> void:
@@ -959,9 +966,13 @@ func _hit(z, p: Vector3, tangent: Vector3, cam: Transform3D) -> void:
 	var first: bool = hit_set.size() <= 1
 	Game.sfx.play3d("flesh_hit", p, (0.0 if is_heavy else -2.0) - (0.0 if first else 4.0), 0.1)
 	if first:
-		Game.sfx.play3d("thump", p, -3.0 if is_heavy else -8.0, 0.1)
+		# Axes and hammers land with more body.
+		var hm: bool = ms.get("head_mass", false)
+		Game.sfx.play3d("thump", p, (-3.0 if is_heavy else -8.0) + (3.0 if hm else 0.0), 0.1, 0.82 if hm else 1.0)
 	if killed:
 		Game.sfx.play3d("gore", p, -3.0 if z.cut != "" else -8.0, 0.15)
+		if z.cut in ["decap", "split", "vsplit", "waist"]:
+			Game.sfx.play3d("crack", p, -5.0 if first else -9.0, 0.12)
 		if z.cut != "" or is_heavy:
 			Game.sfx.play3d("splat", p, -2.0 if z.cut != "" else -6.0, 0.1)
 	blood = min(1.0, blood + 0.06)
@@ -1021,6 +1032,7 @@ func _stop(z) -> void:
 		_embed_p = _last_hit_p
 		_embed_dir = s.flat_forward()
 		Game.sfx.play3d("thump", _embed_p, -2.0, 0.08, 0.75)
+		Game.sfx.play3d("crack", _embed_p, -4.0, 0.1, 0.85)
 		cam_punch += Vector2(0.015, 0.0)
 	if z.kind == "tank" or z.kind == "charger" or z.kind == "witch":
 		Game.sfx.play3d("clank", z.global_position + Vector3(0, 1.2, 0), -2.0)
