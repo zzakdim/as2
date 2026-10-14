@@ -289,6 +289,16 @@ func set_weapon(id: String) -> void:
 		Game.sfx.play3d("thump" if hm else "blade_ring", s.eye_pos(), -14.0 if hm else -16.0, 0.1, 0.9 if hm else 1.5)
 
 
+## Abort whatever's winding up or recovering, keeping the chain position,
+## and go back to the guard from where the weapon is now.
+func cancel() -> void:
+	queued = false
+	stopped = false
+	drag_t = 0.0
+	_embed_p = Vector3.INF
+	_enter("idle")
+
+
 func reset() -> void:
 	state = "idle"
 	t = 0.0
@@ -421,7 +431,9 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 			t += dt
 			var k: float = clamp(t / atk["windup"], 0.0, 1.0)
 			pose = _pose_from.interpolate_with(_windup_pose(), _ease_out(k))
-			if not is_heavy and fire_held and press_t >= HOLD_FOR_HEAVY and not atk.get("thrust", false):
+			if block_held and stamina > 0.0 and atk.get("cost", 0.0) == 0.0 and atk != ms.get("push_attack"):
+				_enter("block")   # feint: a windup can always turn into a guard
+			elif not is_heavy and fire_held and press_t >= HOLD_FOR_HEAVY and not atk.get("thrust", false):
 				# Held long enough: this becomes a heavy.
 				is_heavy = true
 				atk = ms["heavy"][heavy_i % ms["heavy"].size()]

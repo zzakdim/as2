@@ -61,6 +61,9 @@ Attacks winding up on you from outside your view show as red chevrons
 around the crosshair pointing at the attacker (gold for elites), so you
 can dodge or turn and block. 
 
+A windup can be feinted into a block (RMB), and dodging cancels a windup,
+charge or the recovery after a swing — only the cut itself commits you.
+
 Attacking out of a sprint lunges into a harder **running cut**; attacking
 mid-slide is a low **slide sweep** that knocks the legs out from under a line.
 

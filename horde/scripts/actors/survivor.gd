@@ -615,6 +615,9 @@ func _move(delta: float) -> void:
 		dodge_cd = 0.2
 		dodge_dir = move_dir
 		hv = move_dir * 10.5
+		# Dodging cancels a windup or the tail of a swing (never the cut itself).
+		if is_melee_active() and melee.state in ["windup", "charge", "follow", "recover"]:
+			melee.cancel()
 		Game.sfx.play3d("whoosh", eye_pos(), -8.0, 0.15)
 		if controller and controller.has_method("on_dodge"):
 			controller.on_dodge(move_dir)
