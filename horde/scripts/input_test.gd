@@ -64,16 +64,21 @@ func run() -> void:
 	# 4) movement: sprint, slide out of the sprint, perfect dodge
 	_slot(2)
 	await _wait(0.4)
-	p.stun_t = 0.0
-	Input.action_press("move_forward")
-	Input.action_press("sprint")
-	await _wait(0.8)
-	Input.action_press("crouch")
-	await _wait(0.4)
-	Input.action_release("crouch")
-	Input.action_release("sprint")
-	Input.action_release("move_forward")
-	await _wait(0.4)
+	# The sandbox horde can stun us or block the run-up: retry a few times.
+	for attempt in 3:
+		p.stun_t = 0.0
+		p.yaw += PI * 0.5 * attempt
+		Input.action_press("move_forward")
+		Input.action_press("sprint")
+		await _wait(0.8)
+		Input.action_press("crouch")
+		await _wait(0.4)
+		Input.action_release("crouch")
+		Input.action_release("sprint")
+		Input.action_release("move_forward")
+		await _wait(0.4)
+		if seen.has("slid"):
+			break
 	p.dodges = 3
 	p.dodge_cd = 0.0
 	p.stun_t = 0.0

@@ -656,11 +656,12 @@ func _process(delta: float) -> void:
 	hit_shake = max(0.0, hit_shake - delta * 3.0)
 	dodge_roll = lerp(dodge_roll, 0.0, min(1.0, delta * 6.0))
 	var punch: Vector2 = s.melee.cam_punch if s.melee else Vector2.ZERO
+	var lean: Vector3 = s.melee.swing_lean if s.melee and s.is_melee_active() else Vector3.ZERO
 	var hs := hit_shake * hit_shake * 0.01
 	camera.rotation = Vector3(
-		s.pitch + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.x,
-		s.yaw + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.y,
-		roll + dodge_roll + (s.melee.cam_roll if s.melee else 0.0))
+		s.pitch + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.x + lean.x,
+		s.yaw + randf_range(-1, 1) * (shake * 0.03 + hs) + punch.y + lean.y,
+		roll + dodge_roll + (s.melee.cam_roll if s.melee else 0.0) + lean.z)
 	camera.position.y += bob - land_dip * 0.3
 	flashlight.visible = s.flashlight_enabled and not s.dead
 	var fov_add := 7.0 if s.slide_t > 0.0 else (5.0 if s.sprinting else (2.0 if speed > 4.5 else 0.0))

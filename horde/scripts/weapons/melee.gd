@@ -329,6 +329,20 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 		"windup": vis_to = 0.6
 		"charge": vis_to = 0.3
 	_swing_vis = move_toward(_swing_vis, vis_to, delta * (9.0 if vis_to > _swing_vis else 4.0))
+	# The body leans into the cut: the view rolls and turns with a sweep
+	# and nods with an overhead, then settles.
+	var lean_to := Vector3.ZERO
+	if state in ["strike", "follow", "windup", "charge"] and atk.has("dir") and not atk.get("thrust", false):
+		var a: float = float(atk["dir"]) * DEG
+		var env := 0.0
+		match state:
+			"windup": env = -0.35 * clampf(t / maxf(atk["windup"], 0.01), 0.0, 1.0)
+			"charge": env = -0.45
+			"strike": env = sin(clampf(t / maxf(atk["strike"], 0.01), 0.0, 1.0) * PI * 0.5) * 1.0
+			"follow": env = 1.0 - clampf(t / maxf(atk["follow"], 0.01), 0.0, 1.0) * 0.5
+		var amt: float = (1.6 if is_heavy else 1.0) * float(ms.get("lean", 1.0))
+		lean_to = Vector3(-sin(a) * 0.022, -cos(a) * 0.016, -cos(a) * 0.03) * env * amt
+	swing_lean = swing_lean.lerp(lean_to, minf(1.0, delta * (16.0 if lean_to.length() > swing_lean.length() else 7.0)))
 
 	match state:
 		"idle":
@@ -695,6 +709,7 @@ const VIEW_EDGE := 1.0         # upper fist centred on the frame edge (half visi
 const VIEW_EDGE_SWING := 0.72  # ...and well into frame mid-swing
 const VIEW_FLAT_SWING := 0.4
 var _swing_vis := 0.0          # 0 at rest, 1 through the strike (eased)
+var swing_lean := Vector3.ZERO # camera pitch / yaw / roll following the cut
 const VIEW_MAX_DROP := 0.45
 
 func view_pose(xf: Transform3D) -> Transform3D:
@@ -741,9 +756,7 @@ var _view_roll := 0.0
 ## twist, eased in over ~0.1 s so it reads as a turn of the wrist.
 func _update_view_roll(delta: float) -> void:
 	var base: float = ms.get("view_roll", 0.0)
-	if base == 0.0:
-		_view_roll = 0.0
-		return
+	var max_twist: float = ms.get("view_twist", 1.3 if base != 0.0 else 0.75)
 	var keep := _view_roll
 	_view_roll = 0.0
 	var b := view_pose(pose).basis
@@ -758,7 +771,7 @@ func _update_view_roll(delta: float) -> void:
 		var r2 := wrapf(phi - PI / 2.0, base - PI, base + PI)
 		var root := r1 if absf(r1 - base) < absf(r2 - base) else r2
 		var w := smoothstep(0.35, 0.85, e_base)
-		target = base + clampf(root - base, -1.3, 1.3) * w
+		target = base + clampf(root - base, -max_twist, max_twist) * w
 	_view_roll = lerp_angle(_view_roll, target, minf(1.0, delta * 14.0))
 
 
