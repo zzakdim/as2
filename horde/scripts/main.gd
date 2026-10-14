@@ -465,9 +465,18 @@ func run_pose_sheet(dir: String) -> void:
 	var n := 0
 	if p.melee.ms.has("parry"):
 		shots.insert(2, ["parry", 0, "", 0.0])
+	if OS.has_environment("HAND_TEST"):
+		# Fixed handle poses in front of the camera, for checking the grip.
+		p.melee.raw_view = true
+		shots = [["hand_vertical", 0, "", 0.0], ["hand_forward", 0, "", 0.0], ["hand_across", 0, "", 0.0], ["hand_diag", 0, "", 0.0]]
 	for sh in shots:
 		p.melee._swing_vis = {"strike": 1.0, "follow": 1.0, "windup": 0.6, "charge": 0.3}.get(sh[2], 0.0)
 		p.melee.pose = p.melee.parry_pose() if sh[0] == "parry" else p.melee.pose_for(sh[0], sh[1], sh[2], sh[3])
+		match sh[0]:
+			"hand_vertical": p.melee.pose = p.melee._blade_xf(Vector3(0.0, -0.32, -0.62), Vector3(0, 1, 0), Vector3(-1, 0, 0))
+			"hand_forward": p.melee.pose = p.melee._blade_xf(Vector3(0.0, -0.3, -0.42), Vector3(0, 0.2, -1).normalized(), Vector3(-1, 0, 0))
+			"hand_across": p.melee.pose = p.melee._blade_xf(Vector3(0.18, -0.25, -0.6), Vector3(-1, 0.15, 0).normalized(), Vector3(0, 1, 0))
+			"hand_diag": p.melee.pose = p.melee._blade_xf(Vector3(0.15, -0.3, -0.55), Vector3(-0.5, 0.8, -0.3).normalized(), Vector3(-1, -0.2, 0).normalized())
 		await get_tree().process_frame
 		await get_tree().process_frame
 		await RenderingServer.frame_post_draw

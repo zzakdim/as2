@@ -214,6 +214,8 @@ var _grip_offsets := {}
 func grip_offset(side: String) -> Vector3:
 	if _grip_offsets.has(side):
 		return _grip_offsets[side]
+	if not _thumb_fit.has(side):
+		_fit_thumb(side)
 	skel.reset_bone_poses()
 	_curl(side)
 	var h := skel.get_bone_global_pose(bones["hand_" + side]).origin
@@ -239,7 +241,7 @@ func grip_offset(side: String) -> Vector3:
 
 
 var curl_angles := [1.25, 1.45, 1.0]
-var thumb_angles := [0.35, 0.5, 0.45]
+var thumb_angles := [0.75, 0.95, 0.8]
 var _fingers := {}
 
 ## Close the fingers into a fist round a handle. Each joint bends about
@@ -264,10 +266,55 @@ func _curl(side: String) -> void:
 				var ang: float = thumb_angles[j] if f == "thumb" else curl_angles[j]
 				arr.append([bi, Quaternion(local, ang)])
 		_fingers[side] = arr
+	var fit: Array = _thumb_fit.get(side, [])
 	for e in _fingers[side]:
 		var bi: int = e[0]
 		var rest := skel.get_bone_rest(bi).basis.get_rotation_quaternion()
-		skel.set_bone_pose_rotation(bi, rest * (e[1] as Quaternion))
+		var q: Quaternion = e[1]
+		if fit.size() == 3 and _is_thumb(bi):
+			q = Quaternion(q.get_axis(), q.get_angle() * float(fit[1]))
+			if bi == int(fit[2]):
+				q = (fit[0] as Quaternion) * q
+		skel.set_bone_pose_rotation(bi, rest * q)
+
+
+var _thumb_fit := {}
+
+func _is_thumb(bi: int) -> bool:
+	return String(skel.get_bone_name(bi)).begins_with("thumb")
+
+
+## Wrap the thumb over the curled fingers, as in a real grip: search the
+## thumb's roll across the palm and how far it bends for the pose that puts
+## its tip on the index finger's middle joint. Run once per hand, from rest.
+func _fit_thumb(side: String) -> void:
+	_thumb_fit[side] = []
+	var t1 := skel.find_bone("thumb_01_" + side)
+	var tip := skel.find_bone("thumb_04_leaf_" + side)
+	if tip < 0:
+		tip = skel.find_bone("thumb_03_" + side)
+	var i2 := skel.find_bone("index_02_" + side)
+	var m2 := skel.find_bone("middle_02_" + side)
+	if t1 < 0 or tip < 0 or i2 < 0 or m2 < 0:
+		return
+	var rf := _rest_frame(side)
+	var f_local := (skel.get_bone_global_rest(t1).basis.orthonormalized().inverse() * (rf[0] as Vector3)).normalized()
+	var best := INF
+	var best_fit := [Quaternion.IDENTITY, 1.0, t1]
+	for ri in 17:
+		var roll := -1.6 + ri * 0.2
+		for si in 5:
+			var sc := 0.4 + si * 0.3
+			_thumb_fit[side] = [Quaternion(f_local, roll), sc, t1]
+			skel.reset_bone_poses()
+			_curl(side)
+			var target := (skel.get_bone_global_pose(i2).origin + skel.get_bone_global_pose(m2).origin) * 0.5 - (rf[1] as Vector3) * 0.012
+			var d := skel.get_bone_global_pose(tip).origin.distance_to(target)
+			if d < best:
+				best = d
+				best_fit = _thumb_fit[side]
+	_thumb_fit[side] = best_fit
+	skel.reset_bone_poses()
 
 
 func _set_global(bone: int, parent_glob: Transform3D, glob: Transform3D) -> void:

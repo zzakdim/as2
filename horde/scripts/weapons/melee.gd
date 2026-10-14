@@ -741,7 +741,11 @@ var _swing_vis := 0.0          # 0 at rest, 1 through the strike (eased)
 var swing_lean := Vector3.ZERO # camera pitch / yaw / roll following the cut
 const VIEW_MAX_DROP := 0.45
 
+var raw_view := false          # tests: draw the pose as-is
+
 func view_pose(xf: Transform3D) -> Transform3D:
+	if raw_view:
+		return xf
 	var o := xf.origin
 	o = Vector3(o.x * 1.05, o.y - VIEW_DROP, o.z * VIEW_NEAR)
 	var d := -xf.basis.z
