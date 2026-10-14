@@ -65,19 +65,34 @@ func run() -> void:
 	_slot(2)
 	await _wait(0.4)
 	# The sandbox horde can stun us or block the run-up: retry a few times.
-	for attempt in 3:
+	for attempt in 4:
 		p.stun_t = 0.0
+		p.melee.reset()
 		p.yaw += PI * 0.5 * attempt
 		Input.action_press("move_forward")
 		Input.action_press("sprint")
 		await _wait(0.8)
 		Input.action_press("crouch")
-		await _wait(0.4)
+		await _wait(0.15)
+		await _tap("fire", 0.05, 0.25)
 		Input.action_release("crouch")
 		Input.action_release("sprint")
 		Input.action_release("move_forward")
-		await _wait(0.4)
-		if seen.has("slid"):
+		await _wait(0.6)
+		if seen.has("slid") and seen.has("slide_sweep"):
+			break
+	# Attack out of a sprint.
+	for attempt in 3:
+		p.stun_t = 0.0
+		p.melee.reset()
+		Input.action_press("move_forward")
+		Input.action_press("sprint")
+		await _wait(0.7)
+		await _tap("fire", 0.05, 0.3)
+		Input.action_release("sprint")
+		Input.action_release("move_forward")
+		await _wait(0.6)
+		if seen.has("running_cut"):
 			break
 	p.dodges = 3
 	p.dodge_cd = 0.0
@@ -158,6 +173,10 @@ func _process(_d: float) -> void:
 			seen["sprinted"] = true
 		if p.slide_t > 0.0:
 			seen["slid"] = true
+		if p.melee.state in ["windup", "strike"]:
+			match p.melee.atk.get("name", ""):
+				"Running cut": seen["running_cut"] = true
+				"Slide sweep": seen["slide_sweep"] = true
 
 
 func _slot(n: int) -> void:
@@ -186,7 +205,7 @@ func _wait(t: float) -> void:
 
 func _report() -> void:
 	var want := (["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry", "threat_warning", "swap_blade"])
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "slide_sweep", "running_cut", "perfect_dodge", "parry", "threat_warning", "swap_blade"])
 	if Game.melee_only:
 		want.erase("reloading")
 	var missing := want.filter(func(w): return not seen.has(w))
