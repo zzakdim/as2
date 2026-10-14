@@ -180,8 +180,10 @@ func _wait(t: float) -> void:
 
 
 func _report() -> void:
-	var want := ["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
-		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry", "threat_warning", "swap_blade"]
+	var want := (["melee:windup", "melee:strike", "melee:follow", "melee:recover", "melee:charge", "melee:block",
+		"melee:push", "dodged", "reloading", "action:heal_self", "action:pills", "ability", "sprinted", "slid", "perfect_dodge", "parry", "threat_warning", "swap_blade"])
+	if Game.melee_only:
+		want.erase("reloading")
 	var missing := want.filter(func(w): return not seen.has(w))
 	print("[input-test] reached: ", seen.keys())
 	print("[input-test] missing: ", missing)

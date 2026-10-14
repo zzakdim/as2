@@ -96,6 +96,12 @@ static func display_name(id: String) -> String:
 	return id.capitalize()
 
 
+const MELEE_IDS := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete"]
+
+static func is_gun(id: String) -> bool:
+	return DEFS.has(id) and not DEFS[id].get("melee", false)
+
+
 static func new_state(id: String) -> Dictionary:
 	var d := get_def(id)
 	return {"id": id, "mag": d.get("mag", 0), "reserve": d.get("reserve", 0)}

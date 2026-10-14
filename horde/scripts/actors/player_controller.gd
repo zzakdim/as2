@@ -69,6 +69,9 @@ func _ready() -> void:
 	flashlight.light_color = Color(1.0, 0.96, 0.88)
 	flashlight.shadow_enabled = true
 	flashlight.position = Vector3(0.25, -0.15, 0.0)
+	# The flashlight sits right next to the weapon: keep it off the
+	# viewmodel (layer 2) or the blade blows out to white.
+	flashlight.light_cull_mask = 1
 	camera.add_child(flashlight)
 	vm_root = Node3D.new()
 	camera.add_child(vm_root)
@@ -76,16 +79,18 @@ func _ready() -> void:
 	# (metal reflects nothing against a black sky otherwise).
 	var vm_light := OmniLight3D.new()
 	vm_light.light_color = Color(1.0, 0.9, 0.8)
-	vm_light.light_energy = 0.6
+	vm_light.light_energy = 0.5
 	vm_light.omni_range = 2.2
-	vm_light.position = Vector3(0.3, 0.25, 0.2)
-	vm_light.light_specular = 1.5
+	vm_light.position = Vector3(0.3, 0.35, 0.25)
+	vm_light.light_specular = 0.7
+	vm_light.light_cull_mask = 2
 	camera.add_child(vm_light)
 	s.rig.visible = false
 	if FPArms.available() and SkinnedRig.style == "human" and not Infected.use_box_rigs:
 		fp_arms = FPArms.new()
 		camera.add_child(fp_arms)
 		fp_arms.setup(s.color.darkened(0.35))
+		_vm_layers(fp_arms)
 	s.fired.connect(_on_fired)
 	on_weapon_changed()
 
@@ -298,6 +303,11 @@ func on_weapon_changed() -> void:
 			_build_gun_arms()
 	if vm_model:
 		vm_root.add_child(vm_model)
+	_vm_layers(vm_root)
+	if melee_root:
+		_vm_layers(melee_root)
+	for a in arm_parts:
+		_vm_layers(a)
 	vm_reload = 0.0
 	land_dip = 0.25
 
@@ -355,6 +365,14 @@ func _update_gun_arms() -> void:
 		return
 	for a in gun_arms:
 		a.visible = show
+
+
+## Viewmodel geometry lives on render layer 2 (see the flashlight).
+func _vm_layers(n: Node) -> void:
+	if n is VisualInstance3D:
+		(n as VisualInstance3D).layers = 2
+	for c in n.get_children():
+		_vm_layers(c)
 
 
 func _build_melee_vm(id: String) -> void:
@@ -437,7 +455,7 @@ func _wrist(grip: Vector3, right: bool) -> Vector3:
 
 func _update_melee_vm(delta: float, bob: float) -> void:
 	var m: Melee = s.melee
-	var xf := m.pose
+	var xf := m.view_pose(m.pose)
 	xf.origin += Vector3(0, bob * 0.5 - land_dip * 0.5, 0)
 	xf = _apply_sway(xf)
 	melee_root.transform = xf
@@ -496,9 +514,10 @@ func _update_trail(delta: float) -> void:
 		var steps := 4 if _trail_had else 1
 		for i in steps:
 			var k := float(i + 1) / steps
-			var xf: Transform3D = _trail_prev.interpolate_with(m.pose, k) if _trail_had else m.pose
+			var vp: Transform3D = m.view_pose(m.pose)
+			var xf: Transform3D = _trail_prev.interpolate_with(vp, k) if _trail_had else vp
 			trail_pts.append([xf * Vector3(0, 0, -grip - length * 0.3), xf * Vector3(0, 0, -grip - length * 1.02), 0.0 - (1.0 - k) * delta])
-		_trail_prev = m.pose
+		_trail_prev = m.view_pose(m.pose)
 	_trail_had = active
 	trail_mesh.clear_surfaces()
 	if trail_pts.size() < 2:

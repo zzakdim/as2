@@ -135,7 +135,7 @@ func load_map(idx: int) -> void:
 		world.add_child(w)
 		w.setup(moon_light, world_env)
 
-	for i in (4 if Game.bots_enabled else 1):
+	for i in ((1 + Game.bot_count) if Game.bots_enabled else 1):
 		var s := Survivor.new()
 		var info: Array = SURVIVORS[i]
 		s.setup(info[0], info[1], i != 0)
@@ -146,8 +146,8 @@ func load_map(idx: int) -> void:
 		s.yaw = PI   # face +Z, out of the saferoom
 		world.add_child(s)
 		if Game.mode == "sandbox":
-			s.secondary = WeaponData.new_state("greatsword")
-			s.primary = WeaponData.new_state("assault_rifle")
+			s.secondary = WeaponData.new_state("greatsword" if i == 0 else "fire_axe")
+			s.primary = null if Game.melee_only else WeaponData.new_state("assault_rifle")
 			s.active_slot = Survivor.SLOT_SECONDARY
 			s.has_medkit = true
 			s._refresh_held_model()

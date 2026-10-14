@@ -1,6 +1,9 @@
 # After Dark
 
-A co-op horde shooter in the spirit of **Left 4 Dead 2**, built in **Godot 4.5**.
+A co-op horde game in the spirit of **Left 4 Dead 2** and **Darktide**, built
+in **Godot 4.5**. It is currently **melee only** (every gun pickup becomes a
+blade) with **one teammate**, who is not the sharpest; `Game.melee_only` and
+`Game.bot_count` in `scripts/game.gd` switch that back.
 You and three AI teammates fight from saferoom to saferoom through a city
 that's procedurally generated every run, while an AI Director decides when
 and where the infected come at you.

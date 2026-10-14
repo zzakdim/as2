@@ -5,7 +5,7 @@ extends Node
 ## effects, HUD, the survivor and infected lists) hangs off this node.
 
 ## Bump on every pushed change so a running build can be identified.
-const VERSION := "0.12.0 — four swords, specials, cuts"
+const VERSION := "0.13.0 — melee only, close viewmodel, one dim teammate"
 
 enum Diff { EASY, NORMAL, ADVANCED, EXPERT }
 const DIFF_NAMES := ["Easy", "Normal", "Advanced", "Expert"]
@@ -39,6 +39,8 @@ var mode := "campaign"        # "campaign" or "sandbox" (melee test arena)
 var god_mode := false
 var force_input := false        # input test: treat input as live without a captured mouse
 var player_class := "zealot"      # zealot, veteran, ogryn, psyker
+var melee_only := true          # no guns: every gun pickup becomes a blade
+var bot_count := 1               # teammates (when bots are enabled)
 var bots_enabled := true       # teammates; turn off for solo testing (menu toggle or --no-bots)
 var playing := false
 var time := 0.0
@@ -125,14 +127,20 @@ func ff_mult() -> float:
 func tank_hp() -> float:
 	return [3000.0, 4000.0, 8000.0, 8000.0][difficulty]
 
+## Fewer survivors, smaller hordes (tuned for four with guns).
+func team_scale() -> float:
+	var n := (1 + bot_count) if bots_enabled else 1
+	return 0.45 + 0.55 * clampf(n / 4.0, 0.0, 1.0)
+
+
 func mob_size() -> int:
-	return [14, 22, 28, 32][difficulty]
+	return int(round([14, 22, 28, 32][difficulty] * team_scale()))
 
 func max_specials() -> int:
-	return [2, 3, 4, 4][difficulty]
+	return maxi(1, int(round([2, 3, 4, 4][difficulty] * team_scale())))
 
 func wanderer_cap() -> int:
-	return [20, 28, 34, 38][difficulty]
+	return int(round([20, 28, 34, 38][difficulty] * team_scale()))
 
 
 # ---------------------------------------------------------------- queries

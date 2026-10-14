@@ -20,12 +20,20 @@ var follow_offset := Vector3.ZERO
 var item_t := 0.0
 var tap := false
 var spotted := {}
+var dim := false          # the not-so-bright teammate
+var daze_t := 0.0         # staring at nothing
+var daze_cd := 20.0
+var air_swing_t := 0.0
+
+const DIM_LINES := ["Is that one dead?", "Which way are we going?", "I'm helping!", "Got it! ...I think.",
+	"Did you hear that? No? Okay.", "My sword's sharp. Probably.", "Wait for me!", "Was that me?", "I love this job."]
 
 
 func _init(surv: Survivor, auto := false) -> void:
 	s = surv
 	autopilot = auto
 	s.controller = self
+	dim = not auto and Game.melee_only
 	follow_offset = Vector3(randf_range(-2.5, 2.5), 0, randf_range(-2.5, 2.5))
 
 
@@ -57,12 +65,43 @@ func update(delta: float) -> void:
 	if scan_t <= 0.0:
 		scan_t = randf_range(0.12, 0.22)
 		_scan()
+	if dim and _dim_update(delta):
+		return
 	_aim(delta)
 	_combat()
 	if s.incapped or s.pinned_by != null:
 		s.move_dir = Vector3.ZERO
 		return
 	_move(delta)
+
+
+## The dim teammate: every so often stops to stare at something, swings at
+## thin air, and says things. Returns true while dazed (skips the rest).
+func _dim_update(delta: float) -> bool:
+	if s.incapped or s.pinned_by != null:
+		daze_t = 0.0
+		return false
+	daze_cd -= delta
+	if daze_t > 0.0:
+		daze_t -= delta
+		s.move_dir = Vector3.ZERO
+		s.yaw = wrapf(s.yaw + sin(Time.get_ticks_msec() * 0.0013) * delta * 0.8, -PI, PI)
+		# Snaps out of it if something is right on him.
+		if target and is_instance_valid(target) and target.global_position.distance_to(s.global_position) < 2.0:
+			daze_t = 0.0
+		return daze_t > 0.0
+	var calm: bool = target == null or not is_instance_valid(target) or target.global_position.distance_to(s.global_position) > 10.0
+	if calm and daze_cd <= 0.0:
+		daze_cd = randf_range(18.0, 40.0)
+		daze_t = randf_range(1.5, 4.0)
+		if randf() < 0.6:
+			Game.callout(s, DIM_LINES.pick_random())
+		return true
+	air_swing_t -= delta
+	if calm and air_swing_t <= 0.0:
+		air_swing_t = randf_range(8.0, 20.0)
+		s.fire_held = true      # swings at a moth
+	return false
 
 
 # ------------------------------------------------------------------ targeting
@@ -109,7 +148,7 @@ func _scan() -> void:
 			Game.callout(s, "%s!" % z.kind.capitalize())
 	if best != target:
 		target = best
-		react_t = randf_range(0.18, 0.4)
+		react_t = randf_range(0.55, 1.0) if dim else randf_range(0.18, 0.4)
 		aim_err = Vector3(randf_range(-0.25, 0.25), randf_range(-0.2, 0.2), randf_range(-0.25, 0.25))
 
 
@@ -136,7 +175,7 @@ func _aim(delta: float) -> void:
 
 func _combat() -> void:
 	# Keep the primary out unless we're down or holding something else on purpose.
-	var prefer_melee: bool = Game.mode == "sandbox" and WeaponData.get_def(s.secondary["id"]).get("melee", false)
+	var prefer_melee: bool = (Game.mode == "sandbox" or s.primary == null) and WeaponData.get_def(s.secondary["id"]).get("melee", false)
 	if prefer_melee and s.active_slot != Survivor.SLOT_SECONDARY and s.action == "" and not s.incapped:
 		s.switch_to(Survivor.SLOT_SECONDARY)
 	elif not prefer_melee and not s.incapped and s.action == "" and s.active_slot != Survivor.SLOT_PRIMARY and s.primary and s.active_slot != Survivor.SLOT_MEDKIT:

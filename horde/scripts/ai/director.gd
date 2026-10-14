@@ -341,7 +341,7 @@ func spawn_mob(size: int, reason: String) -> void:
 	var base: Vector3 = lvl.cell_center(c)
 	var elites: int = [0, 1, 2, 3][Game.difficulty] if size >= 10 else 0
 	for i in elites:
-		var e := Elite.make(["shieldbearer", "rager", "rager", "shieldbearer", "gunner"].pick_random())
+		var e := Elite.make((["shieldbearer", "rager"] if Game.melee_only else ["shieldbearer", "rager", "rager", "shieldbearer", "gunner"]).pick_random())
 		e.position = base + Vector3(randf_range(-1.5, 1.5), 0.05, randf_range(-1.5, 1.5))
 		e.state = Infected.S.CHASE
 		Game.world.add_child(e)

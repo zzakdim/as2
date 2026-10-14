@@ -9,6 +9,11 @@ var _t := 0.0
 
 
 static func create(id: String, pos: Vector3) -> Pickup:
+	if Game.melee_only:
+		if WeaponData.is_gun(id):
+			id = WeaponData.MELEE_IDS.pick_random()
+		elif id == "ammo":
+			id = "pills"
 	var p := Pickup.new()
 	p.item_id = id
 	p.position = pos

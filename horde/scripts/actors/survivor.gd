@@ -144,6 +144,11 @@ func _ready() -> void:
 	cs.shape = cap
 	cs.position.y = 0.9
 	add_child(cs)
+	if Game.melee_only:
+		primary = null
+		if WeaponData.is_gun(secondary["id"]):
+			secondary = WeaponData.new_state("fire_axe" if is_bot else "greatsword")
+		active_slot = SLOT_SECONDARY
 	_make_rig()
 	melee = Melee.new(self)
 	_refresh_held_model()
@@ -1176,7 +1181,7 @@ func respawn_at(pos: Vector3, facing: Vector3) -> void:
 	toughness = toughness_max
 	collision_layer = Game.LAYER_SURVIVOR
 	primary = null
-	secondary = WeaponData.new_state("pistol")
+	secondary = WeaponData.new_state("machete" if Game.melee_only else "pistol")
 	active_slot = SLOT_SECONDARY
 	velocity = Vector3.ZERO
 	global_position = pos
@@ -1241,6 +1246,10 @@ func export_state() -> Dictionary:
 func import_state(s: Dictionary) -> void:
 	primary = s["primary"]
 	secondary = s["secondary"]
+	if Game.melee_only:
+		primary = null
+		if WeaponData.is_gun(secondary["id"]):
+			secondary = WeaponData.new_state("greatsword")
 	throwable = s["throwable"]
 	has_medkit = s["medkit"]
 	has_pills = s["pills"]
