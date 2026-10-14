@@ -1,0 +1,241 @@
+class_name WeaponData
+## Weapon definitions. Numbers follow L4D2's published campaign stats where
+## they exist (damage per bullet, fire interval, clip, reserve).
+
+const DEFS := {
+	"pistol": {
+		"name": "Pistol", "slot": 1, "tier": 0, "damage": 36.0, "pellets": 1, "rate": 0.175,
+		"auto": false, "mag": 15, "reserve": -1, "spread": 1.2, "reload": 1.6, "pen": 1,
+		"range": 80.0, "sound": "shot_pistol", "noise": 25.0, "kick": 0.012,
+	},
+	"dual_pistols": {
+		"name": "Dual Pistols", "slot": 1, "tier": 0, "damage": 36.0, "pellets": 1, "rate": 0.1,
+		"auto": false, "mag": 30, "reserve": -1, "spread": 1.8, "reload": 2.2, "pen": 1,
+		"range": 80.0, "sound": "shot_pistol", "noise": 25.0, "kick": 0.012,
+	},
+	"magnum": {
+		"name": "Magnum", "slot": 1, "tier": 0, "damage": 80.0, "pellets": 1, "rate": 0.3,
+		"auto": false, "mag": 8, "reserve": -1, "spread": 1.0, "reload": 1.9, "pen": 3,
+		"range": 90.0, "sound": "shot_magnum", "noise": 30.0, "kick": 0.035,
+	},
+	"machete": {
+		"name": "Falchion", "slot": 1, "tier": 0, "melee": true, "moveset": "machete", "damage": 200.0, "rate": 0.55,
+		"range": 2.3, "arc": 70.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
+	},
+	"stick": {
+		"name": "Stick", "slot": 1, "tier": 0, "melee": true, "moveset": "stick", "damage": 30.0, "rate": 0.4,
+		"range": 2.0, "arc": 70.0, "sound": "swing", "noise": 4.0, "kick": 0.0,
+	},
+	"fire_axe": {
+		"name": "Bearded Axe", "slot": 1, "tier": 0, "melee": true, "moveset": "fire_axe", "damage": 190.0, "rate": 0.5,
+		"range": 2.2, "arc": 60.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
+	},
+	"sledgehammer": {
+		"name": "Maul", "slot": 1, "tier": 0, "melee": true, "moveset": "sledgehammer", "damage": 160.0, "rate": 0.7,
+		"range": 2.4, "arc": 70.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
+	},
+	"sabre": {
+		"name": "Duelling Sabre", "slot": 1, "tier": 0, "melee": true, "moveset": "sabre", "damage": 110.0, "rate": 0.3,
+		"range": 2.2, "arc": 70.0, "sound": "swing", "noise": 5.0, "kick": 0.0,
+	},
+	"executioner": {
+		"name": "Executioner's Sword", "slot": 1, "tier": 0, "melee": true, "moveset": "executioner", "damage": 220.0, "rate": 0.8,
+		"range": 2.6, "arc": 90.0, "sound": "swing", "noise": 9.0, "kick": 0.0,
+	},
+	"messer": {
+		"name": "Messer", "slot": 1, "tier": 0, "melee": true, "moveset": "messer", "damage": 140.0, "rate": 0.4,
+		"range": 2.3, "arc": 75.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
+	},
+	"greatsword": {
+		"name": "Greatsword", "slot": 1, "tier": 0, "melee": true, "moveset": "greatsword", "damage": 240.0, "rate": 0.5,
+		"range": 2.6, "arc": 80.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
+	},
+	"smg": {
+		"name": "SMG", "slot": 0, "tier": 1, "damage": 20.0, "pellets": 1, "rate": 0.065,
+		"auto": true, "mag": 50, "reserve": 650, "spread": 2.4, "reload": 2.2, "pen": 1,
+		"range": 60.0, "sound": "shot_smg", "noise": 25.0, "kick": 0.006,
+	},
+	"pump_shotgun": {
+		"name": "Pump Shotgun", "slot": 0, "tier": 1, "damage": 25.0, "pellets": 10, "rate": 0.9,
+		"auto": false, "mag": 8, "reserve": 56, "spread": 5.5, "reload": 0.45, "shell_reload": true,
+		"pen": 1, "range": 30.0, "sound": "shot_shotgun", "noise": 30.0, "kick": 0.05,
+	},
+	"assault_rifle": {
+		"name": "Assault Rifle", "slot": 0, "tier": 2, "damage": 33.0, "pellets": 1, "rate": 0.0875,
+		"auto": true, "mag": 50, "reserve": 360, "spread": 1.5, "reload": 2.3, "pen": 2,
+		"range": 100.0, "sound": "shot_rifle", "noise": 30.0, "kick": 0.01,
+	},
+	"auto_shotgun": {
+		"name": "Auto Shotgun", "slot": 0, "tier": 2, "damage": 23.0, "pellets": 11, "rate": 0.3,
+		"auto": true, "mag": 10, "reserve": 90, "spread": 6.0, "reload": 0.4, "shell_reload": true,
+		"pen": 1, "range": 30.0, "sound": "shot_shotgun", "noise": 30.0, "kick": 0.04,
+	},
+	"hunting_rifle": {
+		"name": "Hunting Rifle", "slot": 0, "tier": 2, "damage": 90.0, "pellets": 1, "rate": 0.25,
+		"auto": false, "mag": 15, "reserve": 150, "spread": 0.25, "reload": 3.0, "pen": 4,
+		"range": 150.0, "sound": "shot_sniper", "noise": 35.0, "kick": 0.03,
+	},
+}
+
+const THROWABLES := {
+	"pipe_bomb": {"name": "Pipe Bomb", "color": Color(0.5, 0.5, 0.45)},
+	"molotov": {"name": "Molotov", "color": Color(0.6, 0.35, 0.1)},
+	"bile_jar": {"name": "Bile Jar", "color": Color(0.35, 0.6, 0.2)},
+}
+
+
+static func get_def(id: String) -> Dictionary:
+	return DEFS.get(id, DEFS["pistol"])
+
+
+static func display_name(id: String) -> String:
+	if DEFS.has(id):
+		return DEFS[id]["name"]
+	if THROWABLES.has(id):
+		return THROWABLES[id]["name"]
+	match id:
+		"medkit": return "First Aid Kit"
+		"pills": return "Pain Pills"
+		"ammo": return "Ammo"
+	return id.capitalize()
+
+
+const MELEE_IDS := ["greatsword", "sabre", "executioner", "messer", "fire_axe", "sledgehammer", "machete"]
+
+static func is_gun(id: String) -> bool:
+	return DEFS.has(id) and not DEFS[id].get("melee", false)
+
+
+static func new_state(id: String) -> Dictionary:
+	var d := get_def(id)
+	return {"id": id, "mag": d.get("mag", 0), "reserve": d.get("reserve", 0)}
+
+
+## Placeholder gun model built from boxes. Barrel points along -Z.
+# Real gun meshes (Quaternius Ultimate Gun Pack, CC0): OBJ with the origin on
+# the pistol grip, muzzle along +X. [file, overall length in m, support-hand
+# point in our model space (muzzle along -Z)].
+const GUN_MODELS := {
+	"pistol": ["Pistol_1", 0.2, Vector3(-0.02, -0.05, 0.0)],
+	"dual_pistols": ["Pistol_1", 0.2, Vector3(-0.02, -0.05, 0.0)],
+	"magnum": ["Revolver_1", 0.3, Vector3(-0.02, -0.05, 0.0)],
+	"smg": ["SubmachineGun_2", 0.52, Vector3(0, -0.07, -0.09)],
+	"pump_shotgun": ["Shotgun_1", 1.0, Vector3(0, -0.03, -0.42)],
+	"auto_shotgun": ["Shotgun_3", 1.0, Vector3(0, -0.03, -0.38)],
+	"assault_rifle": ["AssaultRifle2_1", 0.84, Vector3(0, -0.02, -0.24)],
+	"hunting_rifle": ["SniperRifle_1", 1.12, Vector3(0, -0.03, -0.3)],
+}
+static var _gun_meshes := {}
+
+
+## Support-hand grip for first-person arms (model space), or null.
+static func fore_grip(id: String):
+	if GUN_MODELS.has(id) and ResourceLoader.exists("res://assets/quaternius/guns/%s.obj" % GUN_MODELS[id][0]):
+		return GUN_MODELS[id][2]
+	return null
+
+
+static func _real_gun(id: String) -> Node3D:
+	if not GUN_MODELS.has(id):
+		return null
+	var path := "res://assets/quaternius/guns/%s.obj" % GUN_MODELS[id][0]
+	if not ResourceLoader.exists(path):
+		return null
+	if not _gun_meshes.has(path):
+		_gun_meshes[path] = load(path)
+	var mesh: Mesh = _gun_meshes[path]
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	var sc: float = GUN_MODELS[id][1] / maxf(mesh.get_aabb().size.x, 0.001)
+	mi.transform = Transform3D(Basis(Vector3.UP, PI / 2).scaled(Vector3.ONE * sc), Vector3.ZERO)
+	return mi
+
+
+static func build_model(id: String, view := false) -> Node3D:
+	var root := Node3D.new()
+	var real := _real_gun(id)
+	if real:
+		root.add_child(real)
+		if view:
+			real.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		return root
+	var dark := Mats.color(Color(0.12, 0.12, 0.13), 0.4, 0.6)
+	var wood := Mats.color(Color(0.35, 0.2, 0.1), 0.7)
+	var steel := Mats.color(Color(0.5, 0.5, 0.52), 0.35, 0.8)
+	match id:
+		"pistol", "dual_pistols", "magnum":
+			var l := 0.24 if id == "magnum" else 0.18
+			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.05, l)), steel if id == "magnum" else dark, Vector3(0, 0.02, -l * 0.5))
+			Mats.add_mesh(root, Mats.box(Vector3(0.035, 0.1, 0.05)), dark, Vector3(0, -0.04, 0.0), Vector3(-0.25, 0, 0))
+		"machete":
+			# Falchion: a broad single-edged cleaver of a sword, widening
+			# toward a clipped point, plain iron cross.
+			WeaponMesh.sword(root, {"grip": 0.12, "blade": 0.56, "width": [0.02, 0.032, 0.04], "thick": 0.0055, "curve": 0.012,
+				"tip": "clip", "guard": "cross", "guard_w": 0.085, "single_edge": true, "pommel": 0.02},
+				Mats.color(Color(0.6, 0.61, 0.64), 0.28, 0.8).duplicate(), Mats.color(Color(0.18, 0.18, 0.19), 0.45, 0.8), Mats.color(Color(0.12, 0.08, 0.06), 0.8))
+		"stick":
+			WeaponMesh.stick(root, Mats.color(Color(0.2, 0.16, 0.12), 0.95).duplicate())
+		"fire_axe":
+			var axe_steel := Mats.color(Color(0.46, 0.46, 0.48), 0.4, 0.8).duplicate()
+			WeaponMesh.fire_axe(root, axe_steel, null, Mats.color(Color(0.24, 0.15, 0.09), 0.75))
+		"sledgehammer":
+			WeaponMesh.sledgehammer(root, Mats.color(Color(0.35, 0.36, 0.38), 0.45, 0.7).duplicate(), wood)
+		"sabre", "executioner", "messer":
+			var steel2 := Mats.color(Color(0.66, 0.67, 0.7), 0.25, 0.8).duplicate()
+			var brass2 := Mats.color(Color(0.6, 0.45, 0.2), 0.3, 0.85)
+			var iron := Mats.color(Color(0.18, 0.18, 0.19), 0.45, 0.8)
+			var leather2 := Mats.color(Color(0.12, 0.08, 0.06), 0.8)
+			var spec: Dictionary = {
+				"sabre": {"grip": 0.13, "blade": 0.84, "width": [0.017, 0.016, 0.018], "thick": 0.0045, "curve": 0.05,
+					"tip": "clip", "guard": "knuckle", "single_edge": true, "pommel": 0.016},
+				"executioner": {"grip": 0.34, "blade": 0.98, "width": [0.05, 0.052, 0.054], "thick": 0.007, "tip": "flat",
+					"guard": "cross", "guard_w": 0.14, "pommel": 0.034},
+				"messer": {"grip": 0.18, "blade": 0.76, "width": [0.022, 0.024, 0.02], "thick": 0.006, "curve": 0.025,
+					"tip": "clip", "guard": "cross", "guard_w": 0.08, "single_edge": true, "nagel": true, "pommel": 0.022},
+			}[id]
+			WeaponMesh.sword(root, spec, steel2, brass2 if id == "sabre" else iron, leather2)
+		"greatsword":
+			var leather := Mats.color(Color(0.16, 0.1, 0.07), 0.8)
+			var brass := Mats.color(Color(0.55, 0.42, 0.2), 0.35, 0.8)
+			var blade_mat := Mats.color(Color(0.62, 0.63, 0.66), 0.28, 0.75).duplicate()
+			WeaponMesh.greatsword(root, blade_mat, brass, leather)
+		"smg":
+			Mats.add_mesh(root, Mats.box(Vector3(0.06, 0.08, 0.36)), dark, Vector3(0, 0.02, -0.15))
+			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.16, 0.04)), dark, Vector3(0, -0.08, -0.12))
+			Mats.add_mesh(root, Mats.box(Vector3(0.035, 0.1, 0.05)), dark, Vector3(0, -0.05, 0.0), Vector3(-0.3, 0, 0))
+		"pump_shotgun", "auto_shotgun":
+			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.06, 0.7)), dark, Vector3(0, 0.03, -0.35))
+			Mats.add_mesh(root, Mats.box(Vector3(0.06, 0.06, 0.25)), wood if id == "pump_shotgun" else dark, Vector3(0, -0.02, -0.4))
+			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.1, 0.3)), wood if id == "pump_shotgun" else dark, Vector3(0, -0.03, 0.12))
+		"assault_rifle":
+			Mats.add_mesh(root, Mats.box(Vector3(0.06, 0.09, 0.62)), dark, Vector3(0, 0.02, -0.3))
+			Mats.add_mesh(root, Mats.box(Vector3(0.045, 0.18, 0.06)), dark, Vector3(0, -0.1, -0.25), Vector3(0.2, 0, 0))
+			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.1, 0.25)), dark, Vector3(0, -0.02, 0.12))
+		"hunting_rifle":
+			Mats.add_mesh(root, Mats.box(Vector3(0.05, 0.07, 0.85)), wood, Vector3(0, 0.0, -0.3))
+			Mats.add_mesh(root, Mats.cylinder(0.025, 0.25), dark, Vector3(0, 0.08, -0.25), Vector3(PI / 2, 0, 0))
+		"medkit":
+			Mats.add_mesh(root, Mats.box(Vector3(0.3, 0.22, 0.12)), Mats.color(Color(0.75, 0.1, 0.1)))
+			Mats.add_mesh(root, Mats.box(Vector3(0.12, 0.03, 0.125)), Mats.color(Color(0.95, 0.95, 0.95)), Vector3(0, 0, 0))
+			Mats.add_mesh(root, Mats.box(Vector3(0.03, 0.12, 0.125)), Mats.color(Color(0.95, 0.95, 0.95)), Vector3(0, 0, 0))
+		"pills":
+			Mats.add_mesh(root, Mats.cylinder(0.035, 0.1), Mats.color(Color(0.9, 0.6, 0.1), 0.3))
+			Mats.add_mesh(root, Mats.cylinder(0.037, 0.03), Mats.color(Color(0.95, 0.95, 0.95)), Vector3(0, 0.06, 0))
+		"pipe_bomb":
+			Mats.add_mesh(root, Mats.cylinder(0.035, 0.2), steel, Vector3.ZERO, Vector3(PI / 2, 0, 0))
+			Mats.add_mesh(root, Mats.sphere(0.02), Mats.emissive(Color(1, 0.1, 0.1), 3.0), Vector3(0, 0.04, 0))
+		"molotov":
+			Mats.add_mesh(root, Mats.cylinder(0.045, 0.2), Mats.color(Color(0.3, 0.5, 0.2, 1), 0.2), Vector3.ZERO)
+			Mats.add_mesh(root, Mats.box(Vector3(0.03, 0.08, 0.03)), Mats.emissive(Color(1, 0.6, 0.1), 2.0), Vector3(0, 0.13, 0))
+		"bile_jar":
+			Mats.add_mesh(root, Mats.sphere(0.07), Mats.color(Color(0.4, 0.6, 0.15), 0.2))
+		"ammo":
+			Mats.add_mesh(root, Mats.box(Vector3(0.6, 0.3, 0.4)), Mats.color(Color(0.25, 0.3, 0.18)))
+			Mats.add_mesh(root, Mats.box(Vector3(0.5, 0.15, 0.3)), Mats.color(Color(0.7, 0.55, 0.2), 0.4, 0.7), Vector3(0, 0.2, 0))
+		_:
+			Mats.add_mesh(root, Mats.box(Vector3(0.1, 0.1, 0.3)), dark)
+	if view:
+		for c in root.get_children():
+			if c is MeshInstance3D:
+				c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return root

@@ -1,0 +1,18 @@
+# Third-party assets
+
+| Folder | Source | License |
+| --- | --- | --- |
+| `kaykit/skeletons` | [KayKit Character Pack: Skeletons 1.0](https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Skeletons-1.0) by Kay Lousberg | CC0 1.0 |
+| `quaternius/humans` | [Universal Base Characters](https://quaternius.itch.io/universal-base-characters) (free tier) by Quaternius — bodies split into limb parts by `tools/split_gltf_parts.py`, textures downscaled to 1024 px | CC0 1.0 |
+| `quaternius/humans/Outfit_*` | [Modular Character Outfits – Fantasy](https://quaternius.itch.io/modular-character-outfits-fantasy) (free tier) by Quaternius — Ranger and Peasant outfits merged with the base-character heads and split into limb parts by `tools/build_outfit_model.py`, textures downscaled to 1024 px | CC0 1.0 |
+| `quaternius/guns` | [Ultimate Gun Pack](https://quaternius.itch.io/50-lowpoly-guns) by Quaternius — 7 of the OBJ guns | CC0 1.0 |
+| `quaternius/cars` | [Realistic Car Pack](https://quaternius.itch.io/lowpoly-cars) by Quaternius — 6 OBJ cars | CC0 1.0 |
+| `oga/audio` | Melee sounds from OpenGameArt: swishes (artisticdude), sword attacks/clashes (StarNinjas), squishes (EZduzziteh), splatters, punches and wet-towel body hits (qubodup) — trimmed, normalised, some pitched; details in `oga/audio/LICENSE.txt` | CC0 1.0 (wet-towel hits also MIT/zlib/BSD) |
+| `quaternius/anims` | [Universal Animation Library](https://quaternius.itch.io/universal-animation-library) 1 + [2](https://quaternius.itch.io/universal-animation-library-2) by Quaternius | CC0 1.0 |
+| `quaternius/city` | [Downtown City MegaKit](https://quaternius.itch.io/downtown-city-megakit) (free tier) by Quaternius — facade modules, cornices, props; textures downscaled to 1024 px | CC0 1.0 |
+| `quaternius/hair` | Hairstyles from Universal Base Characters by Quaternius | CC0 1.0 |
+| `kenney/audio` | [Impact Sounds](https://kenney.nl/assets/impact-sounds) and [RPG Audio](https://kenney.nl/assets/rpg-audio) by Kenney | CC0 1.0 |
+| `kaykit/adventurers` | [KayKit Character Pack: Adventures 1.0](https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0) by Kay Lousberg | CC0 1.0 |
+
+Everything else (code, procedural meshes, whooshes/gunshots/voices synthesized at runtime) is original to this project.
+Thanks to Kay Lousberg (www.kaylousberg.com) — credit is not required by CC0 but given gladly.
