@@ -451,7 +451,7 @@ func run_pose_sheet(dir: String) -> void:
 		z.queue_free()
 	Game.director.set_physics_process(false)
 	await get_tree().create_timer(0.5).timeout
-	var shots := [["idle", 0, "", 0.0], ["block", 0, "", 0.0], ["push", 0, "", 1.0]]
+	var shots := [["idle", 0, "", 0.0], ["sprint", 0, "", 0.0], ["block", 0, "", 0.0], ["push", 0, "", 1.0]]
 	for kind in ["light", "heavy"]:
 		for i in p.melee.ms[kind].size():
 			shots.append([kind, i, "windup", 1.0])

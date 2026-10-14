@@ -12,6 +12,7 @@ var vm_reload := 0.0
 var vm_shove := 0.0
 var vm_melee := 0.0
 var bob_t := 0.0
+var _run_sway := 0.0
 var land_dip := 0.0
 var look_target = null       # current usable / teammate under crosshair
 var hold_kind := ""
@@ -460,6 +461,11 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 	var m: Melee = s.melee
 	var xf := m.view_pose(m.pose)
 	xf.origin += Vector3(0, bob * 0.5 - land_dip * 0.5, 0)
+	# Stride sway while running: the carried weapon swings with the steps.
+	_run_sway = lerpf(_run_sway, 1.0 if s.sprinting and m.state == "idle" else 0.0, minf(1.0, delta * 6.0))
+	if _run_sway > 0.01:
+		xf.origin += Vector3(sin(bob_t) * 0.025, -absf(cos(bob_t)) * 0.02, 0) * _run_sway
+		xf.basis = Basis(Vector3(0, 0, 1), sin(bob_t) * 0.06 * _run_sway) * xf.basis
 	xf = _apply_sway(xf)
 	melee_root.transform = xf
 	if melee_blade_mat:

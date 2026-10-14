@@ -253,6 +253,7 @@ func _init(owner_s) -> void:
 func pose_for(kind: String, i: int, phase: String, k: float) -> Transform3D:
 	match kind:
 		"idle": return idle_pose()
+		"sprint": return sprint_pose()
 		"block": return block_pose()
 		"push": return block_pose().interpolate_with(push_pose(), k)
 		"push_attack": atk = ms["push_attack"]
@@ -380,7 +381,8 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 				light_i = 0
 				heavy_i = 0
 				momentum = 0
-			pose = pose.interpolate_with(idle_pose(), min(1.0, delta * 10.0))
+			var rest := sprint_pose() if s.sprinting or s.slide_t > 0.0 else idle_pose()
+			pose = pose.interpolate_with(rest, min(1.0, delta * (7.0 if s.sprinting else 10.0)))
 			if block_held:
 				_enter("block")
 			elif fire_pressed:
@@ -816,6 +818,13 @@ func idle_pose() -> Transform3D:
 		return _blade_xf(ms["idle_o"], (ms["idle_v"] as Vector3).normalized(), Vector3(-1, -0.1, 0.25).normalized())
 	var v := Vector3(-0.22, 0.78, -0.58).normalized()
 	return _blade_xf(Vector3(0.2, -0.36, -0.52), v, Vector3(-1, -0.1, 0.25).normalized())
+
+
+## Running: the weapon carried low across the body, out of the way, point
+## forward and to the left.
+func sprint_pose() -> Transform3D:
+	var v := Vector3(-0.55, 0.3, -0.55).normalized()
+	return _blade_xf(Vector3(0.3, -0.56, -0.45), v, Vector3(-0.3, -1, 0).normalized())
 
 
 func block_pose() -> Transform3D:
