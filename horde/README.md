@@ -92,9 +92,9 @@ Swords, each built around a different idea:
   touch but never cut; a body takes two, a head one. Only in the sandbox
   for now (the start of the planned weapon progression).
 
-Other melee:
-sledgehammer (slow; the overhead slam knocks everything down — they fall,
-lie there a moment and climb back up, as do commons near a blast), machete.
+Other melee: the maul (slow; the overhead slam knocks everything down — they
+fall, lie there a moment and climb back up, as do commons near a blast) and
+the falchion (a quick one-handed cleaver).
 
 The **Melee Sandbox** on the title screen drops you in an arena with the
 greatsword and an endless horde, with every weapon laid out around you.

@@ -141,7 +141,8 @@ const MOVESETS := {
 			"damage": 160.0, "cleave": 2.0, "impact": 8.0, "lunge": 3.0, "next_light": 0, "next_heavy": 0},
 	},
 	"sledgehammer": {
-		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.07, -0.28, -0.48), "head_mass": true, "swish_pitch": 0.65,
+		"length": 0.72, "grip": 0.6, "pivot": Vector3(0.07, -0.28, -0.48), "head_mass": true, "swish_pitch": 0.65, "lean": 1.3,
+		"idle_o": Vector3(0.32, -0.36, -0.52), "idle_v": Vector3(0.14, 0.8, -0.5),
 		"stamina": 5.0, "block_cost": 0.35, "push_cost": 0.8, "block_arc": 0.2,
 		"light": [
 			{"name": "Swing L>R", "dir": 15.0, "arc": [-62.0, 66.0], "windup": 0.24, "strike": 0.17, "follow": 0.14, "recover": 0.42,

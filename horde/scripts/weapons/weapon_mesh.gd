@@ -279,17 +279,27 @@ static func stick(root: Node3D, bark: Material) -> MeshInstance3D:
 
 ## Sledgehammer: long haft, heavy chamfered steel head across the haft.
 static func sledgehammer(root: Node3D, steel: Material, wood: Material) -> MeshInstance3D:
+	# Maul: a forged block head on a long ash haft, iron langets down the
+	# haft, banded faces and a short top spike.
 	haft(root, 1.02, 0.021, wood)
+	var iron := Mats.color(Color(0.16, 0.16, 0.17), 0.5, 0.8)
+	var leather := Mats.color(Color(0.13, 0.085, 0.06), 0.85)
+	Mats.add_mesh(root, tube([Vector3(0, 0, 0.04), Vector3(0, 0, -0.2)], [0.025, 0.024], 7), leather)
+	for side in [-1.0, 1.0]:
+		Mats.add_mesh(root, Mats.box(Vector3(0.008, 0.03, 0.22)), iron, Vector3(0, side * 0.02, -0.89))
 	var rings := []
-	for i in 5:
-		var k := float(i) / 4.0
-		var face: float = 1.0 if k > 0.1 and k < 0.9 else 0.88
-		rings.append([Vector3(-0.15 + k * 0.3, 0, -1.02), 0.07 * face, 0.065 * face])
+	for i in 7:
+		var k := float(i) / 6.0
+		var face: float = 0.84 if k < 0.08 or k > 0.92 else 1.0
+		rings.append([Vector3(-0.14 + k * 0.28, 0, -1.02), 0.068 * face, 0.062 * face])
 	var mi := MeshInstance3D.new()
 	mi.mesh = _reorient_x(rings, box_profile())
 	mi.name = "Blade"
 	mi.material_override = steel
 	root.add_child(mi)
+	for x in [-0.1, 0.1]:
+		Mats.add_mesh(root, _reorient_x([[Vector3(x - 0.012, 0, -1.02), 0.074, 0.068], [Vector3(x + 0.012, 0, -1.02), 0.074, 0.068]], box_profile()), iron)
+	Mats.add_mesh(root, tube([Vector3(0, 0, -1.08), Vector3(0, 0, -1.17)], [0.022, 0.002], 6), iron)
 	return mi
 
 

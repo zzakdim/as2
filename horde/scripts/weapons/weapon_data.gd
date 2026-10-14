@@ -19,7 +19,7 @@ const DEFS := {
 		"range": 90.0, "sound": "shot_magnum", "noise": 30.0, "kick": 0.035,
 	},
 	"machete": {
-		"name": "Machete", "slot": 1, "tier": 0, "melee": true, "moveset": "machete", "damage": 200.0, "rate": 0.55,
+		"name": "Falchion", "slot": 1, "tier": 0, "melee": true, "moveset": "machete", "damage": 200.0, "rate": 0.55,
 		"range": 2.3, "arc": 70.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
 	},
 	"stick": {
@@ -31,7 +31,7 @@ const DEFS := {
 		"range": 2.2, "arc": 60.0, "sound": "swing", "noise": 6.0, "kick": 0.0,
 	},
 	"sledgehammer": {
-		"name": "Sledgehammer", "slot": 1, "tier": 0, "melee": true, "moveset": "sledgehammer", "damage": 160.0, "rate": 0.7,
+		"name": "Maul", "slot": 1, "tier": 0, "melee": true, "moveset": "sledgehammer", "damage": 160.0, "rate": 0.7,
 		"range": 2.4, "arc": 70.0, "sound": "swing", "noise": 8.0, "kick": 0.0,
 	},
 	"sabre": {
@@ -168,7 +168,11 @@ static func build_model(id: String, view := false) -> Node3D:
 			Mats.add_mesh(root, Mats.box(Vector3(0.04, 0.05, l)), steel if id == "magnum" else dark, Vector3(0, 0.02, -l * 0.5))
 			Mats.add_mesh(root, Mats.box(Vector3(0.035, 0.1, 0.05)), dark, Vector3(0, -0.04, 0.0), Vector3(-0.25, 0, 0))
 		"machete":
-			WeaponMesh.machete(root, steel.duplicate(), Mats.color(Color(0.22, 0.13, 0.07), 0.75))
+			# Falchion: a broad single-edged cleaver of a sword, widening
+			# toward a clipped point, plain iron cross.
+			WeaponMesh.sword(root, {"grip": 0.12, "blade": 0.56, "width": [0.02, 0.032, 0.04], "thick": 0.0055, "curve": 0.012,
+				"tip": "clip", "guard": "cross", "guard_w": 0.085, "single_edge": true, "pommel": 0.02},
+				Mats.color(Color(0.6, 0.61, 0.64), 0.28, 0.8).duplicate(), Mats.color(Color(0.18, 0.18, 0.19), 0.45, 0.8), Mats.color(Color(0.12, 0.08, 0.06), 0.8))
 		"stick":
 			WeaponMesh.stick(root, Mats.color(Color(0.2, 0.16, 0.12), 0.95).duplicate())
 		"fire_axe":
