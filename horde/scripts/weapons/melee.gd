@@ -232,6 +232,7 @@ var stamina := 4.0
 var _last_hit_p := Vector3.INF
 var _embed_p := Vector3.INF
 var _embed_dir := Vector3.FORWARD
+var _embed_z = null
 var stamina_delay := 0.0
 var push_window := 0.0
 var idle_t := 0.0
@@ -1086,6 +1087,7 @@ func _stop(z) -> void:
 		drag_t = 0.15 if not is_heavy else 0.2
 		_embed_p = _last_hit_p
 		_embed_dir = s.flat_forward()
+		_embed_z = z
 		Game.sfx.play3d("thump", _embed_p, -2.0, 0.08, 0.75)
 		Game.sfx.play3d("crack", _embed_p, -4.0, 0.1, 0.85)
 		cam_punch += Vector2(0.015, 0.0)
@@ -1104,6 +1106,25 @@ func _rip() -> void:
 	Game.sfx.play3d("flesh_hit", p, -8.0, 0.15, 0.7)
 	cam_punch += Vector2(-0.02, randf_range(-0.01, 0.01))
 	blood = minf(1.0, blood + 0.05)
+	# The body comes with the axe a little: a dead one's nearest bone is
+	# yanked toward you, a live one stumbles in.
+	var yank: Vector3 = (-_embed_dir * 2.2 + Vector3(0, 0.8, 0))
+	var best: PhysicalBone3D = null
+	var bd := 0.6
+	for r in SkinnedRig.ragdolls:
+		if not is_instance_valid(r) or r.sim == null or not is_instance_valid(r.sim) or r.global_position.distance_to(p) > 2.5:
+			continue
+		for pb in r.sim.get_children():
+			if pb is PhysicalBone3D:
+				var d: float = (pb as PhysicalBone3D).global_position.distance_to(p)
+				if d < bd:
+					bd = d
+					best = pb
+	if best:
+		best.apply_central_impulse(yank * best.mass * 0.9)
+	elif _embed_z and is_instance_valid(_embed_z) and not _embed_z.is_dead():
+		_embed_z.melee_stagger(-_embed_dir, 4.0)
+	_embed_z = null
 	if (s.eye_pos() - p).length() < 1.6 and randf() < 0.3 and Game.hud:
 		Game.hud.screen_blood()
 
