@@ -25,9 +25,22 @@ var _sway_vel := Vector2.ZERO
 
 func _sway_step(delta: float) -> void:
 	delta = minf(delta, 0.05)
-	_sway_vel += (-_sway * 160.0 - _sway_vel * 16.0) * delta
+	var w := _vm_weight()
+	_sway_vel += (-_sway * 160.0 / w - _sway_vel * 16.0 / sqrt(w)) * delta
 	_sway += _sway_vel * delta
-	_sway = _sway.clamp(Vector2(-0.12, -0.08), Vector2(0.12, 0.08))
+	_sway = _sway.clamp(Vector2(-0.12, -0.08) * w, Vector2(0.12, 0.08) * w)
+
+
+## How heavy the weapon in hand feels (1 = a typical sword): longer and
+## head-heavy weapons lag further behind the look and settle slower.
+func _vm_weight() -> float:
+	if s == null or s.melee == null or not s.is_melee_active():
+		return 1.0
+	var ms: Dictionary = s.melee.ms
+	var w: float = 0.6 + (float(ms.get("length", 0.8)) + float(ms.get("grip", 0.3))) * 0.5
+	if ms.get("head_mass", false):
+		w += 0.4
+	return clampf(w / 1.2, 0.75, 1.5)
 
 
 ## Rotate a camera-space viewmodel transform about a pivot near the hands.
@@ -109,7 +122,7 @@ func update(delta: float) -> void:
 	s.yaw = wrapf(s.yaw - _mouse_delta.x * sens, -PI, PI)
 	s.pitch = clamp(s.pitch - _mouse_delta.y * sens, -1.45, 1.45)
 	# Viewmodel inertia: the weapon trails the look a little, then springs back.
-	_sway_vel += Vector2(-_mouse_delta.x, -_mouse_delta.y) * sens * 2.2
+	_sway_vel += Vector2(-_mouse_delta.x, -_mouse_delta.y) * sens * 2.2 * sqrt(_vm_weight())
 	_mouse_delta = Vector2.ZERO
 
 	var playing: bool = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED or Game.force_input
