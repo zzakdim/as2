@@ -53,7 +53,8 @@ func setup(shirt: Color) -> void:
 							m = _glove_mat()
 							_skin_mats.append([m, m.albedo_color])
 						elif not skin:
-							m.albedo_color = Color(1, 1, 1).lerp(shirt.lightened(0.35), 0.55)
+							# Darkened, weathered leathers with a hint of the survivor colour.
+							m.albedo_color = Color(0.55, 0.47, 0.42).lerp(shirt, 0.12)
 							_cloth_mats.append([m, m.albedo_color])
 						else:
 							_skin_mats.append([m, m.albedo_color])
