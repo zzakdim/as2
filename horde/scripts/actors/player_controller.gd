@@ -13,6 +13,7 @@ var vm_shove := 0.0
 var vm_melee := 0.0
 var bob_t := 0.0
 var _run_sway := 0.0
+var _gleam := 0.0
 var land_dip := 0.0
 var look_target = null       # current usable / teammate under crosshair
 var hold_kind := ""
@@ -468,7 +469,15 @@ func _update_melee_vm(delta: float, bob: float) -> void:
 		xf.basis = Basis(Vector3(0, 0, 1), sin(bob_t) * 0.06 * _run_sway) * xf.basis
 	xf = _apply_sway(xf)
 	melee_root.transform = xf
+	# Charging warms the edge; a full charge flashes it.
+	_gleam = maxf(0.0, _gleam - delta * 3.0)
+	var glow := _gleam * 1.6
+	if m.state == "charge" and m.atk.has("charge"):
+		glow += 0.35 * clampf(m.t / float(m.atk["charge"]), 0.0, 1.0)
 	if melee_blade_mat:
+		melee_blade_mat.emission_enabled = glow > 0.01
+		melee_blade_mat.emission = Color(1.0, 0.82, 0.55)
+		melee_blade_mat.emission_energy_multiplier = glow
 		melee_blade_mat.albedo_color = _blade_base.lerp(Color(0.32, 0.04, 0.03), m.blood * 0.85)
 		melee_blade_mat.roughness = lerp(0.25, 0.6, m.blood)
 	if fp_arms:
@@ -602,6 +611,7 @@ func on_crit() -> void:
 
 func on_full_charge() -> void:
 	Game.hud.flash(Color(1, 1, 1, 0.08), 0.1)
+	_gleam = 1.0
 
 
 func on_dodge(dir: Vector3) -> void:
