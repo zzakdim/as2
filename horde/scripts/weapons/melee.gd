@@ -323,6 +323,12 @@ func update(delta: float, fire_held: bool, block_held: bool) -> void:
 		press_t = 0.0
 	lunge = Vector3.ZERO
 	_update_view_roll(delta)
+	var vis_to := 0.0
+	match state:
+		"strike", "follow": vis_to = 1.0
+		"windup": vis_to = 0.6
+		"charge": vis_to = 0.3
+	_swing_vis = move_toward(_swing_vis, vis_to, delta * (9.0 if vis_to > _swing_vis else 4.0))
 
 	match state:
 		"idle":
@@ -686,13 +692,23 @@ const VIEW_HALF_W := 0.9       # tan(half hfov) at the default 85 deg FOV, 16:9
 const VIEW_HALF_H := 0.52
 const VIEW_MIN_DEPTH := 0.42   # hands stay at least this far from the eye
 const VIEW_EDGE := 1.0         # upper fist centred on the frame edge (half visible)
+const VIEW_EDGE_SWING := 0.72  # ...and well into frame mid-swing
+const VIEW_FLAT_SWING := 0.4
+var _swing_vis := 0.0          # 0 at rest, 1 through the strike (eased)
 const VIEW_MAX_DROP := 0.45
 
 func view_pose(xf: Transform3D) -> Transform3D:
 	var o := xf.origin
 	o = Vector3(o.x * 1.05, o.y - VIEW_DROP, o.z * VIEW_NEAR)
 	var d := -xf.basis.z
-	d = Vector3(d.x, d.y, d.z * VIEW_FLAT).normalized()
+	# Ends of the arc are pulled in toward the middle of the screen, so a
+	# follow-through finishes in a bottom corner instead of off frame.
+	d = d.lerp(Vector3(0, 0.4, -1).normalized(), 0.32 * _swing_vis).normalized()
+	o.x *= 1.0 - 0.25 * _swing_vis
+	# Mid-swing the arc flattens toward the screen and the hands come up
+	# into frame, so the cut crosses the middle of the view.
+	d = Vector3(d.x, d.y, d.z * lerpf(VIEW_FLAT, VIEW_FLAT_SWING, _swing_vis)).normalized()
+	var edge := lerpf(VIEW_EDGE, VIEW_EDGE_SWING, _swing_vis)
 	var g: float = ms.get("grip", 0.3)
 	# Never let a fist come right up to the lens.
 	for frac in [0.8, 0.2]:
@@ -706,9 +722,9 @@ func view_pose(xf: Transform3D) -> Transform3D:
 	for frac in [0.8, 0.2]:
 		var hand: Vector3 = o + d * g * frac
 		var depth := maxf(-hand.z, 0.12)
-		if absf(hand.x) / depth > VIEW_HALF_W * VIEW_EDGE:
+		if absf(hand.x) / depth > VIEW_HALF_W * edge:
 			continue
-		drop = maxf(drop, hand.y + VIEW_HALF_H * VIEW_EDGE * depth)
+		drop = maxf(drop, hand.y + VIEW_HALF_H * edge * depth)
 	o.y -= minf(drop, VIEW_MAX_DROP)
 	var out := _blade_xf(o, d, xf.basis.x)
 	# Axe and hammer heads twist round the haft toward the camera so they

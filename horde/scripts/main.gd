@@ -466,6 +466,7 @@ func run_pose_sheet(dir: String) -> void:
 	if p.melee.ms.has("parry"):
 		shots.insert(2, ["parry", 0, "", 0.0])
 	for sh in shots:
+		p.melee._swing_vis = {"strike": 1.0, "follow": 1.0, "windup": 0.6, "charge": 0.3}.get(sh[2], 0.0)
 		p.melee.pose = p.melee.parry_pose() if sh[0] == "parry" else p.melee.pose_for(sh[0], sh[1], sh[2], sh[3])
 		await get_tree().process_frame
 		await get_tree().process_frame
