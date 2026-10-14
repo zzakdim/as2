@@ -1176,6 +1176,16 @@ func _do_push() -> void:
 			s.controller.hit_marker(false, false)
 
 
+## The guard takes the hit: the weapon is knocked back toward you and
+## twisted, sparks fly off the edge, then the block pose pulls it back.
+func _block_jolt(k: float) -> void:
+	pose.origin += Vector3(randf_range(-0.02, 0.02), -0.035, 0.07) * k
+	pose.basis = Basis(Vector3(0, 0, 1), randf_range(-0.12, 0.12) * k) * pose.basis
+	var cam := camera_xform()
+	var edge: Vector3 = cam * view_pose(pose) * Vector3(0, 0, -ms.get("grip", 0.3) - ms.get("length", 1.0) * 0.4)
+	Game.fx.impact(edge, -s.flat_forward())
+
+
 ## Called by Survivor.take_damage. Returns the damage that gets through.
 func block_hit(amount: float, attacker, kind: String) -> float:
 	if state == "parry" and t < ms["parry"]["active"] and attacker and is_instance_valid(attacker) and kind in ["claw", "punch"]:
@@ -1204,6 +1214,7 @@ func block_hit(amount: float, attacker, kind: String) -> float:
 	# Perfect block: raised just before the hit -> free, and the attacker reels.
 	if t < 0.22 and kind != "rock":
 		cam_punch += Vector2(0.03, randf_range(-0.015, 0.015))
+		_block_jolt(1.4)
 		Game.sfx.play3d("clank", s.eye_pos() + s.flat_forward() * 0.6, 0.0, 0.05)
 		Game.fx.impact(s.eye_pos() + s.flat_forward() * 0.7, -s.flat_forward())
 		if attacker.has_method("melee_stagger"):
@@ -1214,6 +1225,7 @@ func block_hit(amount: float, attacker, kind: String) -> float:
 	var cost: float = ms["block_cost"] * (4.0 if kind in ["punch", "rock"] else 1.0)
 	_use_stamina(cost)
 	cam_punch += Vector2(0.02, randf_range(-0.01, 0.01))
+	_block_jolt(1.0 if kind not in ["punch", "rock"] else 2.0)
 	Game.sfx.play3d("block", s.eye_pos() + s.flat_forward() * 0.6, -2.0, 0.1)
 	if stamina < 0.0:
 		stamina = 0.0
