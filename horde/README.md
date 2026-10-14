@@ -61,6 +61,9 @@ Attacks winding up on you from outside your view show as red chevrons
 around the crosshair pointing at the attacker (gold for elites), so you
 can dodge or turn and block. 
 
+Attacking out of a sprint lunges into a harder **running cut**; attacking
+mid-slide is a low **slide sweep** that knocks the legs out from under a line.
+
 Blocking right before a hit lands is a **perfect block**: no stamina cost,
 and the attacker reels. Heavies held to full charge flash and hit harder.
 Swords, each built around a different idea:

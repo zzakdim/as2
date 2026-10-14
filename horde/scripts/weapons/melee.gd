@@ -594,6 +594,23 @@ func _start_attack(chained: bool) -> void:
 	is_heavy = false
 	stopped = false
 	atk = ms["light"][light_i % ms["light"].size()]
+	if not chained and s.slide_t > 0.0:
+		# Out of a slide: a low sweep that takes the legs out.
+		atk = atk.duplicate()
+		atk["name"] = "Slide sweep"
+		atk["dir"] = 8.0
+		atk["trip"] = true
+		atk["cleave"] = float(atk["cleave"]) + 2.0
+		atk["lunge"] = 0.0
+		atk["windup"] = float(atk["windup"]) * 0.6
+	elif not chained and s.sprinting:
+		# Out of a sprint: a lunging running cut.
+		atk = atk.duplicate()
+		atk["name"] = "Running cut"
+		atk["lunge"] = float(atk.get("lunge", 1.0)) * 2.4 + 1.5
+		atk["damage"] = float(atk["damage"]) * 1.25
+		atk["impact"] = float(atk["impact"]) * 1.3
+		atk["windup"] = float(atk["windup"]) * 0.8
 	_enter("windup")
 
 
