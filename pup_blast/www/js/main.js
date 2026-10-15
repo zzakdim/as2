@@ -14,10 +14,26 @@
   }
   const storage = safeStorage();
   const firstBoot = !storage || !storage.getItem(State.KEY);
+  // In the iOS app the save is also copied to native storage (Capacitor Preferences), because iOS can
+  // clear a web view's localStorage when the phone runs low on space. If localStorage comes up empty,
+  // the native copy is restored and the page reloads with it.
+  const cap = window.Capacitor;
+  const Prefs = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.Preferences;
+  let backupReady = !(firstBoot && Prefs); // don't overwrite the native copy before checking it
+  if (!backupReady) {
+    Prefs.get({ key: State.KEY }).then(({ value }) => {
+      if (value && storage) { storage.setItem(State.KEY, value); location.reload(); return; }
+      backupReady = true;
+      save();
+    }).catch(() => { backupReady = true; });
+  }
   let state = State.load(storage);
   const loginBonus = State.rollDaily(state, Date.now());
   const newWeek = State.rollWeekly(state, Date.now());
-  const save = () => State.save(storage, state);
+  const save = () => {
+    State.save(storage, state);
+    if (Prefs && backupReady) Prefs.set({ key: State.KEY, value: JSON.stringify(state) }).catch(() => {});
+  };
   save();
   function applySettings() {
     window.PB.artStyle = state.settings.artStyle || 'bean';

@@ -1,6 +1,6 @@
 // Saved player state: bones, collection, daily freebies and settings.
-// Stored in localStorage. On iOS, swap `storage` for @capacitor/preferences before launch,
-// since WKWebView can evict localStorage under storage pressure.
+// Stored in localStorage. In the iOS app main.js also mirrors every save to @capacitor/preferences
+// and restores from it if WKWebView ever evicts localStorage.
 (function (root) {
   'use strict';
 
@@ -41,7 +41,7 @@
       buddy: Pups.STARTER_ID,
       pups: { [Pups.STARTER_ID]: { level: 1, dupes: 0 } },
       pity: { sinceEpic: 0, sinceLegendary: 0 },
-      daily: { date: '', freePullsLeft: DAILY_FREE_PULLS, loginClaimed: false, streak: 0 },
+      daily: { date: '', freePullsLeft: DAILY_FREE_PULLS, loginClaimed: false, streak: 0, seen: 0 }, // seen: latest clock time seen
       weekly: { week: '', pullsLeft: 0 },
       ads: { gamesSinceInterstitial: 0, lastInterstitialAt: 0, rewardedToday: 0 },
       settings: { sound: true, haptics: true, noAds: false, dev: false, devSkipAds: false, devInfinite: false },
@@ -90,8 +90,19 @@
     return out;
   }
 
+  // Setting the device clock back is the classic free-reward cheat: while the clock reads more than an
+  // hour earlier than the latest time this save has seen, days and weeks don't roll over.
+  const CLOCK_SLACK = 3600000;
+  function clockWentBack(state, now) {
+    const seen = state.daily.seen || 0;
+    if (now < seen - CLOCK_SLACK) return true;
+    state.daily.seen = Math.max(seen, now);
+    return false;
+  }
+
   // Starts a new week's free pull if the week changed. Returns true when a new pull was granted.
   function rollWeekly(state, now) {
+    if (clockWentBack(state, now)) return false;
     const key = weekKey(now);
     if (state.weekly.week === key) return false;
     state.weekly.week = key;
@@ -101,6 +112,7 @@
 
   // Rolls the daily counters over. Returns the login bonus granted today (0 if already claimed).
   function rollDaily(state, now) {
+    if (clockWentBack(state, now)) return 0;
     const today = dayKey(now);
     if (state.daily.date === today) return 0;
     const y = new Date(now);

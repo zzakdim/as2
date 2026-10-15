@@ -135,7 +135,9 @@ npx cap open ios
    - A sandbox purchase of Remove Ads, then Restore.
 6. **Before release:**
    - Bundle the two fonts (Baloo 2 and Nunito, both OFL) in `www/fonts` so the app works offline.
-   - Move saves from `localStorage` to `@capacitor/preferences`, since iOS can clear WebView storage.
+   - Write a privacy policy (AdMob, the tracking prompt, Game Center and purchases all need one) and link it in App Store Connect and in Settings.
+   - In App Store Connect, give each leaderboard a score range, so obviously faked scores are rejected.
+   - Add crash reporting (for example Sentry or Firebase Crashlytics) so errors on players' phones reach you.
    - Fill in the App Store privacy labels for ads, tracking, purchases and Game Center.
    - Set the age rating to 12+ and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
 

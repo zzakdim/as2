@@ -109,6 +109,16 @@ test('an unreadable save is backed up before starting over', () => {
   assert.strictEqual(store.data[State.KEY + '.bak'], '{oops');
 });
 
+test('winding the clock back does not pay the daily bonus again', () => {
+  const s = State.freshState();
+  const t = new Date(2026, 5, 10, 12).getTime();
+  assert.ok(State.rollDaily(s, t) > 0);
+  assert.strictEqual(State.rollDaily(s, t - 2 * 864e5), 0, 'clock set back 2 days');
+  assert.strictEqual(State.rollWeekly(s, t - 8 * 864e5), false);
+  assert.strictEqual(State.rollDaily(s, t + 60000), 0, 'and forward again: still today');
+  assert.ok(State.rollDaily(s, t + 864e5) > 0, 'the real next day still pays');
+});
+
 test('the daily streak survives the 23-hour DST day', () => {
   // Any clock: yesterday's date is one calendar day back, whatever the hour count.
   const s = State.freshState();
