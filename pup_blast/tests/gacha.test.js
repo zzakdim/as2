@@ -13,11 +13,23 @@ test('roster ids are unique and every rarity has pups', () => {
   assert.ok(Math.abs(Object.values(Gacha.RATES).reduce((a, b) => a + b, 0) - 1) < 1e-9);
 });
 
-test('every pup renders an svg', () => {
+test('every pup renders an svg in both art styles', () => {
   for (const p of Pups.ROSTER) {
-    const svg = Pups.renderPup(p);
-    assert.match(svg, /^<svg[\s\S]*<\/svg>$/);
-    assert.ok(!svg.includes('undefined'), p.id);
+    for (const style of ['bean', 'sticker']) {
+      const svg = Pups.renderPup(p, { style });
+      assert.match(svg, /^<svg[\s\S]*<\/svg>$/, `${p.id} ${style}`);
+      assert.ok(!/undefined|NaN/.test(svg), `${p.id} ${style}`);
+    }
+  }
+});
+
+test('commons and rares are all different breeds; epics and legendaries dress up one of them', () => {
+  const base = Pups.ROSTER.filter((p) => p.rarity === 'common' || p.rarity === 'rare');
+  assert.strictEqual(new Set(base.map((p) => p.breed)).size, base.length);
+  const baseBreeds = new Set(base.map((p) => p.breed));
+  for (const p of Pups.ROSTER.filter((x) => x.rarity === 'epic' || x.rarity === 'legendary')) {
+    assert.ok(baseBreeds.has(p.breed), `${p.id} is a ${p.breed}`);
+    assert.ok(p.look.acc && p.look.acc !== 'bandana', `${p.id} wears something`);
   }
 });
 

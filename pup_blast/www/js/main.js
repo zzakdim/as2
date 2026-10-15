@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const { Core, Pups, Powers, Gacha, State, Ads, Audio } = window.PB;
+  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX } = window.PB;
   const ECON = Gacha.ECONOMY;
   const { sfx, haptic } = Audio;
   const $ = (sel) => document.querySelector(sel);
@@ -18,6 +18,7 @@
   const newWeek = State.rollWeekly(state, Date.now());
   const save = () => State.save(storage, state);
   save();
+  window.PB.artStyle = state.settings.artStyle || 'bean';
   Audio.setSound(state.settings.sound);
   Audio.setHaptics(state.settings.haptics);
 
@@ -550,96 +551,98 @@
   }
 
   async function doPull(count, source) {
-    let opts;
-    if (source === 'bones') {
+    if (pulling) return;
+    pulling = true;
+    try {
+      let opts;
+      if (source === 'bones') {
+        const cost = count === 10 ? Gacha.COST_10 : Gacha.COST_1;
+        if (state.bones < cost) { toast('Not enough bones. Play a round to earn more.'); return; }
+        state.bones -= cost;
+      } else if (source === 'weekly') {
+        if (state.weekly.pullsLeft <= 0) return;
+        state.weekly.pullsLeft--;
+        opts = { minRarity: ECON.WEEKLY_MIN_RARITY };
+      } else {
+        if (state.daily.freePullsLeft <= 0) return;
+        track('ad_rewarded_request', { placement: 'free_pull' });
+        if (!(await ads.rewarded())) return;
+        track('ad_rewarded_granted', { placement: 'free_pull' });
+        state.daily.freePullsLeft--;
+        state.ads.rewardedToday++;
+      }
+      const results = Gacha.pullMany(state, rng, count, opts);
+      save();
+      track('gacha_pull', { count, source, best: results.reduce((b, r) => Math.max(b, Gacha.rarityRank(r.rarity)), 0) });
+      renderGacha();
+      if (!$('#screen-gacha').hidden) await PullFX.crank($('.machine svg'), fxCtx);
       const cost = count === 10 ? Gacha.COST_10 : Gacha.COST_1;
-      if (state.bones < cost) { toast('Not enough bones. Play a round to earn more.'); return; }
-      state.bones -= cost;
-    } else if (source === 'weekly') {
-      if (state.weekly.pullsLeft <= 0) return;
-      state.weekly.pullsLeft--;
-      opts = { minRarity: ECON.WEEKLY_MIN_RARITY };
-    } else {
-      if (state.daily.freePullsLeft <= 0) return;
-      track('ad_rewarded_request', { placement: 'free_pull' });
-      if (!(await ads.rewarded())) return;
-      track('ad_rewarded_granted', { placement: 'free_pull' });
-      state.daily.freePullsLeft--;
-      state.ads.rewardedToday++;
-    }
-    const results = Gacha.pullMany(state, rng, count, opts);
-    save();
-    track('gacha_pull', { count, source, best: results.reduce((b, r) => Math.max(b, Gacha.rarityRank(r.rarity)), 0) });
-    renderGacha();
-    reveal(results);
+      await reveal(results, source === 'bones' ? {
+        label: `Again · ${cost}`,
+        can: () => state.bones >= cost,
+        run: () => doPull(count, 'bones'),
+      } : null);
+    } finally { pulling = false; }
   }
+  let pulling = false;
 
   $('#btn-pull-week').addEventListener('click', () => { Audio.unlock(); doPull(1, 'weekly'); });
   $('#btn-pull-1').addEventListener('click', () => { Audio.unlock(); doPull(1, 'bones'); });
   $('#btn-pull-10').addEventListener('click', () => { Audio.unlock(); doPull(10, 'bones'); });
   $('#btn-pull-free').addEventListener('click', () => { Audio.unlock(); doPull(1, 'ad'); });
 
-  function resultCard(r, big) {
-    const note = r.isNew ? '<span class="tag new">New!</span>'
-      : r.leveledUp ? `<span class="tag up">Lv ${r.level}! ×${Pups.chargesFor(r.pup, r.level)}</span>`
-        : `<span class="tag dupe">+${r.refund} bones</span>`;
-    return `<div class="card r-${r.rarity}${big ? ' big' : ''}">
-      <div class="card-art">${Pups.renderPup(r.pup)}</div>
-      <p class="card-name">${r.pup.name}</p>
-      <p class="card-meta">${stars(r.rarity)}</p>${note}</div>`;
-  }
+  // ---- reveal (animation lives in pullfx.js)
+  const fxCtx = {
+    sfx, haptic,
+    renderPup: (p) => Pups.renderPup(p),
+    power: (p) => powerOf(p),
+    stars: (r) => Pups.RARITY[r].stars,
+    rarityLabel: (r) => Pups.RARITY[r].label,
+    owned: (p) => state.pups[p.id],
+    charges: (p, lvl) => Pups.chargesFor(p, lvl),
+    copiesToNext: (lvl) => Pups.copiesToNext(lvl),
+    maxLevel: Pups.MAX_LEVEL,
+    miniCard: (r) => {
+      const note = r.isNew ? '<span class="tag new">New!</span>'
+        : r.leveledUp ? `<span class="tag up">Lv ${r.level}!</span>`
+          : `<span class="tag dupe">+${r.refund}</span>`;
+      return `<div class="card mini r-${r.rarity}"><div class="card-art">${Pups.renderPup(r.pup)}</div><p class="card-name">${r.pup.name}</p>${note}</div>`;
+    },
+  };
 
-  function revealNote(r) {
-    const p = powerOf(r.pup);
-    const o = state.pups[r.pup.id];
-    const n = Pups.chargesFor(r.pup, o.level);
-    if (r.leveledUp) return `${p.name} now has ${n} ${chargeWord(n, r.pup)} per run`;
-    if (!r.isNew && o.level < Pups.MAX_LEVEL) return `${o.dupes}/${Pups.copiesToNext(o.level)} copies to Lv ${o.level + 1} · +${r.refund} bones`;
-    if (!r.isNew) return `Max level · +${r.refund} bones`;
-    return `${p.name}: ${p.desc}`;
-  }
-
-  function reveal(results) {
-    const best = results.reduce((b, r) => (Gacha.rarityRank(r.rarity) > Gacha.rarityRank(b.rarity) ? r : b), results[0]);
-    const sheet = openModal(`
-      <div class="capsule-stage">
-        <div class="capsule r-${best.rarity}"><div class="cap-top"></div><div class="cap-bottom"></div></div>
-        <p class="tap-hint">Tap to open</p>
-      </div>`, { cls: 'reveal' });
-    sfx.rattle(); haptic('MEDIUM');
-    let opened = false;
-    const open = () => {
-      if (opened) return;
-      opened = true;
-      const rank = Gacha.rarityRank(best.rarity);
-      sfx.reveal(rank); haptic(rank >= 2 ? 'HEAVY' : 'MEDIUM');
-      if (results.length === 1) {
-        const r = results[0];
-        const canBuddy = state.buddy !== r.pup.id;
-        sheet.innerHTML = `
-          <div class="burst r-${r.rarity}"></div>
-          ${resultCard(r, true)}
-          <p class="reveal-line">${r.pup.breed} · ${Pups.RARITY[r.rarity].label}<br><span>${revealNote(r)}</span></p>
-          <div class="stack">
-            ${canBuddy ? '<button type="button" class="btn" data-act="buddy">Make buddy</button>' : ''}
-            <button type="button" class="btn ${canBuddy ? 'ghost' : ''}" data-act="done">Nice!</button>
-          </div>`;
-        sheet.onclick = (e) => {
-          const act = e.target.closest('[data-act]');
-          if (!act) return;
-          if (act.dataset.act === 'buddy') { state.buddy = r.pup.id; save(); toast(`${r.pup.name} is your buddy now`); }
-          closeModal(); renderGacha();
-        };
-      } else {
-        sheet.innerHTML = `
-          <div class="burst r-${best.rarity}"></div>
-          <div class="multi">${results.map((r, k) => `<div style="animation-delay:${k * 70}ms">${resultCard(r)}</div>`).join('')}</div>
-          <div class="stack"><button type="button" class="btn" data-act="done">Done</button></div>`;
-        sheet.onclick = (e) => { if (e.target.closest('[data-act]')) { closeModal(); renderGacha(); } };
-      }
+  async function reveal(results, again) {
+    const sheet = openModal('', { cls: 'reveal' });
+    const canAgain = () => again && again.can();
+    if (results.length === 1) {
+      const r = results[0];
+      await PullFX.single(sheet, r, fxCtx);
+      PullFX.showResult(sheet, r, Object.assign({}, fxCtx, {
+        actions: () => `
+          ${state.buddy !== r.pup.id ? '<button type="button" class="btn" data-act="buddy">Make buddy</button>' : ''}
+          <div class="pull-row">
+            <button type="button" class="btn ghost" data-act="done">Nice!</button>
+            ${canAgain() ? `<button type="button" class="btn alt" data-act="again">${again.label}</button>` : ''}
+          </div>`,
+      }));
+      sheet.onclick = (e) => {
+        const act = e.target.closest('[data-act]');
+        if (!act) return;
+        if (act.dataset.act === 'buddy') { state.buddy = r.pup.id; save(); sfx.woof(); toast(`${r.pup.name} is your buddy now`); }
+        closeModal(); renderGacha();
+        if (act.dataset.act === 'again') again.run();
+      };
+      return;
+    }
+    await PullFX.multi(sheet, results, Object.assign({}, fxCtx, {
+      multiActions: () => `<div class="pull-row"><button type="button" class="btn ghost" data-act="done">Done</button>
+        ${canAgain() ? `<button type="button" class="btn alt" data-act="again">${again.label}</button>` : ''}</div>`,
+    }));
+    sheet.onclick = (e) => {
+      const act = e.target.closest('[data-act]');
+      if (!act) return;
+      closeModal(); renderGacha();
+      if (act.dataset.act === 'again') again.run();
     };
-    sheet.querySelector('.capsule-stage').addEventListener('click', open);
-    setTimeout(open, 1600);
   }
 
   // ---------------------------------------------------------------- kennel
@@ -788,6 +791,7 @@
       <div class="settings">
         <label class="switch"><span>Skip ads (instant reward)</span><input id="dev-skipads" type="checkbox" ${s.devSkipAds ? 'checked' : ''}></label>
         <label class="switch"><span>Unlimited power charges</span><input id="dev-infinite" type="checkbox" ${s.devInfinite ? 'checked' : ''}></label>
+        <label class="switch"><span>Sticker art instead of bean</span><input id="dev-sticker" type="checkbox" ${s.artStyle === 'sticker' ? 'checked' : ''}></label>
       </div>
       ${run ? `<p class="eyebrow">This run</p>
       <div class="dev-grid">
@@ -800,6 +804,7 @@
       <div class="stack"><button type="button" class="btn" data-act="close">Done</button></div>`);
     sheet.querySelector('#dev-skipads').onchange = (e) => { s.devSkipAds = e.target.checked; save(); };
     sheet.querySelector('#dev-infinite').onchange = (e) => { s.devInfinite = e.target.checked; save(); };
+    sheet.querySelector('#dev-sticker').onchange = (e) => { s.artStyle = e.target.checked ? 'sticker' : 'bean'; window.PB.artStyle = s.artStyle; save(); refreshAll(); };
     sheet.onclick = (e) => {
       if (e.target.closest('[data-act="close"]')) { closeModal(); return; }
       const b = e.target.closest('[data-dev]');

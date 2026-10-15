@@ -49,6 +49,20 @@
       const n = 3 + rank * 1;
       for (let i = 0; i < n; i++) tone(523 * Math.pow(2, base[i % base.length] / 12), i * 0.08, 0.22, 'triangle', 0.1);
     },
+    // Pull sequence
+    tick() { tone(1400, 0, 0.025, 'square', 0.03); },
+    thunk() { tone(140, 0, 0.16, 'sine', 0.22, 70); tone(900, 0, 0.03, 'triangle', 0.05); },
+    upgrade(step) {
+      const base = 392 * Math.pow(2, step * 4 / 12);
+      tone(base, 0, 0.18, 'triangle', 0.11); tone(base * 1.5, 0.06, 0.2, 'triangle', 0.08);
+    },
+    pop() { tone(300, 0, 0.12, 'sawtooth', 0.08, 900); tone(1600, 0.02, 0.08, 'triangle', 0.06, 2400); },
+    ding(i) { tone(1047 * Math.pow(2, (i * 2) / 12), 0, 0.16, 'triangle', 0.08); },
+    stamp() { tone(110, 0, 0.12, 'square', 0.1, 60); },
+    fanfare(rank) {
+      const seq = [0, 4, 7, 12, 16, 19];
+      for (let i = 0; i < 3 + rank; i++) tone(523 * Math.pow(2, seq[i % seq.length] / 12), 0.1 + i * 0.09, 0.26, 'triangle', 0.09);
+    },
     gameOver() { [392, 330, 262].forEach((f, i) => tone(f, i * 0.16, 0.24, 'triangle', 0.1)); },
   };
 

@@ -37,7 +37,7 @@ Targeted powers work in two taps: the first shows which blocks will clear, and t
 | Pudding | Beagle | Common | **Sniff Out**: tap a block to clear every block of its color |
 | Noodle | Dachshund | Common | **Spin**: rotate all your pieces a quarter turn |
 | Peanut | Pug | Common | **Nap Time**: swap in three small pieces |
-| Waffles | Labrador | Common | **Tail Wag**: clear a row you tap |
+| Waffles | Black Labrador | Common | **Tail Wag**: clear a row you tap |
 | Pickles | Chihuahua | Common | **Pounce**: clear a column you tap |
 | Toffee | Pomeranian | Common | **Yap Yap**: clear the two fullest rows |
 | Bean | French Bulldog | Common | **Zigzag**: clear both diagonals |
@@ -55,7 +55,7 @@ Targeted powers work in two taps: the first shows which blocks will clear, and t
 | Merlin | Shiba Inu | Epic | **Crystal Ball**: get three pieces that each complete a line |
 | DJ Woofles | Husky | Epic | **Drop the Beat**: clear the two fullest rows and columns |
 | Sunny | Golden Retriever | Legendary | **Guardian** (automatic): saves your run when you get stuck |
-| Cosmo | Cloud Pup | Legendary | **Big Bang**: clear the entire board |
+| Cosmo | Samoyed (halo) | Legendary | **Big Bang**: clear the entire board |
 
 Odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Pity: Epic or better every 10 pulls, Legendary every 60. A bone pull costs 100 bones and a 10-pull costs 900. Odds are shown on the gacha screen and in settings, which App Store guideline 3.1.1 requires for loot boxes.
 
@@ -118,4 +118,10 @@ Settings → Developer mode shows an orange **DEV** button on every screen. It h
 
 ## Art direction
 
-`art/concepts.html` (built by `node art/build.mjs`) compares four style directions for the pups: sticker sheet, bean pups, riso print and pixel. The current portraits are placeholders until a direction is picked.
+The pups use the **bean** style: full-body sitting pups with a wobbly colored line. A **sticker** alternate is drawn from the same breed data, and dev mode can switch the game to it. Both styles come from `renderPup` in `www/js/pups.js`, which builds each pup from breed traits (ear type, snout, markings, tail, body). Commons and rares are 17 different breeds. Epics and legendaries are dressed-up versions of those breeds, and rares wear a bandana.
+
+`art/concepts.html` (built by `node art/build.mjs`) shows the whole roster in both styles, generated from the game's own renderer.
+
+## Pull sequence
+
+`www/js/pullfx.js`: the machine's crank turns and drops a capsule. Tap it and it builds up through the rarity colors (green, blue, purple, gold) with rising notes and haptics, then cracks and bursts with a flash and particles. The pup pops out, the stars ding in one by one, and a NEW stamp or level-up meter lands. A 10-pull drops ten capsules that you open one at a time or all at once, and the best pull is highlighted. Bone pulls get an "Again" button.
