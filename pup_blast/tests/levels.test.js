@@ -64,15 +64,15 @@ test('the crate needs two line clears; powers cannot break it', () => {
   let res = Core.placePiece(g, 0, 2, 7);
   assert.ok(res.crateHit && !res.crateFreed);
   assert.ok(g.crate.cells.every((i) => g.board[i] === Core.CRATE_COLOR), 'crate survives the first clear');
-  // Powers skip crate cells.
-  Core.clearCells(g, g.crate.cells);
+  // Power clears skip crate cells.
+  require('../www/js/powers.js').use('tailwag', g, 2, 0);
   assert.ok(g.crate.cells.every((i) => g.board[i] === Core.CRATE_COLOR));
   fillRow(3); g.board[Core.idx(3, 0)] = 0;
   g.tray = [Object.assign(Core.makePiece(g, Core.SHAPE_BY_ID.dot), { special: null }), null, null];
   res = Core.placePiece(g, 0, 3, 0);
   assert.ok(res.crateFreed);
   assert.ok(g.crate.cells.every((i) => g.board[i] === 0));
-  assert.ok(l);
+  assert.strictEqual(l.gift, 'sprout');
 });
 
 test('a golden bone doubles a clear; a tennis ball clears its row too', () => {
@@ -198,4 +198,27 @@ test('every gift pup is a different, real pup: a rare at 20, an epic at 40', () 
   const gifts = Levels.LEVELS.filter((l) => l.gift);
   assert.strictEqual(new Set(gifts.map((l) => l.gift)).size, gifts.length);
   for (const l of gifts) assert.strictEqual(Pups.BY_ID[l.gift].rarity, l.n === 20 ? 'rare' : 'epic', l.id);
+});
+
+test('crates are a 2x2 block; next() walks a world and stops at its end', () => {
+  for (const l of Levels.LEVELS) {
+    const cells = [];
+    l.start.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === 'C') cells.push([r, c]); }));
+    if (!cells.length) continue;
+    const [r0, c0] = cells[0];
+    assert.deepStrictEqual(cells, [[r0, c0], [r0, c0 + 1], [r0 + 1, c0], [r0 + 1, c0 + 1]], l.id);
+  }
+  for (const w of Levels.WORLDS) {
+    assert.strictEqual(Levels.next(w.levels[0]), w.levels[1]);
+    assert.strictEqual(Levels.next(w.levels[39]), null);
+  }
+});
+
+test('every level note has a help line on the level card', () => {
+  const src = require('fs').readFileSync(require('path').join(__dirname, '../www/js/main.js'), 'utf8');
+  const block = src.slice(src.indexOf('const NOTE_HELP = {'), src.indexOf('};', src.indexOf('const NOTE_HELP = {')));
+  for (const l of Levels.LEVELS) {
+    if (!l.note || ['Tutorial', 'Finale'].includes(l.note)) continue;
+    assert.ok(block.includes(`'${l.note}'`) || block.includes(`${l.note}:`), `${l.id} note "${l.note}" has no NOTE_HELP entry`);
+  }
 });

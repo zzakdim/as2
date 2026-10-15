@@ -843,6 +843,8 @@
   const NOTE_HELP = {
     'Fence posts': 'Posts never clear, but lines complete around them',
     'Shaped boards': 'Lines only need the squares that are on the board',
+    'Golden bones': 'A golden bone in a clear doubles its points',
+    'Tennis balls': 'Clear a line through a tennis ball and its whole row clears too',
     'Buried bones': 'Clear a line over a dashed bone to dig it up: +50 points and 10 bones',
     Puddles: "Can't build on water. A line cleared through a puddle dries it up",
     Ice: 'Ice takes one extra clear to break',

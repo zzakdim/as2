@@ -78,7 +78,12 @@ ${body}
   process.exit(0);
 }
 
-for (const level of Levels.WORLDS.find((w) => w.id === WORLD).levels.slice(FROM - 1, TO)) {
+const reportWorld = Levels.WORLDS.find((w) => w.id === WORLD);
+if (!reportWorld) {
+  console.error(`Unknown world "${WORLD}". Worlds: ${Levels.WORLDS.map((w) => w.id).join(', ')}`);
+  process.exit(1);
+}
+for (const level of reportWorld.levels.slice(FROM - 1, TO)) {
   const [t1, , t3] = Levels.starsFor(level);
   const cols = ['starter', 'mid', 'maxBond'].map((kind) => {
     const s = runs(level, kind);

@@ -226,7 +226,7 @@
       if (game.treats[i]) treats++;
       if (v === SQUIRREL_COLOR) {
         const sq = game.squirrels.find((q) => q.at === i);
-        if (sq) { sq.at = -1; sq.target = -1; sq.away = 0; chased.push(i); }
+        if (sq) { sq.at = -1; sq.target = -1; sq.away = -1; chased.push(i); } // -1: the chasing move's own tick doesn't count
       }
       if (fromLine && game.buried && game.buried[i]) { game.buried[i] = 0; dug.push(i); }
       game.board[i] = 0;

@@ -59,7 +59,8 @@ test('squirrels warn, then hop; a line through one chases it off', () => {
   assert.strictEqual(g.board[idx(0, 0)], Core.ACORN_COLOR, 'leaves an acorn');
   const at = g.squirrels[0].at;
   assert.strictEqual(g.board[at], Core.SQUIRREL_COLOR);
-  if (!g.board[target] || g.board[target] === Core.SQUIRREL_COLOR) assert.ok(true);
+  // It lands where it warned, unless that cell filled up in the meantime.
+  if (g.board[target] === Core.SQUIRREL_COLOR) assert.strictEqual(at, target);
   // Chase it: fill its row around it.
   const r = Math.floor(at / 8);
   for (let c = 0; c < 8; c++) if (!g.board[idx(r, c)]) g.board[idx(r, c)] = 1;
@@ -101,8 +102,28 @@ test('Do-Over restores hazards, buried bones and armor', () => {
   const snap = Core.snapshot(g);
   Core.placePiece(g, 0, 5, 5);
   Core.placePiece(g, 1, 5, 6);
+  // Change everything the snapshot should bring back.
+  g.buried[idx(0, 3)] = 0; g.armor[idx(1, 0)] = 0; g.squirrels[0].at = -1;
   Core.restore(g, snap);
   assert.strictEqual(g.squirrels[0].target, -1);
+  assert.strictEqual(g.squirrels[0].at, idx(0, 0));
   assert.strictEqual(g.buried[idx(0, 3)], 1);
   assert.strictEqual(g.armor[idx(1, 0)], 1);
+});
+
+test('a chased squirrel comes back after the set number of moves', () => {
+  const g = Core.createGame(3, { start: ['S.......', E, E, E, E, E, E, E], squirrels: { every: 3, returns: 6 } });
+  fillRow(g, 0, [7]);
+  g.tray = [piece(g, 'dot'), null, piece(g, 'dot')];
+  Core.placePiece(g, 0, 0, 7); // chases it
+  assert.strictEqual(g.squirrels[0].at, -1);
+  let back = 0;
+  for (let k = 1; k <= 6 && !back; k++) {
+    g.tray = [piece(g, 'dot'), null, piece(g, 'dot')];
+    const free = g.board.findIndex((v, i) => !v && i >= 40);
+    const res = Core.placePiece(g, 0, Math.floor(free / 8), free % 8);
+    if (res.hazard.back.length) back = k;
+  }
+  assert.strictEqual(back, 6);
+  assert.strictEqual(g.board[g.squirrels[0].at], Core.SQUIRREL_COLOR);
 });
