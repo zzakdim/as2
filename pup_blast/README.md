@@ -116,6 +116,25 @@ Then in Xcode:
 - Tune the economy against real data. A weak run of about 250 points earns about 23 bones, which is roughly 4 runs per pull. A typical run of 1,000 to 2,000 points gets a pull every run or two.
 - Collection goals: set bonuses (all corgis gives +5%) and a weekly limited-time banner pup.
 
+## Levels and the map
+
+**Play** opens the map; **Endless** is the classic score chase with first-time milestone bonuses (1,000 to 40,000 points, 25 to 800 bones).
+
+- `www/js/levels.js` holds the worlds. World 1, the **Living Room**, has 40 levels, each one entry: name, starting pattern (8 rows of `.` `#` `b` `C`), first-clear reward, helpers, gift pup and tease. Worlds 2–5 (Dog Park, Beach, Snowy Hill, Autumn Backyard) show as "coming soon" until their mechanics land.
+- A dig every 5 levels (paid as a free dig token at the Dig Spot), bones otherwise. A 3-star sweep of a world pays a crown on the map and an **Epic dig** token.
+- **Gift pups:** levels 20 and 40 start with a crate holding Sprout and Captain Biscuit. Two line clears through the crate free the pup the moment it breaks, even if the run is then lost, and it never repeats. Powers can't break crates.
+- **Helpers (no fouls):** golden bones double a clear's points (from level 15), and tennis balls also clear their row (from level 17).
+- **Stars are bot-tuned.** `node tools/bot.mjs tune 120` replays every level with a greedy bot, once with a starter Mochi and once with a maxed epic, and writes `www/js/tuning.js`. 1★ comes from the starter bot. 3★ comes from the starter bot on levels 1–20 and from the maxed-epic bot on 21–40, so late 3★ needs a leveled pup. Bot results today:
+
+| Levels | Starter: pass / 3★ | Maxed epic: pass / 3★ |
+|---|---|---|
+| 1–10 | ~85% / ~55% | 100% / ~99% |
+| 11–20 | ~70% / ~20% | 100% / ~88% |
+| 21–30 | ~55% / ~1% | ~99% / ~28% |
+| 31–40 | ~45% / ~1% | ~99% / ~13% (finale 8%) |
+
+People plan ahead better than the greedy bot, so expect real pass rates to be higher. Re-run the tuner whenever a level changes. `node tools/bot.mjs 60` prints the full per-level report.
+
 ## Tutorial
 
 New players start inside a scripted first run (in `www/js/main.js`, the tutorial section). Mochi coaches with a speech bubble, a paw demonstrates each gesture, and a spotlight dims everything except the one thing to tap.
@@ -123,7 +142,7 @@ New players start inside a scripted first run (in `www/js/main.js`, the tutorial
 1. Drag a piece into the gap. Only the right spot accepts it.
 2. Fill a corner to clear a row and a column at once, collecting a bone treat on the way.
 3. Get stuck, then tap Fetch.
-4. Play a real run.
+4. Play Level 1 for real.
 5. Go home, open the Dig Spot, and use the free weekly dig. The first dig is guaranteed Rare or better.
 6. A closing line about the Kennel and buddies.
 

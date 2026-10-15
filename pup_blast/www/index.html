@@ -26,8 +26,8 @@
       <p id="home-buddy-caption" class="buddy-caption"></p>
     </div>
     <div class="home-actions">
-      <button id="btn-play" class="btn big" type="button">Play</button>
-      <p class="best">Best score <b id="home-best">0</b></p>
+      <button id="btn-play" class="btn big" type="button"><span>Play</span><small id="play-sub" class="play-sub"></small></button>
+      <button id="btn-endless" class="btn ghost endless" type="button">Endless · best <b id="home-best">0</b></button>
       <div class="home-row">
         <button id="btn-gacha" class="btn tile" type="button"><span data-gacha-name>Pup-a-Matic</span><span id="gacha-badge" class="badge" hidden></span></button>
         <button id="btn-kennel" class="btn tile" type="button"><span>Kennel</span><span id="kennel-count" class="count"></span></button>
@@ -42,12 +42,18 @@
       </button>
       <div class="score-wrap">
         <div id="score" class="score">0</div>
-        <div class="best-sm">Best <span id="game-best">0</span></div>
+        <div id="best-line" class="best-sm">Best <span id="game-best">0</span></div>
+        <div id="level-bar" class="level-bar" hidden>
+          <div class="lb-track"><i id="lb-fill"></i><span class="lb-star" id="lb-s1">★</span><span class="lb-star" id="lb-s2">★</span><span class="lb-star" id="lb-s3">★</span></div>
+          <div class="lb-name" id="lb-name"></div>
+        </div>
       </div>
       <div class="bones-pill earned" title="Bones earned this run"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span id="run-bones">0</span></div>
     </header>
     <div class="board-wrap">
       <div id="board" class="board" aria-label="Puzzle board"></div>
+      <div id="crate" class="crate-overlay" hidden></div>
+      <div id="squirrel" class="squirrel-tease" hidden aria-hidden="true"><svg viewBox="0 0 60 50"><path d="M44 40 C60 36 58 8 44 10 C36 12 38 24 46 24 C40 26 36 34 44 40 Z" fill="#b8763f" stroke="#6b4329" stroke-width="2"/><ellipse cx="28" cy="36" rx="13" ry="11" fill="#c98a52" stroke="#6b4329" stroke-width="2"/><circle cx="22" cy="26" r="9" fill="#c98a52" stroke="#6b4329" stroke-width="2"/><path d="M17 19 L16 12 L22 17 Z" fill="#c98a52" stroke="#6b4329" stroke-width="1.6"/><circle cx="19" cy="25" r="1.8" fill="#1d1622"/><circle cx="14" cy="28" r="1.4" fill="#1d1622"/></svg></div>
       <div id="fx" class="fx" aria-live="polite"></div>
     </div>
     <div id="tray" class="tray">
@@ -87,6 +93,8 @@
     </div>
     <p id="pity" class="pity"></p>
     <div class="pull-actions">
+      <button id="btn-pull-epic" class="btn weekly epic" type="button" hidden><span class="label">Epic dig</span></button>
+      <button id="btn-pull-token" class="btn weekly" type="button" hidden><span class="label">Map dig</span></button>
       <button id="btn-pull-week" class="btn weekly" type="button"><span class="label">Weekly pull</span></button>
       <button id="btn-pull-free" class="btn ad" type="button"><span class="ad-chip">AD</span><span class="label">Bonus pull</span></button>
       <div id="bone-pulls" class="pull-row">
@@ -95,6 +103,18 @@
       </div>
       <p class="fine">Odds: Common 62% · Rare 27% · Epic 9% · Legendary 2%</p>
     </div>
+  </section>
+
+  <section id="screen-map" class="screen map" hidden>
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-back aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="screen-title" id="map-title">Living Room</h2>
+      <div class="bones-pill star-pill"><span class="pill-star">★</span><span id="map-stars">0</span></div>
+    </header>
+    <div id="world-tabs" class="world-tabs"></div>
+    <div id="map-path" class="map-path"></div>
   </section>
 
   <section id="screen-kennel" class="screen kennel" hidden>
@@ -127,6 +147,8 @@
 
 <script src="js/pups.js"></script>
 <script src="js/core.js"></script>
+<script src="js/tuning.js"></script>
+<script src="js/levels.js"></script>
 <script src="js/powers.js"></script>
 <script src="js/gacha.js"></script>
 <script src="js/state.js"></script>

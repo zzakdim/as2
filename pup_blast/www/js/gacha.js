@@ -49,6 +49,12 @@
     state.pity.sinceLegendary = rarity === 'legendary' ? 0 : state.pity.sinceLegendary + 1;
     state.stats.pulls++;
 
+    return grant(state, pup);
+  }
+
+  // Adds one copy of a specific pup (a dig result, or a gift pup freed from a crate).
+  function grant(state, pup) {
+    const rarity = pup.rarity;
     const owned = state.pups[pup.id];
     if (!owned) {
       state.pups[pup.id] = { level: 1, dupes: 0 };
@@ -72,7 +78,7 @@
 
   function rarityRank(r) { return ORDER.indexOf(r); }
 
-  const Gacha = { COST_1, COST_10, RATES, ECONOMY, ORDER, PITY_EPIC, PITY_LEGENDARY, rollRarity, pull, pullMany, rarityRank };
+  const Gacha = { COST_1, COST_10, RATES, ECONOMY, ORDER, PITY_EPIC, PITY_LEGENDARY, rollRarity, pull, pullMany, grant, rarityRank };
 
   root.PB = root.PB || {};
   root.PB.Gacha = Gacha;

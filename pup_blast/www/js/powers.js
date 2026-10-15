@@ -94,9 +94,9 @@
     shakeoff: { tier: 1, name: 'Shake Off', desc: 'Clear 4 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, all((r, c) => g.board[idx(r, c)])).slice(0, 4)) },
     treattoss: {
       tier: 1, name: 'Treat Toss', desc: 'Hide 4 bone treats in your blocks',
-      can: (g) => g.board.some((v, i) => v && !g.treats[i]),
+      can: (g) => g.board.some((v, i) => v && !g.treats[i] && g.specials[i] !== Core.SPECIAL.CRATE),
       apply: (g) => {
-        const spots = shuffle(g, all((r, c) => g.board[idx(r, c)] && !g.treats[idx(r, c)])).slice(0, 4);
+        const spots = shuffle(g, all((r, c) => g.board[idx(r, c)] && !g.treats[idx(r, c)] && g.specials[idx(r, c)] !== Core.SPECIAL.CRATE)).slice(0, 4);
         spots.forEach((i) => { g.treats[i] = 1; });
         return Object.assign(none(), { treated: spots });
       },
@@ -159,7 +159,7 @@
 
   // Cells a targeted power would clear at (r, c), worked out on a throwaway copy of the game.
   function previewCells(id, game, r, c) {
-    const copy = Object.assign({}, game, { board: game.board.slice(), treats: game.treats.slice(), tray: game.tray.slice() });
+    const copy = Object.assign({}, game, { board: game.board.slice(), treats: game.treats.slice(), specials: game.specials.slice(), tray: game.tray.slice() });
     POWERS[id].apply(copy, r, c);
     const out = [];
     for (let i = 0; i < game.board.length; i++) if (game.board[i] && !copy.board[i]) out.push(i);

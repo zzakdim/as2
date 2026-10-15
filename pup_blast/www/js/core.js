@@ -11,6 +11,11 @@
   const COMBO_GRACE_MOVES = 3;
   const BOARD_CLEAR_BONUS = 300;
 
+  // Special cells. Helpers ride on dealt pieces; the crate is placed by a level's starting pattern.
+  const SPECIAL = { NONE: 0, GOLDEN: 1, BALL: 2, CRATE: 3 };
+  const CRATE_COLOR = 8; // board value for crate cells (they count as filled)
+  const CRATE_HP = 2; // line clears through the crate needed to free the pup
+
   function mulberry32(seed) {
     let a = seed >>> 0;
     return function () {
@@ -50,10 +55,16 @@
 
   function idx(r, c) { return r * SIZE + c; }
 
-  function createGame(seed) {
+  // opts.start: 8 strings of 8 chars ('.' empty, '#' block, 'b' block with a bone, 'C' crate cell)
+  // opts.helpers: { golden, ball } chance per dealt piece of carrying that helper
+  function createGame(seed, opts) {
+    const o = opts || {};
     const game = {
       board: new Array(SIZE * SIZE).fill(0),
       treats: new Array(SIZE * SIZE).fill(0),
+      specials: new Array(SIZE * SIZE).fill(0),
+      crate: null,
+      helpers: o.helpers || null,
       tray: [null, null, null],
       score: 0,
       combo: 0,
@@ -65,14 +76,37 @@
       history: null,
       rng: mulberry32(seed == null ? (Date.now() & 0xffffffff) : seed),
     };
+    if (o.start) loadPattern(game, o.start);
     dealTray(game);
     return game;
+  }
+
+  function loadPattern(game, rows) {
+    const crateCells = [];
+    rows.forEach((row, r) => [...row].forEach((ch, c) => {
+      const i = idx(r, c);
+      if (ch === '#' || ch === 'b') game.board[i] = 1 + ((r * 3 + c * 5) % COLORS);
+      if (ch === 'b') game.treats[i] = 1;
+      if (ch === 'C') { game.board[i] = CRATE_COLOR; game.specials[i] = SPECIAL.CRATE; crateCells.push(i); }
+    }));
+    if (crateCells.length) game.crate = { cells: crateCells, hp: CRATE_HP, freed: false };
   }
 
   function makePiece(game, shape) {
     const color = 1 + Math.floor(game.rng() * COLORS);
     const treat = game.rng() < TREAT_CHANCE ? Math.floor(game.rng() * shape.cells.length) : -1;
-    return { shapeId: shape.id, cells: shape.cells, w: shape.w, h: shape.h, color, treat };
+    let special = null;
+    const h = game.helpers;
+    if (h) {
+      const roll = game.rng();
+      const type = roll < (h.golden || 0) ? SPECIAL.GOLDEN : roll < (h.golden || 0) + (h.ball || 0) ? SPECIAL.BALL : 0;
+      if (type) {
+        let k = Math.floor(game.rng() * shape.cells.length);
+        if (k === treat) k = (k + 1) % shape.cells.length;
+        if (k !== treat) special = { k, type };
+      }
+    }
+    return { shapeId: shape.id, cells: shape.cells, w: shape.w, h: shape.h, color, treat, special };
   }
 
   function weightedShape(rng, pool) {
@@ -124,15 +158,19 @@
 
   function lineScore(lines) { return (10 * lines * (lines + 1)) / 2; }
 
-  function clearCells(game, indices) {
+  // Powers never clear crate cells; only line clears can break a crate (allowCrate).
+  function clearCells(game, indices, allowCrate) {
     const cleared = [];
     let treats = 0;
+    const sp = game.specials || [];
     for (const i of indices) {
       if (!game.board[i]) continue;
-      cleared.push({ i, color: game.board[i], treat: game.treats[i] });
+      if (sp[i] === SPECIAL.CRATE && !allowCrate) continue;
+      cleared.push({ i, color: game.board[i], treat: game.treats[i], special: sp[i] || 0 });
       if (game.treats[i]) treats++;
       game.board[i] = 0;
       game.treats[i] = 0;
+      if (game.specials) game.specials[i] = 0;
     }
     game.treatsCollected += treats;
     return { cleared, treats };
@@ -148,14 +186,15 @@
   // One-step history for the Do-Over power.
   function snapshot(game) {
     return {
-      board: game.board.slice(), treats: game.treats.slice(),
+      board: game.board.slice(), treats: game.treats.slice(), specials: game.specials.slice(),
+      crate: game.crate ? Object.assign({}, game.crate, { cells: game.crate.cells.slice() }) : null,
       tray: game.tray.map((p) => (p ? Object.assign({}, p) : null)),
       score: game.score, combo: game.combo, movesSinceClear: game.movesSinceClear,
       placements: game.placements, linesCleared: game.linesCleared, treatsCollected: game.treatsCollected,
     };
   }
   function restore(game, snap) {
-    Object.assign(game, snap, { board: snap.board.slice(), treats: snap.treats.slice() });
+    Object.assign(game, snap, { board: snap.board.slice(), treats: snap.treats.slice(), specials: snap.specials.slice() });
     game.history = null;
   }
 
@@ -179,13 +218,41 @@
       const i = idx(r + dr, c + dc);
       game.board[i] = piece.color;
       game.treats[i] = k === piece.treat ? 1 : 0;
+      game.specials[i] = piece.special && piece.special.k === k ? piece.special.type : 0;
     });
     game.tray[trayIndex] = null;
     game.placements++;
 
     const { rows, cols } = fullLines(game.board);
     const lines = rows.length + cols.length;
-    const { cleared, treats } = clearCells(game, lineIndices(rows, cols));
+    const set = lineIndices(rows, cols);
+    const lineCells = set.size;
+
+    // Tennis balls caught in a clear also clear their whole row (and can chain).
+    const ballRows = [];
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const i of set) {
+        const br = Math.floor(i / SIZE);
+        if (game.specials[i] === SPECIAL.BALL && !ballRows.includes(br)) {
+          ballRows.push(br);
+          for (let k = 0; k < SIZE; k++) set.add(idx(br, k));
+          changed = true;
+        }
+      }
+    }
+    const golden = [...set].some((i) => game.specials[i] === SPECIAL.GOLDEN && game.board[i]);
+
+    // The crate takes CRATE_HP clears; until then its cells stay put.
+    let crateHit = false, crateFreed = false;
+    const cr = game.crate;
+    if (cr && !cr.freed && cr.cells.some((i) => set.has(i))) {
+      crateHit = true;
+      cr.hp--;
+      if (cr.hp > 0) cr.cells.forEach((i) => set.delete(i));
+      else { cr.freed = true; crateFreed = true; cr.cells.forEach((i) => set.add(i)); } // the whole crate breaks open
+    }
+    const { cleared, treats } = clearCells(game, set, true);
 
     let points = piece.cells.length;
     let boardClear = false;
@@ -193,7 +260,7 @@
       game.combo++;
       game.movesSinceClear = 0;
       game.linesCleared += lines;
-      points += lineScore(lines) * game.combo;
+      points += lineScore(lines) * game.combo * (golden ? 2 : 1) + Math.max(0, set.size - lineCells);
       if (isEmpty(game.board)) { boardClear = true; points += BOARD_CLEAR_BONUS; }
     } else {
       game.movesSinceClear++;
@@ -206,7 +273,7 @@
     if (game.tray.every((p) => p === null)) { dealTray(game); dealt = true; }
 
     return {
-      ok: true, rows, cols, lines, cleared, treats, points, boardClear, dealt,
+      ok: true, rows, cols, lines, cleared, treats, points, boardClear, dealt, golden, ballRows, crateHit, crateFreed,
       combo: game.combo, gameOver: isGameOver(game),
     };
   }
@@ -265,8 +332,8 @@
   }
 
   const Core = {
-    SIZE, COLORS, SHAPES, SHAPE_BY_ID, SMALL_SHAPES, BONES_PER_TREAT,
-    mulberry32, idx, createGame, makePiece, canPlace, fitsAnywhere, fullLines, previewClears,
+    SIZE, COLORS, SHAPES, SHAPE_BY_ID, SMALL_SHAPES, BONES_PER_TREAT, SPECIAL, CRATE_COLOR, CRATE_HP,
+    mulberry32, idx, createGame, loadPattern, makePiece, canPlace, fitsAnywhere, fullLines, previewClears,
     placePiece, isGameOver, dealTray, findHelpfulShape, lineScore, lineIndices, clearCells,
     settleLines, snapshot, restore, revive, bonesForRun,
   };

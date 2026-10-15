@@ -47,6 +47,11 @@
       settings: { sound: true, haptics: true, noAds: false, dev: false, devSkipAds: false, devInfinite: false },
       stats: { games: 0, pulls: 0, lines: 0 },
       tutorial: { step: 0, done: false },
+      levels: {}, // level id -> { stars, best }
+      gifts: {}, // level id -> true once its crated pup is freed
+      sweeps: {}, // world id -> true once every level has 3 stars
+      tokens: { dig: 0, epic: 0 }, // digs earned on the map; epic = guaranteed Epic or better
+      endless: { milestones: [] }, // Endless score milestones already paid
     };
   }
 
@@ -55,7 +60,7 @@
     const base = freshState();
     if (!raw || typeof raw !== 'object') return base;
     const out = Object.assign(base, raw);
-    for (const k of ['pity', 'daily', 'weekly', 'ads', 'settings', 'stats', 'tutorial']) out[k] = Object.assign(freshState()[k], raw[k]);
+    for (const k of ['pity', 'daily', 'weekly', 'ads', 'settings', 'stats', 'tutorial', 'levels', 'gifts', 'sweeps', 'tokens', 'endless']) out[k] = Object.assign(freshState()[k], raw[k]);
     // Saves from before the tutorial existed belong to players who already know the game.
     if (!raw.tutorial && raw.stats && raw.stats.games > 0) out.tutorial = { step: 0, done: true };
     out.pups = Object.assign({}, raw.pups);

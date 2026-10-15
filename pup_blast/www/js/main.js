@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX } = window.PB;
+  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, Levels } = window.PB;
   const ECON = Gacha.ECONOMY;
   const { sfx, haptic } = Audio;
   const $ = (sel) => document.querySelector(sel);
@@ -38,12 +38,13 @@
   function track(event, params) { if (window.PB_TRACK) window.PB_TRACK(event, params || {}); }
 
   // ---------------------------------------------------------------- screens
-  const screens = ['home', 'game', 'gacha', 'kennel'];
+  const screens = ['home', 'game', 'gacha', 'kennel', 'map'];
   function show(name) {
     screens.forEach((s) => { $('#screen-' + s).hidden = s !== name; });
     if (name === 'home') renderHome();
     if (name === 'gacha') renderGacha();
     if (name === 'kennel') renderKennel();
+    if (name === 'map') renderMap();
     tutorialOnShow(name);
   }
 
@@ -117,10 +118,13 @@
     $('#home-buddy').className = 'buddy-stage r-' + pup.rarity;
     $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> · Lv ${lvl} ${stars(pup.rarity)}<br><span>${perkText(pup, lvl)}</span>`;
     $('#home-best').textContent = state.best.toLocaleString();
+    const nextLvl = nextLevel();
+    $('#play-sub').textContent = nextLvl ? `Level ${nextLvl.n} · ${nextLvl.name}` : 'All levels cleared';
     const owned = Object.keys(state.pups).length;
     $('#kennel-count').textContent = `${owned}/${Pups.ROSTER.length}`;
     const badge = $('#gacha-badge');
-    if (state.weekly.pullsLeft > 0) { badge.hidden = false; badge.textContent = `Weekly ${verb().toLowerCase()}!`; }
+    if (state.tokens.dig + state.tokens.epic > 0) { badge.hidden = false; badge.textContent = `Free ${verb().toLowerCase()}`; }
+    else if (state.weekly.pullsLeft > 0) { badge.hidden = false; badge.textContent = `Weekly ${verb().toLowerCase()}!`; }
     else if (state.daily.freePullsLeft > 0) { badge.hidden = false; badge.textContent = `Free ${verb().toLowerCase()}`; }
     else if (ECON.BONE_PULLS && state.bones >= Gacha.COST_1) { badge.hidden = false; badge.textContent = `${verb()}!`; }
     else badge.hidden = true;
@@ -131,7 +135,8 @@
     const el = $('#home-buddy');
     el.classList.remove('boop'); void el.offsetWidth; el.classList.add('boop');
   });
-  $('#btn-play').addEventListener('click', () => { Audio.unlock(); startRun(); });
+  $('#btn-play').addEventListener('click', () => { Audio.unlock(); show('map'); });
+  $('#btn-endless').addEventListener('click', () => { Audio.unlock(); startRun(); });
   $('#btn-gacha').addEventListener('click', () => { Audio.unlock(); show('gacha'); });
   $('#btn-kennel').addEventListener('click', () => { Audio.unlock(); show('kennel'); });
   $('#btn-settings').addEventListener('click', openSettings);
@@ -150,30 +155,82 @@
 
   let run = null;
 
+  // opts.level: play a map level; opts.pup: force a buddy (tutorial). No level = Endless.
   function startRun(opts) {
-    const pup = (opts && opts.pup) || Pups.BY_ID[state.buddy];
-    const level = opts && opts.pup ? 1 : state.pups[pup.id].level;
+    const o = opts || {};
+    const pup = o.pup || Pups.BY_ID[state.buddy];
+    const level = o.pup ? 1 : state.pups[pup.id].level;
+    const lvl = o.level || null;
+    let gameOpts;
+    if (lvl) {
+      // A level's crate only appears until its pup has been freed once.
+      const crate = lvl.gift && !state.gifts[lvl.id];
+      gameOpts = { start: crate ? lvl.start : lvl.start.map((row) => row.replace(/C/g, '.')), helpers: lvl.helpers };
+    }
     run = {
-      game: Core.createGame((rng() * 4294967296) >>> 0),
-      pup, level,
+      game: Core.createGame((rng() * 4294967296) >>> 0, gameOpts),
+      pup, level, lvl,
       charges: Pups.chargesFor(pup, level),
       revived: false, doubled: false, over: false, targeting: false, aim: null,
+      starsShown: 0, giftResult: null,
     };
     show('game');
+    $('#level-bar').hidden = !lvl;
+    $('#best-line').hidden = !!lvl;
+    $('#squirrel').hidden = !(lvl && lvl.tease === 'squirrel');
     renderBoard(); renderTray(); renderBuddyBar(); renderScore();
-    track('run_start', { buddy: pup.id });
+    track('run_start', { buddy: pup.id, level: lvl ? lvl.id : 'endless' });
+  }
+
+  const GOLD_SVG = '<svg class="bone golden-bone" viewBox="0 0 24 24" aria-label="Golden bone"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="#ffd04a" stroke="#a87400" stroke-width="1.2"/></svg>';
+  const BALL_SVG = '<svg class="ball" viewBox="0 0 24 24" aria-label="Tennis ball"><circle cx="12" cy="12" r="9" fill="#d7f25a" stroke="#7e9a12" stroke-width="1.2"/><path d="M4.5 7.5c4 1.5 4 7.5 0 9M19.5 7.5c-4 1.5-4 7.5 0 9" stroke="#fff" stroke-width="1.6" fill="none"/></svg>';
+  function cellArt(g, i) {
+    const sp = g.specials[i];
+    if (sp === Core.SPECIAL.GOLDEN) return GOLD_SVG;
+    if (sp === Core.SPECIAL.BALL) return BALL_SVG;
+    return g.treats[i] ? BONE_SVG : '';
+  }
+  function pieceArt(piece, k) {
+    if (piece.special && piece.special.k === k) return piece.special.type === Core.SPECIAL.GOLDEN ? GOLD_SVG : BALL_SVG;
+    return k === piece.treat ? BONE_SVG : '';
   }
 
   function renderBoard() {
     const g = run.game;
     for (let i = 0; i < cellEls.length; i++) {
       const v = g.board[i];
-      cellEls[i].className = v ? `cell b c${v}` : 'cell';
-      cellEls[i].innerHTML = v && g.treats[i] ? BONE_SVG : '';
+      cellEls[i].className = v === Core.CRATE_COLOR ? 'cell b crate' : v ? `cell b c${v}` : 'cell';
+      cellEls[i].innerHTML = v && v !== Core.CRATE_COLOR ? cellArt(g, i) : '';
     }
+    renderCrate();
+  }
+
+  // The crate is drawn as one overlay across its 2x2 cells, with the gift pup peeking out.
+  function renderCrate() {
+    const el = $('#crate');
+    const cr = run.game.crate;
+    if (!cr || cr.freed || !run.lvl || !run.lvl.gift) { el.hidden = true; return; }
+    const wrap = $('.board-wrap').getBoundingClientRect();
+    const a = cellEls[cr.cells[0]].getBoundingClientRect(), b = cellEls[cr.cells.at(-1)].getBoundingClientRect();
+    Object.assign(el.style, { left: a.left - wrap.left + 'px', top: a.top - wrap.top + 'px', width: b.right - a.left + 'px', height: b.bottom - a.top + 'px' });
+    const pup = Pups.BY_ID[run.lvl.gift];
+    el.innerHTML = `<div class="crate-pup">${Pups.renderPup(pup, { style: 'sticker', plain: true })}</div>
+      <svg class="crate-bars" viewBox="0 0 100 100" aria-label="${pup.name} is stuck in a crate"><rect x="4" y="4" width="92" height="92" rx="10" fill="none" stroke="#8a5528" stroke-width="7"/><path d="M30 6V94M50 6V94M70 6V94" stroke="#8a5528" stroke-width="6"/>${cr.hp < Core.CRATE_HP ? '<path d="M18 20 L34 38 L26 52 L42 70" stroke="#3b2414" stroke-width="3" fill="none"/>' : ''}</svg>`;
+    el.hidden = false;
   }
 
   function renderScore() {
+    if (run.lvl) {
+      const [t1, t2, t3] = Levels.starsFor(run.lvl);
+      const sc = run.game.score;
+      $('#lb-name').textContent = `Level ${run.lvl.n} · ${run.lvl.name}`;
+      $('#lb-fill').style.width = Math.min(100, (sc / t3) * 100) + '%';
+      [[t1, '#lb-s1'], [t2, '#lb-s2'], [t3, '#lb-s3']].forEach(([t, sel]) => {
+        const el = $(sel);
+        el.style.left = (t / t3) * 100 + '%';
+        el.classList.toggle('on', sc >= t);
+      });
+    }
     $('#score').textContent = run.game.score.toLocaleString();
     $('#game-best').textContent = Math.max(state.best, run.game.score).toLocaleString();
     $('#run-bones').textContent = Core.bonesForRun(run.game).toLocaleString();
@@ -190,7 +247,7 @@
       b.className = `cell b c${piece.color}`;
       b.style.gridRow = r + 1;
       b.style.gridColumn = c + 1;
-      if (k === piece.treat) b.innerHTML = BONE_SVG;
+      b.innerHTML = pieceArt(piece, k);
       el.appendChild(b);
     });
     return el;
@@ -359,10 +416,39 @@
     if (!res.ok) return;
     sfx.place(); haptic('LIGHT');
     renderBoard();
-    if (res.lines > 0) { popCells(res.cleared); celebrate(res); }
+    if (res.lines > 0) { popCells(res.cleared.filter((x) => x.special !== Core.SPECIAL.CRATE)); celebrate(res); }
+    if (res.golden) setTimeout(() => floatText('Golden bone ×2!', 'combo'), 260);
+    if (res.ballRows && res.ballRows.length) floatText('Fetch!', 'praise');
+    if (res.crateHit && !res.crateFreed) { const c = $('#crate'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); sfx.thunk(); haptic('MEDIUM'); floatText('One more!', 'combo'); }
+    if (res.crateFreed) freeGift();
     renderTray(); renderScore(); renderBuddyBar();
+    checkStars();
     if (run.tut) { tutorialAfterPlace(res); return; }
     if (res.gameOver) handleStuck();
+  }
+
+  // ---- levels: star progress and the crated gift pup
+  function checkStars() {
+    if (!run || !run.lvl) return;
+    const n = Levels.starsForScore(run.lvl, run.game.score);
+    while (run.starsShown < n) {
+      run.starsShown++;
+      const k = run.starsShown;
+      setTimeout(() => { floatText(k === 1 ? 'Level clear! Keep going' : `${'★'.repeat(k)}!`, 'combo'); sfx.ding(k + 2); haptic('MEDIUM'); }, 400 + k * 150);
+    }
+  }
+
+  function freeGift() {
+    const pup = Pups.BY_ID[run.lvl.gift];
+    state.gifts[run.lvl.id] = true; // counts the moment the crate breaks, even if the run is lost
+    run.giftResult = Gacha.grant(state, pup);
+    save();
+    const wrap = $('.board-wrap');
+    PullFX.burst(wrap, Pups.RARITY[pup.rarity].color, 26, 150);
+    $('#crate').hidden = true;
+    sfx.woof(); haptic('HEAVY');
+    floatText(`${pup.name} is free!`, 'praise');
+    track('gift_freed', { level: run.lvl.id, pup: pup.id });
   }
 
   // ---- buddy powers
@@ -430,6 +516,7 @@
     run.stuckWithPower = false;
     $('#btn-power').classList.remove('nudge');
     renderTray(); renderScore(); renderBuddyBar();
+    checkStars();
     track('power_used', { power: run.pup.power, level: run.level });
     if (run.tut) { tutorialAfterPower(); return; }
     if (Core.isGameOver(run.game)) handleStuck();
@@ -468,20 +555,34 @@
 
   function runBones() { return Core.bonesForRun(run.game) * (run.doubled ? 2 : 1); }
 
+  function starRow(n) {
+    return `<p class="result-stars" aria-label="${n} of 3 stars">${[1, 2, 3].map((k) => `<span class="${k <= n ? 'on' : ''}">★</span>`).join('')}</p>`;
+  }
+
   function showGameOver() {
     const g = run.game;
-    const isBest = g.score > state.best;
+    const lvl = run.lvl;
+    const isBest = !lvl && g.score > state.best;
     const bones = runBones();
+    const got = lvl ? Levels.starsForScore(lvl, g.score) : 0;
+    const t = lvl ? Levels.starsFor(lvl) : null;
+    const nextMilestone = !lvl && MILESTONES.find(([m]) => !state.endless.milestones.includes(m) && g.score < m);
+    const head = lvl
+      ? `<p class="eyebrow">Level ${lvl.n} · ${got ? 'Cleared' : 'Out of room'}</p>${starRow(got)}
+         <p class="go-score">${g.score.toLocaleString()}</p>
+         <p class="go-sub">${got ? (got < 3 ? `${(t[got] - g.score).toLocaleString()} more for ${'★'.repeat(got + 1)}` : 'Perfect run!') : `${(t[0] - g.score).toLocaleString()} short of ${t[0].toLocaleString()}`}</p>`
+      : `<p class="eyebrow">${isBest ? 'New best score' : 'Out of room'}</p>
+         <p class="go-score">${g.score.toLocaleString()}</p>
+         <p class="go-sub">${g.linesCleared} lines · ${g.treatsCollected} treats${nextMilestone ? ` · next milestone ${nextMilestone[0].toLocaleString()} (+${nextMilestone[1]} bones)` : ''}</p>`;
     const sheet = openModal(`
-      <p class="eyebrow">${isBest ? 'New best score' : 'Out of room'}</p>
-      <p class="go-score">${g.score.toLocaleString()}</p>
-      <p class="go-sub">${g.linesCleared} lines · ${g.treatsCollected} treats</p>
+      ${head}
       <p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>
       <div class="stack">
         ${run.revived ? '' : '<button type="button" class="btn ad" data-act="revive"><span class="ad-chip">AD</span>Keep playing</button>'}
         ${run.doubled ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
-        <button type="button" class="btn" data-act="again">Collect &amp; play again</button>
-        <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>
+        ${lvl ? '<button type="button" class="btn" data-act="collect">Collect</button>'
+    : `<button type="button" class="btn" data-act="again">Collect &amp; play again</button>
+        <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>`}
       </div>`, { cls: 'gameover' });
     sheet.onclick = async (e) => {
       const act = e.target.closest('[data-act]');
@@ -513,15 +614,50 @@
     };
   }
 
+  // Endless score milestones pay bones the first time they're reached.
+  const MILESTONES = [[1000, 25], [2500, 50], [5000, 100], [10000, 200], [20000, 400], [40000, 800]];
+  function payMilestones(score) {
+    const paid = [];
+    for (const [m, b] of MILESTONES) {
+      if (score >= m && !state.endless.milestones.includes(m)) { state.endless.milestones.push(m); state.bones += b; paid.push([m, b]); }
+    }
+    return paid;
+  }
+
+  // Saves a finished level run: best score, stars, first-clear reward, and the 3-star world sweep.
+  function recordLevel(lvl, score) {
+    const got = Levels.starsForScore(lvl, score);
+    const prev = state.levels[lvl.id] || { stars: 0, best: 0 };
+    const firstClear = got >= 1 && prev.stars === 0;
+    state.levels[lvl.id] = { stars: Math.max(prev.stars, got), best: Math.max(prev.best, score) };
+    const rewards = [];
+    if (firstClear) {
+      if (lvl.reward.type === 'dig') { state.tokens.dig++; rewards.push(`A free ${verb().toLowerCase()} at the ${gachaName()}`); }
+      else { state.bones += lvl.reward.amount; rewards.push(`+${lvl.reward.amount} bones for clearing it`); }
+    }
+    const world = Levels.WORLDS.find((w) => w.id === lvl.world);
+    let sweep = false;
+    if (!state.sweeps[world.id] && world.levels.every((l) => (state.levels[l.id] || {}).stars === 3)) {
+      state.sweeps[world.id] = true;
+      state.tokens.epic++;
+      sweep = true;
+    }
+    return { got, prevStars: prev.stars, newBest: score > prev.best && prev.best > 0, firstClear, rewards, sweep };
+  }
+
   async function finishRun(next) {
     const g = run.game;
+    const lvl = run.lvl;
+    const gift = run.giftResult;
     const bones = runBones();
     state.bones += bones;
-    state.best = Math.max(state.best, g.score);
+    if (!lvl) state.best = Math.max(state.best, g.score);
     state.stats.games++;
     state.stats.lines += g.linesCleared;
     state.ads.gamesSinceInterstitial++;
-    track('run_end', { score: g.score, bones, revived: run.revived, doubled: run.doubled });
+    const summary = lvl ? recordLevel(lvl, g.score) : null;
+    const milestones = lvl ? [] : payMilestones(g.score);
+    track('run_end', { score: g.score, bones, revived: run.revived, doubled: run.doubled, level: lvl ? lvl.id : 'endless', stars: summary ? summary.got : null });
     run = null;
     closeModal();
     save();
@@ -531,7 +667,122 @@
       track('ad_interstitial', {});
       await ads.interstitial();
     }
+    if (lvl) { showLevelResult(lvl, g.score, bones, summary, gift); return; }
+    milestones.forEach(([m, b], k) => setTimeout(() => toast(`Milestone ${m.toLocaleString()}! +${b} bones`), 300 + k * 2700));
     if (next === 'again') startRun(); else show('home');
+  }
+
+  function showLevelResult(lvl, score, bones, sum, gift) {
+    // A freed gift pup gets its full reveal first.
+    if (gift) {
+      const sheet = openModal('', { cls: 'reveal' });
+      PullFX.showResult(sheet, gift, Object.assign({}, fxCtx, {
+        actions: () => '<button type="button" class="btn" data-act="done">Continue</button>',
+      }));
+      sheet.onclick = (e) => { if (e.target.closest('[data-act]')) showLevelResult(lvl, score, bones, sum, null); };
+      return;
+    }
+    show('map');
+    const nxt = Levels.next(lvl);
+    const tutorial = !state.tutorial.done && state.tutorial.step === TUT.POSTRUN;
+    const lines = [`+${bones.toLocaleString()} bones from the run`, ...sum.rewards];
+    if (sum.sweep) lines.push(`Every level at 3 stars! A crown for this world and a free Epic ${verb().toLowerCase()}`);
+    const sheet = openModal(`
+      <p class="eyebrow">Level ${lvl.n} · ${lvl.name}</p>
+      ${starRow(sum.got)}
+      <p class="go-score">${score.toLocaleString()}</p>
+      <p class="go-sub">${sum.got ? (sum.newBest ? 'New best for this level' : sum.got > sum.prevStars && sum.prevStars ? 'New star record' : 'Level cleared') : 'Not quite. Try again!'}</p>
+      <ul class="reward-list">${lines.map((x) => `<li>${x}</li>`).join('')}</ul>
+      <div class="stack">
+        ${tutorial ? '<button type="button" class="btn" data-act="home">Continue</button>' : `
+        ${sum.got && nxt ? '<button type="button" class="btn" data-act="next">Next level</button>' : ''}
+        <div class="pull-row"><button type="button" class="btn ${sum.got && nxt ? 'ghost' : ''}" data-act="retry">Retry</button><button type="button" class="btn ghost" data-act="map">Map</button></div>`}
+      </div>`, { cls: 'gameover level-result' });
+    sheet.querySelectorAll('.result-stars span').forEach((el, k) => {
+      el.classList.remove('on');
+      if (k < sum.got) setTimeout(() => { el.classList.add('on', 'pop'); sfx.ding(k + 2); haptic('LIGHT'); }, 350 + k * 320);
+    });
+    sheet.onclick = (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      closeModal();
+      if (a.dataset.act === 'next') startRun({ level: nxt });
+      else if (a.dataset.act === 'retry') startRun({ level: lvl });
+      else if (a.dataset.act === 'home') show('home');
+      else renderMap();
+    };
+  }
+
+  // ---------------------------------------------------------------- map
+  let mapWorld = 'w1';
+  function levelUnlocked(world, k) {
+    return dev() || k === 0 || (state.levels[world.levels[k - 1].id] || {}).stars > 0;
+  }
+  function nextLevel() {
+    for (const w of Levels.WORLDS) {
+      for (const l of w.levels) if (!(state.levels[l.id] || {}).stars) return l;
+    }
+    return null;
+  }
+
+  function renderMap() {
+    const w = Levels.WORLDS.find((x) => x.id === mapWorld);
+    $('#map-title').textContent = w.name;
+    $('#world-tabs').innerHTML = Levels.WORLDS.map((x, k) => `<button type="button" class="world-tab${x.id === mapWorld ? ' on' : ''}${x.levels.length ? '' : ' soon'}" data-world="${x.id}">${state.sweeps[x.id] ? '<span class="crown">♛</span>' : ''}${k + 1}. ${x.name}</button>`).join('');
+    const path = $('#map-path');
+    if (!w.levels.length) {
+      $('#map-stars').textContent = '0';
+      path.innerHTML = `<div class="soon-card"><p class="eyebrow">Coming soon</p><p>${w.soon}</p></div>`;
+      return;
+    }
+    const earned = w.levels.reduce((a, l) => a + ((state.levels[l.id] || {}).stars || 0), 0);
+    $('#map-stars').textContent = `${earned}/${w.levels.length * 3}`;
+    let currentId = null;
+    path.innerHTML = w.levels.map((l, k) => {
+      const rec = state.levels[l.id] || { stars: 0 };
+      const open = levelUnlocked(w, k);
+      if (open && !rec.stars && !currentId) currentId = l.id;
+      const badges = (l.reward.type === 'dig' && !rec.stars ? `<i class="lvl-badge dig">${verb()}</i>` : '') + (l.gift && !state.gifts[l.id] ? '<i class="lvl-badge gift">Pup</i>' : '');
+      return `<button type="button" class="lvl-node ${k % 2 ? 'right' : 'left'}${open ? '' : ' locked'}${l.id === currentId ? ' current' : ''}${rec.stars ? ' done' : ''}" data-level="${l.id}" ${open ? '' : 'disabled'}>
+        <span class="lvl-num">${l.n}</span>
+        <span class="lvl-info"><b>${l.name}</b><span class="lvl-stars">${[1, 2, 3].map((s) => `<i class="${s <= rec.stars ? 'on' : ''}">★</i>`).join('')}</span></span>
+        ${badges}</button>`;
+    }).join('') + (state.sweeps[w.id] ? '<p class="sweep-note">♛ Every level at 3 stars</p>' : '');
+    const cur = path.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+  }
+
+  $('#world-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-world]');
+    if (!b) return;
+    mapWorld = b.dataset.world;
+    renderMap();
+  });
+  $('#map-path').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-level]');
+    if (!b || b.disabled) return;
+    openLevelSheet(Levels.BY_ID[b.dataset.level]);
+  });
+
+  function openLevelSheet(lvl) {
+    const t = Levels.starsFor(lvl);
+    const rec = state.levels[lvl.id];
+    const mini = lvl.start.map((row) => [...row].map((ch) => `<i class="m-${ch === '.' ? 'e' : ch === 'C' ? (lvl.gift && !state.gifts[lvl.id] ? 'c' : 'e') : 'b'}"></i>`).join('')).join('');
+    const reward = lvl.reward.type === 'dig' ? `a free ${verb().toLowerCase()}` : `${lvl.reward.amount} bones`;
+    const giftLine = lvl.gift && !state.gifts[lvl.id] ? `<p class="go-sub gift-line"><b>${Pups.BY_ID[lvl.gift].name}</b> is stuck in a crate! Clear 2 lines through it to free him.</p>` : '';
+    openModal(`<p class="eyebrow">Level ${lvl.n}</p>
+      <h3 class="ls-name">${lvl.name}</h3>
+      <div class="mini-board" aria-label="Starting board">${mini}</div>
+      <div class="ls-stars">${t.map((v, k) => `<div><span>${'★'.repeat(k + 1)}</span><b>${v.toLocaleString()}</b></div>`).join('')}</div>
+      ${giftLine}
+      <p class="go-sub">First clear: ${rec && rec.stars ? 'claimed' : reward}${rec ? ` · Best ${rec.best.toLocaleString()}` : ''}</p>
+      <div class="stack"><button type="button" class="btn big" data-act="play">Play</button><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
+      .onclick = (e) => {
+        const a = e.target.closest('[data-act]');
+        if (!a) return;
+        closeModal();
+        if (a.dataset.act === 'play') startRun({ level: lvl });
+      };
   }
 
   $('#btn-quit').addEventListener('click', () => {
@@ -554,6 +805,11 @@
   // ---------------------------------------------------------------- gacha
   function renderGacha() {
     renderBones();
+    const tok = $('#btn-pull-token'), epic = $('#btn-pull-epic');
+    tok.hidden = state.tokens.dig <= 0;
+    tok.querySelector('.label').textContent = `Map ${verb().toLowerCase()} ×${state.tokens.dig} · free`;
+    epic.hidden = state.tokens.epic <= 0;
+    epic.querySelector('.label').textContent = `Epic ${verb().toLowerCase()} ×${state.tokens.epic} · Epic or better`;
     const weekly = $('#btn-pull-week');
     const wLeft = state.weekly.pullsLeft;
     weekly.disabled = wLeft <= 0;
@@ -580,6 +836,10 @@
         const cost = count === 10 ? Gacha.COST_10 : Gacha.COST_1;
         if (state.bones < cost) { toast('Not enough bones. Play a round to earn more.'); return; }
         state.bones -= cost;
+      } else if (source === 'token' || source === 'epic') {
+        if (state.tokens[source === 'token' ? 'dig' : 'epic'] <= 0) return;
+        state.tokens[source === 'token' ? 'dig' : 'epic']--;
+        if (source === 'epic') opts = { minRarity: 'epic' };
       } else if (source === 'weekly') {
         if (state.weekly.pullsLeft <= 0) return;
         state.weekly.pullsLeft--;
@@ -610,6 +870,8 @@
   let pulling = false;
 
   $('#btn-pull-week').addEventListener('click', () => { Audio.unlock(); doPull(1, 'weekly'); });
+  $('#btn-pull-token').addEventListener('click', () => { Audio.unlock(); doPull(1, 'token'); });
+  $('#btn-pull-epic').addEventListener('click', () => { Audio.unlock(); doPull(1, 'epic'); });
   $('#btn-pull-1').addEventListener('click', () => { Audio.unlock(); doPull(1, 'bones'); });
   $('#btn-pull-10').addEventListener('click', () => { Audio.unlock(); doPull(10, 'bones'); });
   $('#btn-pull-free').addEventListener('click', () => { Audio.unlock(); doPull(1, 'ad'); });
@@ -823,7 +1085,7 @@
   }
   function coachHide() { coachOpts = null; coachEl.hidden = true; document.querySelectorAll('.cell.tut-target').forEach((c) => c.classList.remove('tut-target')); }
   function coachBump() { const b = $('.coach-bubble'); if (coachEl.hidden) return; b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); }
-  window.addEventListener('resize', () => { if (coachOpts) coachShow(coachOpts); });
+  window.addEventListener('resize', () => { if (coachOpts) coachShow(coachOpts); if (run) renderCrate(); });
   $('.coach-skip').addEventListener('click', () => {
     finishTutorial();
     if (run && run.tut) startRun();
@@ -894,7 +1156,7 @@
     coachHide();
     setTimeout(() => coachShow({
       text: "That's it! Clear lines to make room. The run ends when nothing fits.", next: "Let's play",
-      onNext: () => { setStep(TUT.POSTRUN); startRun(); },
+      onNext: () => { setStep(TUT.POSTRUN); startRun({ level: Levels.WORLDS[0].levels[0] }); },
     }), 700);
   }
 
@@ -930,6 +1192,7 @@
     if (!$('#screen-home').hidden) renderHome();
     if (!$('#screen-gacha').hidden) renderGacha();
     if (!$('#screen-kennel').hidden) renderKennel();
+    if (!$('#screen-map').hidden) renderMap();
     if (run) { renderBoard(); renderTray(); renderScore(); renderBuddyBar(); }
   }
 
@@ -960,6 +1223,7 @@
         <button type="button" class="btn ghost small" data-dev="pity">Reset pity</button>
         <button type="button" class="btn ghost small" data-dev="starter">Back to starter only</button>
         <button type="button" class="btn ghost small" data-dev="tutorial">Replay tutorial</button>
+        <button type="button" class="btn ghost small" data-dev="levels">Reset level progress</button>
       </div>
       <p class="eyebrow">Pull a specific rarity</p>
       <div class="dev-grid four">
@@ -995,6 +1259,7 @@
       if (act === 'unlock') { Pups.ROSTER.forEach((p) => { if (!state.pups[p.id]) state.pups[p.id] = { level: 1, dupes: 0 }; }); msg = 'All pups unlocked'; }
       if (act === 'max') { Pups.ROSTER.forEach((p) => { state.pups[p.id] = { level: Pups.MAX_LEVEL, dupes: 0 }; }); msg = 'All pups at max level'; }
       if (act === 'pity') { state.pity = { sinceEpic: 0, sinceLegendary: 0 }; msg = 'Pity reset'; }
+      if (act === 'levels') { state.levels = {}; state.gifts = {}; state.sweeps = {}; msg = 'Level progress reset (dev mode unlocks every level)'; }
       if (act === 'tutorial') { state.tutorial = { step: 0, done: false }; save(); closeModal(); run = null; startTutorial(); return; }
       if (act === 'starter') { state.pups = { [Pups.STARTER_ID]: { level: 1, dupes: 0 } }; state.buddy = Pups.STARTER_ID; msg = 'Collection reset to Mochi'; }
       if (act.startsWith('pull-')) {
