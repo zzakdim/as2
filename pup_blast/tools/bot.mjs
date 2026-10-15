@@ -2,8 +2,8 @@
 // A greedy bot (no lookahead) stands in for an average player. Two buddies are simulated:
 //   starter  = Mochi at level 1 (Fetch x1 when stuck)
 //   maxEpic  = a maxed epic (Cannonball x5 when stuck)
-// Usage: node tools/bot.mjs [games per level] [first level] [last level]
-//        node tools/bot.mjs tune [games per level]   -> rewrites www/js/tuning.js
+// Usage: node tools/bot.mjs [games per level] [world id] [first level] [last level]
+//        node tools/bot.mjs tune [games per level]   -> rewrites www/js/tuning.js for every world
 // Tuning sets each level's stars from bot score percentiles: 1 star from the starter bot,
 // 3 stars from the maxed-epic bot, tightening across the world (easy early, brutal late).
 import { createRequire } from 'node:module';
@@ -15,7 +15,8 @@ const Levels = require('../www/js/levels.js');
 
 const TUNE = process.argv[2] === 'tune';
 const N = Number((TUNE ? process.argv[3] : process.argv[2]) || 30);
-const FROM = TUNE ? 1 : Number(process.argv[3] || 1), TO = TUNE ? 40 : Number(process.argv[4] || 40);
+const WORLD = TUNE ? null : process.argv[3] || 'w1';
+const FROM = TUNE ? 1 : Number(process.argv[4] || 1), TO = TUNE ? 40 : Number(process.argv[5] || 40);
 const S = Core.SIZE;
 
 // Empty cells boxed in on 3+ sides are hard to ever fill; the bot avoids making them.
@@ -42,9 +43,10 @@ function bestMove(g) {
       const b = g.board.slice();
       for (const [dr, dc] of p.cells) b[(r + dr) * S + c + dc] = 1;
       const { rows, cols } = Core.fullLines(b);
-      for (const rr of rows) for (let k = 0; k < S; k++) b[rr * S + k] = 0;
-      for (const cc of cols) for (let k = 0; k < S; k++) b[k * S + cc] = 0;
-      const filled = b.reduce((a, v) => a + (v ? 1 : 0), 0);
+      const keep = (i) => (Core.isFixed({ board: g.board }, i) ? g.board[i] : 0);
+      for (const rr of rows) for (let k = 0; k < S; k++) b[rr * S + k] = keep(rr * S + k);
+      for (const cc of cols) for (let k = 0; k < S; k++) b[k * S + cc] = keep(k * S + cc);
+      const filled = b.reduce((a, v, i) => a + (v && !Core.isFixed({ board: b }, i) ? 1 : 0), 0);
       const score = (rows.length + cols.length) * 40 - trapped(b) * 12 - filled * 1.5 + p.cells.length;
       if (!best || score > best.score) best = { t, r, c, score };
     }
@@ -80,6 +82,14 @@ function play(level, kind, seed) {
 // so real pass rates will run higher than the bot's.
 function quantiles(level) {
   const n = level.n;
+  if (level.world === 'w2') {
+    // Dog Park opens mid-Living Room, so it starts about where Living Room 20 sits and gets meaner.
+    let one = n <= 10 ? 0.3 : n <= 20 ? 0.4 : n <= 30 ? 0.5 : 0.6;
+    if (n % 5 === 0) one += 0.1;
+    else if (n % 5 === 1 && n > 1) one -= 0.1;
+    const three = n <= 10 ? 0.75 : n <= 20 ? 0.65 : n <= 30 ? 0.8 : n < 40 ? 0.9 : 0.95;
+    return { one, three, threeFrom: n <= 10 ? 'starter' : 'maxed' };
+  }
   let one = n <= 10 ? 0.15 : n <= 20 ? 0.3 : n <= 30 ? 0.45 : 0.55;
   if (n % 5 === 0) one += 0.1; // dig levels are a notch harder
   else if (n % 5 === 1 && n > 1) one -= 0.1; // the level after is a breather
@@ -92,7 +102,7 @@ const r50 = (x) => Math.max(50, Math.round(x / 50) * 50);
 
 if (TUNE) {
   const out = {};
-  for (const level of Levels.WORLDS[0].levels) {
+  for (const level of Levels.WORLDS.flatMap((w) => w.levels)) {
     const opts = { start: level.start, helpers: level.helpers };
     const starter = Array.from({ length: N }, (_, k) => play({ ...level, ...opts }, 'starter', 1000 + k * 7919).score).sort((a, b) => a - b);
     const maxed = Array.from({ length: N }, (_, k) => play({ ...level, ...opts }, 'maxEpic', 1000 + k * 7919).score).sort((a, b) => a - b);
@@ -122,7 +132,7 @@ ${body}
 }
 
 const rows = [];
-for (const level of Levels.WORLDS[0].levels.slice(FROM - 1, TO)) {
+for (const level of Levels.WORLDS.find((w) => w.id === WORLD).levels.slice(FROM - 1, TO)) {
   const [t1, , t3] = Levels.starsFor(level);
   const out = { level: level.n, name: level.name, target: t1, three: t3 };
   for (const kind of ['starter', 'maxEpic']) {

@@ -10,7 +10,8 @@
 
   const none = () => ({ cleared: [], lines: 0 });
   const clear = (game, indices) => Object.assign(Core.clearCells(game, indices), { lines: 0 });
-  const filled = (game) => game.board.some(Boolean);
+  const filled = (game) => game.board.some((v, i) => Core.isBlock(game, i));
+  const blocks = (game) => all((r, c) => Core.isBlock(game, idx(r, c)));
   const all = (fn) => { const out = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fn(r, c)) out.push(idx(r, c)); return out; };
 
   function square(r, c, radius) {
@@ -18,7 +19,7 @@
   }
   function fill(game, isRow, k) {
     let n = 0;
-    for (let j = 0; j < N; j++) if (game.board[isRow ? idx(k, j) : idx(j, k)]) n++;
+    for (let j = 0; j < N; j++) if (Core.isBlock(game, isRow ? idx(k, j) : idx(j, k))) n++;
     return n;
   }
   function fullest(game, isRow, count) {
@@ -38,18 +39,18 @@
   }
 
   // Moves blocks along each line toward one side, keeping their order. Then clears full lines.
+  // Posts and holes stay put; blocks slide into the free slots around them.
   function compact(game, vertical) {
     for (let a = 0; a < N; a++) {
-      const cells = [];
+      const cells = [], slots = [];
       for (let b = 0; b < N; b++) {
         const i = vertical ? idx(N - 1 - b, a) : idx(a, b);
+        if (Core.isFixed(game, i)) continue;
+        slots.push(i);
         if (game.board[i]) cells.push([game.board[i], game.treats[i]]);
         game.board[i] = 0; game.treats[i] = 0;
       }
-      cells.forEach(([color, treat], b) => {
-        const i = vertical ? idx(N - 1 - b, a) : idx(a, b);
-        game.board[i] = color; game.treats[i] = treat;
-      });
+      cells.forEach(([color, treat], b) => { game.board[slots[b]] = color; game.treats[slots[b]] = treat; });
     }
     return Core.settleLines(game);
   }
@@ -91,12 +92,12 @@
     },
     scratch: { tier: 1, name: 'Scratch', desc: 'Clear a 2×2 patch you tap', target: 'cell', can: filled, apply: (g, r, c) => clear(g, all((rr, cc) => rr >= Math.min(r, N - 2) && rr < Math.min(r, N - 2) + 2 && cc >= Math.min(c, N - 2) && cc < Math.min(c, N - 2) + 2)) },
     nibble: { tier: 1, name: 'Nibble', desc: 'Clear one block you tap', target: 'block', can: filled, apply: (g, r, c) => clear(g, [idx(r, c)]) },
-    shakeoff: { tier: 1, name: 'Shake Off', desc: 'Clear 4 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, all((r, c) => g.board[idx(r, c)])).slice(0, 4)) },
+    shakeoff: { tier: 1, name: 'Shake Off', desc: 'Clear 4 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, blocks(g)).slice(0, 4)) },
     treattoss: {
       tier: 1, name: 'Treat Toss', desc: 'Hide 4 bone treats in your blocks',
-      can: (g) => g.board.some((v, i) => v && !g.treats[i] && g.specials[i] !== Core.SPECIAL.CRATE),
+      can: (g) => g.board.some((v, i) => Core.isBlock(g, i) && !g.treats[i] && g.specials[i] !== Core.SPECIAL.CRATE),
       apply: (g) => {
-        const spots = shuffle(g, all((r, c) => g.board[idx(r, c)] && !g.treats[idx(r, c)] && g.specials[idx(r, c)] !== Core.SPECIAL.CRATE)).slice(0, 4);
+        const spots = shuffle(g, blocks(g).filter((i) => !g.treats[i] && g.specials[i] !== Core.SPECIAL.CRATE)).slice(0, 4);
         spots.forEach((i) => { g.treats[i] = 1; });
         return Object.assign(none(), { treated: spots });
       },
@@ -106,7 +107,7 @@
     tailwag: { tier: 2, name: 'Tail Wag', desc: 'Clear a whole row you tap', target: 'row', can: filled, apply: (g, r) => clear(g, Core.lineIndices([r], [])) },
     pounce: { tier: 2, name: 'Pounce', desc: 'Clear a whole column you tap', target: 'col', can: filled, apply: (g, r, c) => clear(g, Core.lineIndices([], [c])) },
     howl: { tier: 2, name: 'Howl', desc: 'Clear the fullest row', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 1), [])) },
-    spotted: { tier: 2, name: 'Spotted', desc: 'Clear 8 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, all((r, c) => g.board[idx(r, c)])).slice(0, 8)) },
+    spotted: { tier: 2, name: 'Spotted', desc: 'Clear 8 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, blocks(g)).slice(0, 8)) },
     zigzag: { tier: 2, name: 'Zigzag', desc: 'Clear both diagonals', can: filled, apply: (g) => clear(g, all((r, c) => r === c || r + c === N - 1)) },
     sniff: {
       tier: 2, name: 'Sniff Out', desc: 'Tap a block to clear every block of its color', target: 'block', can: filled,
@@ -147,7 +148,7 @@
 
   // Validates a tap for targeted powers. Returns false if the tap can't be used.
   function validTarget(id, game, r, c) {
-    if (POWERS[id].target === 'block') return !!game.board[idx(r, c)];
+    if (POWERS[id].target === 'block') return Core.isBlock(game, idx(r, c));
     return true;
   }
 

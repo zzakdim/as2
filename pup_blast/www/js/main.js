@@ -122,7 +122,7 @@
     $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> · Lv ${lvl} ${stars(pup.rarity)}<br><span>${perkText(pup, lvl)}</span>`;
     $('#home-best').textContent = state.best.toLocaleString();
     const nextLvl = nextLevel();
-    $('#play-sub').textContent = nextLvl ? `Level ${nextLvl.n} · ${nextLvl.name}` : 'All levels cleared';
+    $('#play-sub').textContent = nextLvl ? `${Levels.WORLDS.find((w) => w.id === nextLvl.world).name} ${nextLvl.n} · ${nextLvl.name}` : 'All levels cleared';
     const owned = Object.keys(state.pups).length;
     $('#kennel-count').textContent = `${owned}/${Pups.ROSTER.length}`;
     const badge = $('#gacha-badge');
@@ -138,7 +138,7 @@
     const el = $('#home-buddy');
     el.classList.remove('boop'); void el.offsetWidth; el.classList.add('boop');
   });
-  $('#btn-play').addEventListener('click', () => { Audio.unlock(); show('map'); });
+  $('#btn-play').addEventListener('click', () => { Audio.unlock(); const n = nextLevel(); if (n) mapWorld = n.world; show('map'); });
   $('#btn-endless').addEventListener('click', () => { Audio.unlock(); startRun(); });
   $('#btn-gacha').addEventListener('click', () => { Audio.unlock(); show('gacha'); });
   $('#btn-kennel').addEventListener('click', () => { Audio.unlock(); show('kennel'); });
@@ -177,6 +177,7 @@
       revived: false, doubled: false, over: false, targeting: false, aim: null,
       starsShown: 0, giftResult: null,
     };
+    if (lvl) mapWorld = lvl.world;
     show('game');
     $('#level-bar').hidden = !lvl;
     $('#best-line').hidden = !!lvl;
@@ -198,10 +199,14 @@
     return k === piece.treat ? BONE_SVG : '';
   }
 
+  const POST_SVG = '<svg class="post" viewBox="0 0 24 24" aria-label="Fence post"><rect x="6" y="3" width="12" height="19" rx="3" fill="#b07a45" stroke="#5e3b1c" stroke-width="1.4"/><path d="M6 8h12M6 15h12" stroke="#5e3b1c" stroke-width="1.2" opacity=".55"/><circle cx="12" cy="5.6" r="1.1" fill="#5e3b1c"/></svg>';
   function renderBoard() {
     const g = run.game;
+    $('#board').dataset.world = run.lvl ? run.lvl.world : '';
     for (let i = 0; i < cellEls.length; i++) {
       const v = g.board[i];
+      if (v === Core.POST_COLOR) { cellEls[i].className = 'cell post'; cellEls[i].innerHTML = POST_SVG; continue; }
+      if (v === Core.HOLE_COLOR) { cellEls[i].className = 'cell hole'; cellEls[i].innerHTML = ''; continue; }
       cellEls[i].className = v === Core.CRATE_COLOR ? 'cell b crate' : v ? `cell b c${v}` : 'cell';
       cellEls[i].innerHTML = v && v !== Core.CRATE_COLOR ? cellArt(g, i) : '';
     }
@@ -638,6 +643,9 @@
       if (lvl.reward.type === 'dig') { state.tokens.dig++; rewards.push(`A free ${verb().toLowerCase()} at the ${gachaName()}`); }
       else { state.bones += lvl.reward.amount; rewards.push(`+${lvl.reward.amount} bones for clearing it`); }
     }
+    if (firstClear) {
+      Levels.WORLDS.filter((w) => w.unlockAfter === lvl.id).forEach((w) => rewards.push(`New world open: the ${w.name}!`));
+    }
     const world = Levels.WORLDS.find((w) => w.id === lvl.world);
     let sweep = false;
     if (!state.sweeps[world.id] && world.levels.every((l) => (state.levels[l.id] || {}).stars === 3)) {
@@ -718,20 +726,33 @@
 
   // ---------------------------------------------------------------- map
   let mapWorld = 'w1';
+  const cleared = (id) => (state.levels[id] || {}).stars > 0;
+  // A world opens when the level named by its unlockAfter is cleared (Dog Park: Living Room 30),
+  // so a player stuck late in one world can move on.
+  function worldOpen(world) { return dev() || !world.unlockAfter || cleared(world.unlockAfter); }
   function levelUnlocked(world, k) {
-    return dev() || k === 0 || (state.levels[world.levels[k - 1].id] || {}).stars > 0;
+    return dev() || (k === 0 ? worldOpen(world) : cleared(world.levels[k - 1].id));
   }
+  // The next uncleared level, preferring the world the player was last in.
   function nextLevel() {
-    for (const w of Levels.WORLDS) {
-      for (const l of w.levels) if (!(state.levels[l.id] || {}).stars) return l;
+    const worlds = Levels.WORLDS.filter((w) => w.levels.length);
+    const order = [worlds.find((w) => w.id === mapWorld), ...worlds].filter(Boolean);
+    for (const w of order) {
+      const k = w.levels.findIndex((l) => !cleared(l.id));
+      if (k >= 0 && levelUnlocked(w, k)) return w.levels[k];
     }
     return null;
   }
+  const NOTE_HELP = {
+    'Fence posts': 'Posts never clear, but lines complete around them',
+    'Shaped boards': 'Lines only need the squares that are on the board',
+  };
 
   function renderMap() {
     const w = Levels.WORLDS.find((x) => x.id === mapWorld);
     $('#map-title').textContent = w.name;
-    $('#world-tabs').innerHTML = Levels.WORLDS.map((x, k) => `<button type="button" class="world-tab${x.id === mapWorld ? ' on' : ''}${x.levels.length ? '' : ' soon'}" data-world="${x.id}">${state.sweeps[x.id] ? '<span class="crown">♛</span>' : ''}${k + 1}. ${x.name}</button>`).join('');
+    $('#world-tabs').innerHTML = Levels.WORLDS.map((x, k) => `<button type="button" class="world-tab${x.id === mapWorld ? ' on' : ''}${x.levels.length ? '' : ' soon'}${x.levels.length && !worldOpen(x) ? ' locked' : ''}" data-world="${x.id}">${state.sweeps[x.id] ? '<span class="crown">♛</span>' : ''}${x.levels.length && !worldOpen(x) ? '<span class="lock">🔒</span>' : ''}${k + 1}. ${x.name}</button>`).join('');
+    $('#world-tabs .on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
     const path = $('#map-path');
     if (!w.levels.length) {
       $('#map-stars').textContent = '0';
@@ -741,7 +762,12 @@
     const earned = w.levels.reduce((a, l) => a + ((state.levels[l.id] || {}).stars || 0), 0);
     $('#map-stars').textContent = `${earned}/${w.levels.length * 3}`;
     let currentId = null;
-    path.innerHTML = w.levels.map((l, k) => {
+    const gate = worldOpen(w) ? '' : (() => {
+      const req = Levels.BY_ID[w.unlockAfter];
+      const rw = Levels.WORLDS.find((x) => x.id === req.world);
+      return `<div class="soon-card gate-card"><p class="eyebrow">Locked</p><p>Clear <b>${rw.name} level ${req.n}</b> to open the ${w.name}.</p></div>`;
+    })();
+    path.innerHTML = gate + w.levels.map((l, k) => {
       const rec = state.levels[l.id] || { stars: 0 };
       const open = levelUnlocked(w, k);
       if (open && !rec.stars && !currentId) currentId = l.id;
@@ -770,12 +796,14 @@
   function openLevelSheet(lvl) {
     const t = Levels.starsFor(lvl);
     const rec = state.levels[lvl.id];
-    const mini = lvl.start.map((row) => [...row].map((ch) => `<i class="m-${ch === '.' ? 'e' : ch === 'C' ? (lvl.gift && !state.gifts[lvl.id] ? 'c' : 'e') : 'b'}"></i>`).join('')).join('');
+    const miniCls = (ch) => (ch === '.' ? 'e' : ch === 'P' ? 'p' : ch === 'x' ? 'x' : ch === 'C' ? (lvl.gift && !state.gifts[lvl.id] ? 'c' : 'e') : 'b');
+    const mini = lvl.start.map((row) => [...row].map((ch) => `<i class="m-${miniCls(ch)}"></i>`).join('')).join('');
     const reward = lvl.reward.type === 'dig' ? `a free ${verb().toLowerCase()}` : `${lvl.reward.amount} bones`;
     const giftLine = lvl.gift && !state.gifts[lvl.id] ? `<p class="go-sub gift-line"><b>${Pups.BY_ID[lvl.gift].name}</b> is stuck in a crate! Clear 2 lines through it to free him.</p>` : '';
     openModal(`<p class="eyebrow">Level ${lvl.n}</p>
       <h3 class="ls-name">${lvl.name}</h3>
-      <div class="mini-board" aria-label="Starting board">${mini}</div>
+      <div class="mini-board" data-world="${lvl.world}" aria-label="Starting board">${mini}</div>
+      ${NOTE_HELP[lvl.note] ? `<p class="go-sub ls-note">New: <b>${lvl.note}</b>. ${NOTE_HELP[lvl.note]}</p>` : ''}
       <div class="ls-stars">${t.map((v, k) => `<div><span>${'★'.repeat(k + 1)}</span><b>${v.toLocaleString()}</b></div>`).join('')}</div>
       ${giftLine}
       <p class="go-sub">First clear: ${rec && rec.stars ? 'claimed' : reward}${rec ? ` · Best ${rec.best.toLocaleString()}` : ''}</p>

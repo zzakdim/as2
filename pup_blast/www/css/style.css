@@ -154,6 +154,11 @@ button { font: inherit; color: inherit; }
 }
 .cell .bone { position: absolute; inset: 19%; width: 62%; height: 62%; color: rgba(255, 255, 255, .92); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .25)); }
 .cell.preview { background: var(--pcol); opacity: .5; }
+/* World 2: fence posts stay forever; holes are off the board's shape. */
+.cell.post { background: var(--well); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .25); }
+.cell.post .post { width: 78%; height: 78%; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .3)); }
+.cell.hole { background: transparent; box-shadow: none; }
+.board[data-world="w2"] { --well: #34653f; --grid: #1d3b28; }
 .cell.b.will-clear { background: var(--pcol); filter: brightness(1.15); }
 .cell.pop { animation: pop .34s ease-out forwards; z-index: 2; }
 .board.dig-mode .cell { cursor: crosshair; }
@@ -434,6 +439,13 @@ button { font: inherit; color: inherit; }
 .mini-board i { aspect-ratio: 1; border-radius: 3px; background: var(--well); }
 .mini-board i.m-b { background: var(--c5); }
 .mini-board i.m-c { background: #d9a56b; }
+.mini-board[data-world="w2"] { --well: #34653f; --grid: #1d3b28; }
+.mini-board i.m-p { background: #b07a45; border-radius: 50%; }
+.mini-board i.m-x { background: transparent; }
+.world-tab.locked { opacity: .7; }
+.world-tab .lock { margin-right: 4px; font-size: 11px; }
+.gate-card { margin-bottom: 12px; }
+.ls-note { max-width: 280px; }
 .ls-stars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
 .ls-stars div { display: grid; justify-items: center; background: var(--well); border-radius: 12px; padding: 8px 4px; }
 .ls-stars span { color: var(--legend); font-size: 13px; letter-spacing: 1px; }

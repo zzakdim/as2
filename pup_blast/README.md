@@ -120,11 +120,13 @@ Then in Xcode:
 
 **Play** opens the map; **Endless** is the classic score chase with first-time milestone bonuses (1,000 to 40,000 points, 25 to 800 bones).
 
-- `www/js/levels.js` holds the worlds. World 1, the **Living Room**, has 40 levels, each one entry: name, starting pattern (8 rows of `.` `#` `b` `C`), first-clear reward, helpers, gift pup and tease. Worlds 2–5 (Dog Park, Beach, Snowy Hill, Autumn Backyard) show as "coming soon" until their mechanics land.
+- `www/js/levels.js` holds the worlds. Each level is one entry: name, starting pattern (8 rows of `.` `#` `b` `C` `P` `x`), first-clear reward, helpers, gift pup and tease. Worlds 3–5 (Beach, Snowy Hill, Autumn Backyard) show as "coming soon" until their mechanics land.
+- **World 1, the Living Room** (40 levels): score goals, starting blocks, crates and helpers.
+- **World 2, the Dog Park** (40 levels) opens when **Living Room level 30** is cleared, so a player stuck late in the Living Room can move on. It adds **fence posts** (`P`) and **shaped boards** (`x` marks squares off the board: round pen, plus, bone, heart, donut, clover, hourglass). Both count as filled, so lines complete around them, but they never clear and nothing can go on them. Every row and column keeps 0 or at least 4 open squares, and a board only deals pieces that fit its shape. Gift pups: **Domino** at level 20 and **Disco** at level 40. The board turns grass green.
 - A dig every 5 levels (paid as a free dig token at the Dig Spot), bones otherwise. A 3-star sweep of a world pays a crown on the map and an **Epic dig** token.
-- **Gift pups:** levels 20 and 40 start with a crate holding Sprout and Captain Biscuit. Two line clears through the crate free the pup the moment it breaks, even if the run is then lost, and it never repeats. Powers can't break crates.
+- **Gift pups:** Living Room levels 20 and 40 start with a crate holding Sprout and Captain Biscuit. Two line clears through the crate free the pup the moment it breaks, even if the run is then lost, and it never repeats. Powers can't break crates.
 - **Helpers (no fouls):** golden bones double a clear's points (from level 15), and tennis balls also clear their row (from level 17).
-- **Stars are bot-tuned.** `node tools/bot.mjs tune 120` replays every level with a greedy bot, once with a starter Mochi and once with a maxed epic, and writes `www/js/tuning.js`. 1★ comes from the starter bot. 3★ comes from the starter bot on levels 1–20 and from the maxed-epic bot on 21–40, so late 3★ needs a leveled pup. Bot results today:
+- **Stars are bot-tuned.** `node tools/bot.mjs tune 120` replays every level with a greedy bot, once with a starter Mochi and once with a maxed epic, and writes `www/js/tuning.js`. 1★ comes from the starter bot. In the Living Room, 3★ comes from the starter bot on levels 1–20 and from the maxed-epic bot on 21–40, so late 3★ needs a leveled pup. The Dog Park is set a notch harder: 3★ uses the maxed-epic bot from level 11. Living Room bot results today:
 
 | Levels | Starter: pass / 3★ | Maxed epic: pass / 3★ |
 |---|---|---|
@@ -133,7 +135,16 @@ Then in Xcode:
 | 21–30 | ~55% / ~1% | ~99% / ~28% |
 | 31–40 | ~45% / ~1% | ~99% / ~13% (finale 8%) |
 
-People plan ahead better than the greedy bot, so expect real pass rates to be higher. Re-run the tuner whenever a level changes. `node tools/bot.mjs 60` prints the full per-level report.
+Dog Park bot results:
+
+| Levels | Starter: pass / 3★ | Maxed epic: pass / 3★ |
+|---|---|---|
+| 1–10 | ~68% / ~24% | ~99% / ~88% |
+| 11–20 | ~60% / ~3% | ~99% / ~35% |
+| 21–30 | ~50% / ~2% | ~98% / ~19% |
+| 31–40 | ~39% / ~0% | ~94% / ~9% (finale 5%) |
+
+`node tools/bot.mjs 60 w2` prints the Dog Park report. People plan ahead better than the greedy bot, so expect real pass rates to be higher. Re-run the tuner whenever a level changes. `node tools/bot.mjs 60` prints the full per-level report.
 
 ## Tutorial
 

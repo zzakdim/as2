@@ -73,9 +73,66 @@
     ['Living Room Champion', 6250, 'dig', ['#......#', '.#....#.', '...CC...', '#..CC..#', '.#....#.', '..#..#..', '#.#..#.#', E], { helpers: HELP_BOTH, gift: 'captain', note: 'Finale' }],
   ];
 
-  function buildWorld(id, name, rows) {
+
+  // World 2, Dog Park: fence posts ('P') stay forever and shaped boards ('x' is off the board).
+  // Lines complete around both. Opens once Living Room level 30 is cleared.
+  const ROUND = ['xx....xx', 'x......x', E, E, E, E, 'x......x', 'xx....xx'];
+  const PLUS = ['xx....xx', 'xx....xx', E, E, E, E, 'xx....xx', 'xx....xx'];
+  const BONE = ['..xxxx..', E, E, 'x......x', 'x......x', E, E, '..xxxx..'];
+  const HEART = ['x..xx..x', E, E, E, E, 'x......x', 'xx....xx', 'xx....xx'];
+  const DONUT = ['xx....xx', 'x......x', '...xx...', '..xxxx..', '..xxxx..', '...xx...', 'x......x', 'xx....xx'];
+  const CLOVER = ['...xx...', E, E, 'x......x', 'x......x', E, E, '...xx...'];
+  const HOURGLASS = [E, E, 'x......x', 'xx....xx', 'xx....xx', 'x......x', E, E];
+  // Every row and column of a level keeps 0 or at least 4 open cells; shorter lines clear too easily.
+  // Lays rows over a shape: any non-'.' char in `over` wins.
+  const on = (shape, over) => shape.map((row, r) => [...row].map((ch, c) => (over[r][c] !== '.' ? over[r][c] : ch)).join(''));
+
+  const W2 = [
+    ['Park Gate', 0, 55, [E, E, '..P.....', E, E, '.....P..', E, E], { helpers: HELP_BOTH, note: 'Fence posts' }],
+    ['Fence Line', 0, 55, [E, E, E, 'P.P..P.P', E, E, '#......#', '##....##'], { helpers: HELP_BOTH }],
+    ['Lamp Posts', 0, 55, ['P......P', E, E, '...##...', '...##...', E, E, 'P......P'], { helpers: HELP_BOTH }],
+    ['Hydrant', 0, 55, [E, E, E, '...P....', '..PPP...', '...P....', E, '#b....b#'], { helpers: HELP_BOTH }],
+    ['Gate Latch', 0, 'dig', ['##....##', '#..P...#', E, '..P..P..', E, '...P....', '#......#', '##.P..##'], { helpers: HELP_BOTH }],
+    ['Round Pen', 0, 55, ROUND, { helpers: HELP_BOTH, note: 'Shaped boards' }],
+    ['Crossroads', 0, 55, on(PLUS, [E, E, E, E, E, E, '..#..#..', '..##.#..']), { helpers: HELP_BOTH }],
+    ['Park Bench', 0, 55, [E, E, '.######.', '.P....P.', E, E, '.P....P.', E], { helpers: HELP_BOTH }],
+    ['Doghouse', 0, 55, ['xx....xx', 'x......x', E, E, E, E, '#......#', '##.b..##'], { helpers: HELP_BOTH }],
+    ['Water Bowl', 0, 'dig', DONUT, { helpers: HELP_BOTH }],
+    ['Fetch Field', 0, 70, [E, '.P....P.', E, E, E, E, '.P....P.', E], { helpers: HELP_BOTH }],
+    ['Agility Poles', 0, 70, ['P.......', E, '..P.....', E, '....P...', E, '......P.', '#.....##'], { helpers: HELP_BOTH }],
+    ['Big Bone', 0, 70, on(BONE, [E, E, E, E, E, '.#....#.', '.##..##.', E]), { helpers: HELP_BOTH }],
+    ['Tire Jump', 0, 70, [E, '..P..P..', '.P....P.', E, E, '.P....P.', '..P..P..', E], { helpers: HELP_BOTH }],
+    ['Heart Tree', 0, 'dig', on(HEART, [E, E, E, E, E, '..#..#..', E, E]), { helpers: HELP_BOTH }],
+    ['Picnic Tables', 0, 70, ['##..##..', '##..##..', E, E, '..##..##', '..##..##', E, 'P..P..P.'], { helpers: HELP_BOTH }],
+    ['Hourglass', 0, 70, HOURGLASS, { helpers: HELP_BOTH }],
+    ['Sprinkler', 0, 70, [E, E, '...P....', '.P.##.P.', '...##...', '....P...', E, '##....##'], { helpers: HELP_BOTH }],
+    ['Dog Run', 0, 70, ['x......x', 'x......x', 'x......x', 'x......x', 'x......x', 'x#....#x', 'x##..##x', 'x###.##x'], { helpers: HELP_BOTH }],
+    ['Lost Pup', 0, 'dig', ['P......P', E, '...CC...', '...CC...', E, '.P....P.', '##....##', '###..###'], { helpers: HELP_BOTH, gift: 'domino' }],
+    ['Clover Patch', 0, 85, CLOVER, { helpers: HELP_BOTH }],
+    ['Duck Pond', 0, 85, [E, E, '..xxx...', '..xxxx..', '..xxxx..', '...xx...', E, '#......#'], { helpers: HELP_BOTH }],
+    ['Flower Beds', 0, 85, ['PP....PP', 'P......P', E, E, E, E, 'P......P', 'PP....PP'], { helpers: HELP_BOTH }],
+    ['Ball Launcher', 0, 85, on(PLUS, [E, E, '..P..P..', E, E, '..P..P..', E, E]), { helpers: HELP_BOTH }],
+    ['Kennel Club', 0, 'dig', on(BONE, [E, '.#....#.', E, '..P..P..', E, '.##..##.', '###..###', E]), { helpers: HELP_BOTH }],
+    ['Long Leash', 0, 85, ['P.......', '.P......', '..P.....', '...P....', '....P...', '.....P..', '......P.', '.......P'], { helpers: HELP_BOTH }],
+    ['Squeaky Pond', 0, 85, on(DONUT, [E, E, '#......#', '#......#', E, E, '.##..##.', E]), { helpers: HELP_BOTH }],
+    ['Dog Wash', 0, 85, on(HEART, [E, '...P....', E, '.P....P.', E, E, E, E]), { helpers: HELP_BOTH }],
+    ['Hedge Maze', 0, 85, ['P...P...', E, '..P...P.', E, 'P...P...', E, '..P...P.', '#.#.#.#.'], { helpers: HELP_BOTH }],
+    ['Big Field', 0, 'dig', on(ROUND, [E, '..P..P..', E, E, E, '#......#', '##.P..##', E]), { helpers: HELP_BOTH }],
+    ['Gazebo', 0, 100, ROUND, { helpers: HELP_BOTH }],
+    ['Twin Trees', 0, 100, [E, '.xx..xx.', '.xx..xx.', E, E, '.xx..xx.', '.xx..xx.', '#......#'], { helpers: HELP_BOTH }],
+    ['Footbridge', 0, 100, ['x......x', 'x......x', E, E, E, '#......#', 'x......x', 'x......x'], { helpers: HELP_BOTH }],
+    ['Obstacle Course', 0, 100, ['x..P....', '......x.', '.P..##..', '....##.P', 'x.......', '..P...x.', '.##.....', '.##..P.x'], { helpers: HELP_BOTH }],
+    ['Sunset Hill', 0, 'dig', on(HEART, [E, E, '..P..P..', E, E, '..#..#..', E, E]), { helpers: HELP_BOTH }],
+    ['Dog Show', 0, 100, on(CLOVER, [E, E, '..P..P..', E, E, '..P..P..', E, E]), { helpers: HELP_BOTH }],
+    ['Lost Ball', 0, 100, on(DONUT, [E, '..P.....', '.P....P.', E, E, E, '.....P..', E]), { helpers: HELP_BOTH }],
+    ['Paw Prints', 0, 100, [E, '..x..x..', '.x....x.', E, '...xx...', '..xxxx..', '..xxxx..', '#......#'], { helpers: HELP_BOTH }],
+    ['Thunderstorm', 0, 100, on(HOURGLASS, ['.P....P.', E, E, E, E, E, E, '.P....P.']), { helpers: HELP_BOTH }],
+    ['Dog Park Champion', 0, 'dig', ['xx......', 'x.......', '.....P..', '...CC...', '...CC...', '..P.....', '.......x', '......xx'], { helpers: HELP_BOTH, gift: 'disco', note: 'Finale' }],
+  ];
+
+  function buildWorld(id, name, rows, extra) {
     return {
-      id, name,
+      id, name, unlockAfter: null, ...extra,
       levels: rows.map(([lname, target, reward, start, extra], k) => Object.assign({
         id: `${id}-${String(k + 1).padStart(2, '0')}`,
         world: id, n: k + 1, name: lname, target, start,
@@ -87,7 +144,7 @@
 
   const WORLDS = [
     buildWorld('w1', 'Living Room', W1),
-    { id: 'w2', name: 'Dog Park', levels: [], soon: 'Fence posts and shaped boards' },
+    buildWorld('w2', 'Dog Park', W2, { unlockAfter: 'w1-30' }),
     { id: 'w3', name: 'Beach', levels: [], soon: 'Buried bones and puddles' },
     { id: 'w4', name: 'Snowy Hill', levels: [], soon: 'Ice, mud and smaller boards' },
     { id: 'w5', name: 'Autumn Backyard', levels: [], soon: 'Squirrels and the Leaf Blower' },

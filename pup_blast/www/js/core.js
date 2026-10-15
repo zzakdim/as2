@@ -15,6 +15,10 @@
   const SPECIAL = { NONE: 0, GOLDEN: 1, BALL: 2, CRATE: 3 };
   const CRATE_COLOR = 8; // board value for crate cells (they count as filled)
   const CRATE_HP = 2; // line clears through the crate needed to free the pup
+  // Fixed cells from World 2 on. Both count as filled, so lines complete around them, but they never
+  // clear and nothing can be placed there. A post sits on the board; a hole is off the board's shape.
+  const POST_COLOR = 9;
+  const HOLE_COLOR = 10;
 
   function mulberry32(seed) {
     let a = seed >>> 0;
@@ -55,7 +59,8 @@
 
   function idx(r, c) { return r * SIZE + c; }
 
-  // opts.start: 8 strings of 8 chars ('.' empty, '#' block, 'b' block with a bone, 'C' crate cell)
+  // opts.start: 8 strings of 8 chars ('.' empty, '#' block, 'b' block with a bone, 'C' crate cell,
+  //             'P' fence post, 'x' off the board)
   // opts.helpers: { golden, ball } chance per dealt piece of carrying that helper
   function createGame(seed, opts) {
     const o = opts || {};
@@ -77,6 +82,11 @@
       rng: mulberry32(seed == null ? (Date.now() & 0xffffffff) : seed),
     };
     if (o.start) loadPattern(game, o.start);
+    // On boards with posts or holes, only deal shapes that fit the board's shape somewhere.
+    if (game.board.some(fixedValue)) {
+      const shapeOnly = game.board.map((v) => (fixedValue(v) ? v : 0));
+      game.pool = SHAPES.filter((s) => fitsAnywhere(shapeOnly, s));
+    }
     dealTray(game);
     return game;
   }
@@ -88,6 +98,7 @@
       if (ch === '#' || ch === 'b') game.board[i] = 1 + ((r * 3 + c * 5) % COLORS);
       if (ch === 'b') game.treats[i] = 1;
       if (ch === 'C') { game.board[i] = CRATE_COLOR; game.specials[i] = SPECIAL.CRATE; crateCells.push(i); }
+      if (ch === 'P' || ch === 'x') game.board[i] = ch === 'P' ? POST_COLOR : HOLE_COLOR;
     }));
     if (crateCells.length) game.crate = { cells: crateCells, hp: CRATE_HP, freed: false };
   }
@@ -133,18 +144,19 @@
     return false;
   }
 
+  const fixedValue = (v) => v === POST_COLOR || v === HOLE_COLOR;
+
+  // A line is full when every cell is filled and at least one of them is a real block
+  // (a column that is all holes is not a line).
   function fullLines(board) {
     const rows = [], cols = [];
-    for (let r = 0; r < SIZE; r++) {
-      let full = true;
-      for (let c = 0; c < SIZE; c++) if (!board[idx(r, c)]) { full = false; break; }
-      if (full) rows.push(r);
-    }
-    for (let c = 0; c < SIZE; c++) {
-      let full = true;
-      for (let r = 0; r < SIZE; r++) if (!board[idx(r, c)]) { full = false; break; }
-      if (full) cols.push(c);
-    }
+    const full = (at) => {
+      let real = false;
+      for (let k = 0; k < SIZE; k++) { const v = board[at(k)]; if (!v) return false; if (!fixedValue(v)) real = true; }
+      return real;
+    };
+    for (let r = 0; r < SIZE; r++) if (full((k) => idx(r, k))) rows.push(r);
+    for (let c = 0; c < SIZE; c++) if (full((k) => idx(k, c))) cols.push(c);
     return { rows, cols };
   }
 
@@ -164,7 +176,7 @@
     let treats = 0;
     const sp = game.specials || [];
     for (const i of indices) {
-      if (!game.board[i]) continue;
+      if (!game.board[i] || isFixed(game, i)) continue;
       if (sp[i] === SPECIAL.CRATE && !allowCrate) continue;
       cleared.push({ i, color: game.board[i], treat: game.treats[i], special: sp[i] || 0 });
       if (game.treats[i]) treats++;
@@ -207,7 +219,10 @@
     return Object.assign(res, { lines });
   }
 
-  function isEmpty(board) { return board.every((v) => v === 0); }
+  function isFixed(game, i) { return fixedValue(game.board[i]); }
+  // A cell holding a block that can be cleared (not empty, not a post or hole).
+  function isBlock(game, i) { return !!game.board[i] && !isFixed(game, i); }
+  function isEmpty(game) { return game.board.every((v, i) => v === 0 || isFixed(game, i)); }
 
   function placePiece(game, trayIndex, r, c) {
     const piece = game.tray[trayIndex];
@@ -261,7 +276,7 @@
       game.movesSinceClear = 0;
       game.linesCleared += lines;
       points += lineScore(lines) * game.combo * (golden ? 2 : 1) + Math.max(0, set.size - lineCells);
-      if (isEmpty(game.board)) { boardClear = true; points += BOARD_CLEAR_BONUS; }
+      if (isEmpty(game)) { boardClear = true; points += BOARD_CLEAR_BONUS; }
     } else {
       game.movesSinceClear++;
       if (game.movesSinceClear >= COMBO_GRACE_MOVES) game.combo = 0;
@@ -285,7 +300,7 @@
   // Finds a shape that completes at least one line somewhere. Dealt now and then so
   // the player regularly gets a satisfying clear.
   function findHelpfulShape(game) {
-    const pool = SHAPES.slice().sort(() => game.rng() - 0.5);
+    const pool = (game.pool || SHAPES).slice().sort(() => game.rng() - 0.5);
     for (const shape of pool) {
       for (let r = 0; r <= SIZE - shape.h; r++) {
         for (let c = 0; c <= SIZE - shape.w; c++) {
@@ -299,7 +314,7 @@
 
   function dealTray(game, opts) {
     const small = opts && (opts.small || opts.pool);
-    const pool = (opts && opts.pool) || (small ? SMALL_SHAPES : SHAPES);
+    const pool = (opts && opts.pool) || (small ? SMALL_SHAPES : game.pool || SHAPES);
     let tray = null;
     for (let attempt = 0; attempt < 30; attempt++) {
       const shapes = [0, 1, 2].map(() => weightedShape(game.rng, pool));
@@ -332,7 +347,8 @@
   }
 
   const Core = {
-    SIZE, COLORS, SHAPES, SHAPE_BY_ID, SMALL_SHAPES, BONES_PER_TREAT, SPECIAL, CRATE_COLOR, CRATE_HP,
+    SIZE, COLORS, SHAPES, SHAPE_BY_ID, SMALL_SHAPES, BONES_PER_TREAT, SPECIAL, CRATE_COLOR, CRATE_HP, POST_COLOR, HOLE_COLOR,
+    isFixed, isBlock,
     mulberry32, idx, createGame, loadPattern, makePiece, canPlace, fitsAnywhere, fullLines, previewClears,
     placePiece, isGameOver, dealTray, findHelpfulShape, lineScore, lineIndices, clearCells,
     settleLines, snapshot, restore, revive, bonesForRun,

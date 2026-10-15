@@ -95,3 +95,68 @@ test('a golden bone doubles a clear; a tennis ball clears its row too', () => {
   assert.deepStrictEqual(r2.ballRows, [3]);
   for (let c = 0; c < 8; c++) assert.strictEqual(h.board[Core.idx(3, c)], 0);
 });
+
+const W2 = Levels.WORLDS[1];
+
+test('World 2 is the Dog Park: 40 valid levels that open after Living Room 30', () => {
+  assert.strictEqual(W2.name, 'Dog Park');
+  assert.strictEqual(W2.levels.length, 40);
+  assert.strictEqual(W2.unlockAfter, 'w1-30');
+  const Tuning = require('../www/js/tuning.js');
+  for (const l of W2.levels) {
+    assert.strictEqual(l.start.length, 8, l.id);
+    for (const row of l.start) assert.match(row, /^[.#bCPx]{8}$/, `${l.id} row "${row}"`);
+    const g = Core.createGame(1, { start: l.start, helpers: l.helpers });
+    const { rows, cols } = Core.fullLines(g.board);
+    assert.strictEqual(rows.length + cols.length, 0, `${l.id} starts with a full line`);
+    assert.ok(!Core.isGameOver(g), `${l.id} has no legal first move`);
+    assert.strictEqual(l.reward.type, l.n % 5 === 0 ? 'dig' : 'bones', l.id);
+    assert.ok(Tuning[l.id], `${l.id} is tuned`);
+    const crate = l.start.join('').split('').filter((ch) => ch === 'C').length;
+    assert.strictEqual(crate, l.gift ? 4 : 0, l.id);
+  }
+  assert.strictEqual(W2.levels[19].gift, 'domino');
+  assert.strictEqual(W2.levels[39].gift, 'disco');
+});
+
+test('fence posts and holes: lines complete around them, they never clear, nothing goes on them', () => {
+  const g = Core.createGame(5, { start: ['P..x....', '........', '........', '........', '........', '........', '........', 'x.......'] });
+  const post = Core.idx(0, 0), hole = Core.idx(0, 3);
+  assert.ok(Core.isFixed(g, post) && Core.isFixed(g, hole) && !Core.isBlock(g, post));
+  assert.ok(!Core.canPlace(g.board, Core.SHAPE_BY_ID.dot, 0, 0));
+  // Fill row 0 around the post and hole: it clears, and they stay.
+  g.tray = [Core.makePiece(g, Core.SHAPE_BY_ID.i2h), Core.makePiece(g, Core.SHAPE_BY_ID.i4h), Core.makePiece(g, Core.SHAPE_BY_ID.dot)];
+  Core.placePiece(g, 0, 0, 1);
+  const res = Core.placePiece(g, 1, 0, 4);
+  assert.deepStrictEqual(res.rows, [0]);
+  assert.strictEqual(g.board[post], Core.POST_COLOR);
+  assert.strictEqual(g.board[hole], Core.HOLE_COLOR);
+  for (let c of [1, 2, 4, 5, 6, 7]) assert.strictEqual(g.board[Core.idx(0, c)], 0);
+  // Only fixed cells left: that counts as a cleared board.
+  assert.ok(res.boardClear);
+});
+
+test('a line made only of holes is never full', () => {
+  const g = Core.createGame(1, { start: Array(8).fill('x.......') });
+  assert.deepStrictEqual(Core.fullLines(g.board).cols, []);
+});
+
+test('powers skip posts and holes', () => {
+  const Powers = require('../www/js/powers.js');
+  const g = Core.createGame(2, { start: ['PPPPPPPx', '........', '........', '........', '........', '........', '........', '........'] });
+  assert.ok(!Powers.canUse('bigbang', g), 'nothing to clear');
+  assert.ok(!Powers.validTarget('sniff', g, 0, 0));
+  Powers.use('tailwag', g, 0, 0);
+  assert.strictEqual(g.board[0], Core.POST_COLOR);
+});
+
+test('every Dog Park line has 0 or at least 4 open cells', () => {
+  for (const l of W2.levels) {
+    const g = Core.createGame(1, { start: l.start });
+    for (let k = 0; k < 8; k++) for (const isRow of [true, false]) {
+      let open = 0;
+      for (let j = 0; j < 8; j++) if (!Core.isFixed(g, isRow ? Core.idx(k, j) : Core.idx(j, k))) open++;
+      assert.ok(open === 0 || open >= 4, `${l.id} ${isRow ? 'row' : 'col'} ${k} has ${open} open cells`);
+    }
+  }
+});
