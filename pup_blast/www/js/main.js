@@ -46,6 +46,20 @@
     if (name === 'kennel') renderKennel();
   }
 
+  // Two pull styles: dig in the backyard (default) or the gumball machine. Dev mode switches them.
+  const digMode = () => (state.settings.pullStyle || 'dig') === 'dig';
+  const gachaName = () => (digMode() ? 'Dig Spot' : 'Pup-a-Matic');
+  const verb = () => (digMode() ? 'Dig' : 'Pull');
+  let machineHtml = null;
+  function renderGachaTheme() {
+    document.querySelectorAll('[data-gacha-name]').forEach((el) => { el.textContent = gachaName(); });
+    document.querySelectorAll('[data-verb]').forEach((el) => { el.textContent = verb(); });
+    const machine = $('.machine');
+    if (machineHtml === null) machineHtml = machine.innerHTML;
+    machine.innerHTML = digMode() ? PullFX.yardSvg(null) : machineHtml;
+    machine.classList.toggle('backyard', digMode());
+  }
+
   function renderBones() {
     document.querySelectorAll('[data-bones]').forEach((el) => { el.textContent = state.bones.toLocaleString(); });
   }
@@ -105,9 +119,9 @@
     const owned = Object.keys(state.pups).length;
     $('#kennel-count').textContent = `${owned}/${Pups.ROSTER.length}`;
     const badge = $('#gacha-badge');
-    if (state.weekly.pullsLeft > 0) { badge.hidden = false; badge.textContent = 'Weekly pull!'; }
-    else if (state.daily.freePullsLeft > 0) { badge.hidden = false; badge.textContent = 'Free pull'; }
-    else if (ECON.BONE_PULLS && state.bones >= Gacha.COST_1) { badge.hidden = false; badge.textContent = 'Pull!'; }
+    if (state.weekly.pullsLeft > 0) { badge.hidden = false; badge.textContent = `Weekly ${verb().toLowerCase()}!`; }
+    else if (state.daily.freePullsLeft > 0) { badge.hidden = false; badge.textContent = `Free ${verb().toLowerCase()}`; }
+    else if (ECON.BONE_PULLS && state.bones >= Gacha.COST_1) { badge.hidden = false; badge.textContent = `${verb()}!`; }
     else badge.hidden = true;
   }
 
@@ -537,13 +551,13 @@
     const wLeft = state.weekly.pullsLeft;
     weekly.disabled = wLeft <= 0;
     weekly.querySelector('.label').textContent = wLeft > 0
-      ? `Weekly pull · ${Pups.RARITY[ECON.WEEKLY_MIN_RARITY].label} or better`
-      : `Next weekly pull in ${fmtWait(State.msToNextWeek(Date.now()))}`;
+      ? `Weekly ${verb().toLowerCase()} · ${Pups.RARITY[ECON.WEEKLY_MIN_RARITY].label} or better`
+      : `Next weekly ${verb().toLowerCase()} in ${fmtWait(State.msToNextWeek(Date.now()))}`;
     const free = $('#btn-pull-free');
     const left = state.daily.freePullsLeft;
     free.hidden = ECON.DAILY_AD_PULLS <= 0;
     free.disabled = left <= 0;
-    free.querySelector('.label').textContent = left > 0 ? 'Bonus pull · watch an ad' : 'Bonus pull is back tomorrow';
+    free.querySelector('.label').textContent = left > 0 ? `Bonus ${verb().toLowerCase()} · watch an ad` : `Bonus ${verb().toLowerCase()} is back tomorrow`;
     $('#bone-pulls').hidden = !ECON.BONE_PULLS;
     $('#btn-pull-1').disabled = state.bones < Gacha.COST_1;
     $('#btn-pull-10').disabled = state.bones < Gacha.COST_10;
@@ -575,7 +589,7 @@
       save();
       track('gacha_pull', { count, source, best: results.reduce((b, r) => Math.max(b, Gacha.rarityRank(r.rarity)), 0) });
       renderGacha();
-      if (!$('#screen-gacha').hidden) await PullFX.crank($('.machine svg'), fxCtx);
+      if (!digMode() && !$('#screen-gacha').hidden) await PullFX.crank($('.machine svg'), fxCtx);
       const cost = count === 10 ? Gacha.COST_10 : Gacha.COST_1;
       await reveal(results, source === 'bones' ? {
         label: `Again · ${cost}`,
@@ -594,7 +608,7 @@
   // ---- reveal (animation lives in pullfx.js)
   const fxCtx = {
     sfx, haptic,
-    renderPup: (p) => Pups.renderPup(p),
+    renderPup: (p, o) => Pups.renderPup(p, o),
     power: (p) => powerOf(p),
     stars: (r) => Pups.RARITY[r].stars,
     rarityLabel: (r) => Pups.RARITY[r].label,
@@ -615,7 +629,8 @@
     const canAgain = () => again && again.can();
     if (results.length === 1) {
       const r = results[0];
-      await PullFX.single(sheet, r, fxCtx);
+      if (digMode()) await PullFX.dig(sheet, r, fxCtx);
+      else await PullFX.single(sheet, r, fxCtx);
       PullFX.showResult(sheet, r, Object.assign({}, fxCtx, {
         actions: () => `
           ${state.buddy !== r.pup.id ? '<button type="button" class="btn" data-act="buddy">Make buddy</button>' : ''}
@@ -636,7 +651,7 @@
     await PullFX.multi(sheet, results, Object.assign({}, fxCtx, {
       multiActions: () => `<div class="pull-row"><button type="button" class="btn ghost" data-act="done">Done</button>
         ${canAgain() ? `<button type="button" class="btn alt" data-act="again">${again.label}</button>` : ''}</div>`,
-    }));
+    }), digMode() ? 'dig' : 'capsule');
     sheet.onclick = (e) => {
       const act = e.target.closest('[data-act]');
       if (!act) return;
@@ -671,8 +686,8 @@
     if (!o) {
       openModal(`<p class="eyebrow">${Pups.RARITY[pup.rarity].label} pup</p>
         <div class="detail-art locked">${Pups.renderPup(pup, { silhouette: true })}</div>
-        <p class="go-sub">Power: <b>${powerOf(pup).name}</b>. ${powerOf(pup).desc}.<br>Not found yet. Pull at the Pup-a-Matic to meet this one.</p>
-        <div class="stack"><button type="button" class="btn" data-act="gacha">Go to Pup-a-Matic</button><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
+        <p class="go-sub">Power: <b>${powerOf(pup).name}</b>. ${powerOf(pup).desc}.<br>Not found yet. ${verb()} at the ${gachaName()} to meet this one.</p>
+        <div class="stack"><button type="button" class="btn" data-act="gacha">Go to the ${gachaName()}</button><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
         .onclick = (ev) => {
           const a = ev.target.closest('[data-act]');
           if (!a) return;
@@ -726,7 +741,7 @@
         <button type="button" class="btn ghost" data-act="reset">Reset progress</button>
         <button type="button" class="btn ghost" data-act="close">Done</button>
       </div>
-      <p class="fine">Pup-a-Matic odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better every ${Gacha.PITY_EPIC} pulls; Legendary every ${Gacha.PITY_LEGENDARY}.</p>`);
+      <p class="fine">${gachaName()} odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better every ${Gacha.PITY_EPIC} pulls; Legendary every ${Gacha.PITY_LEGENDARY}.</p>`);
     sheet.querySelector('#set-sound').onchange = (e) => { s.sound = e.target.checked; Audio.setSound(s.sound); save(); };
     sheet.querySelector('#set-haptics').onchange = (e) => { s.haptics = e.target.checked; Audio.setHaptics(s.haptics); save(); };
     const devBox = sheet.querySelector('#set-dev');
@@ -792,6 +807,7 @@
         <label class="switch"><span>Skip ads (instant reward)</span><input id="dev-skipads" type="checkbox" ${s.devSkipAds ? 'checked' : ''}></label>
         <label class="switch"><span>Unlimited power charges</span><input id="dev-infinite" type="checkbox" ${s.devInfinite ? 'checked' : ''}></label>
         <label class="switch"><span>Sticker art instead of bean</span><input id="dev-sticker" type="checkbox" ${s.artStyle === 'sticker' ? 'checked' : ''}></label>
+        <label class="switch"><span>Gumball machine instead of dig</span><input id="dev-gumball" type="checkbox" ${s.pullStyle === 'gumball' ? 'checked' : ''}></label>
       </div>
       ${run ? `<p class="eyebrow">This run</p>
       <div class="dev-grid">
@@ -804,6 +820,7 @@
       <div class="stack"><button type="button" class="btn" data-act="close">Done</button></div>`);
     sheet.querySelector('#dev-skipads').onchange = (e) => { s.devSkipAds = e.target.checked; save(); };
     sheet.querySelector('#dev-infinite').onchange = (e) => { s.devInfinite = e.target.checked; save(); };
+    sheet.querySelector('#dev-gumball').onchange = (e) => { s.pullStyle = e.target.checked ? 'gumball' : 'dig'; save(); renderGachaTheme(); refreshAll(); };
     sheet.querySelector('#dev-sticker').onchange = (e) => { s.artStyle = e.target.checked ? 'sticker' : 'bean'; window.PB.artStyle = s.artStyle; save(); refreshAll(); };
     sheet.onclick = (e) => {
       if (e.target.closest('[data-act="close"]')) { closeModal(); return; }
@@ -835,8 +852,9 @@
 
   // ---------------------------------------------------------------- boot
   $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal' && !$('#modal-sheet').classList.contains('gameover') && !$('#modal-sheet').classList.contains('reveal')) closeModal(); });
+  renderGachaTheme();
   show('home');
   renderDevButton();
-  if (newWeek) setTimeout(() => toast('Your weekly pull is ready at the Pup-a-Matic'), 500);
+  if (newWeek) setTimeout(() => toast(`Your weekly ${verb().toLowerCase()} is ready at the ${gachaName()}`), 500);
   else if (loginBonus) setTimeout(() => toast(`Daily treat: +${loginBonus} bones${state.daily.streak > 1 ? ` · ${state.daily.streak}-day streak` : ''}`), 500);
 })();

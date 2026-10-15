@@ -124,4 +124,6 @@ The pups use the **bean** style: full-body sitting pups with a wobbly colored li
 
 ## Pull sequence
 
-`www/js/pullfx.js`: the machine's crank turns and drops a capsule. Tap it and it builds up through the rarity colors (green, blue, purple, gold) with rising notes and haptics, then cracks and bursts with a flash and particles. The pup pops out, the stars ding in one by one, and a NEW stamp or level-up meter lands. A 10-pull drops ten capsules that you open one at a time or all at once, and the best pull is highlighted. Bone pulls get an "Again" button.
+The default is the **Dig Spot** (`dig` in `www/js/pullfx.js`). Tap a backyard mound to dig: a paw swipes, dirt sprays and the hole deepens. A glow rises through the dirt and steps through the rarity colors with rising notes and vibration. Commons take 3 digs and legendaries take 6. On the last dig, the pup's dark silhouette peeks out ears first and wiggles, epics and legendaries shoot light beams, and then it bursts into the shared reveal (pup pops out, stars ding, NEW stamp or level meter). A 10-dig is a yard of 10 mounds: tap them one at a time or use Dig them all. After 7 seconds of no taps, it digs by itself.
+
+The older gumball machine (crank, capsule drop, color build-up, crack) is still there. Dev mode → "Gumball machine instead of dig" switches to it, and the screen name and button words follow (Dig Spot / Pup-a-Matic, Dig / Pull).

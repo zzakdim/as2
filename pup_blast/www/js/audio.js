@@ -28,6 +28,22 @@
     osc.stop(t + dur + 0.02);
   }
 
+  function noise(start, dur, gain, freq) {
+    if (!ctx || !enabled) return;
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    src.connect(f).connect(g).connect(ctx.destination);
+    src.start(ctx.currentTime + start);
+  }
+
   const NOTES = [523, 587, 659, 784, 880, 1047, 1175, 1319];
 
   const sfx = {
@@ -49,6 +65,9 @@
       const n = 3 + rank * 1;
       for (let i = 0; i < n; i++) tone(523 * Math.pow(2, base[i % base.length] / 12), i * 0.08, 0.22, 'triangle', 0.1);
     },
+    // Dig sequence
+    dig() { noise(0, 0.18, 0.4, 900); tone(150, 0, 0.09, 'sine', 0.12, 80); },
+    sniff() { noise(0, 0.06, 0.18, 3500); noise(0.1, 0.06, 0.18, 3500); noise(0.2, 0.08, 0.2, 3000); },
     // Pull sequence
     tick() { tone(1400, 0, 0.025, 'square', 0.03); },
     thunk() { tone(140, 0, 0.16, 'sine', 0.22, 70); tone(900, 0, 0.03, 'triangle', 0.05); },

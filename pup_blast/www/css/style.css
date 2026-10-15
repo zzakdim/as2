@@ -338,6 +338,38 @@ button { font: inherit; color: inherit; }
 .slot-cap .particles { top: 50%; }
 .sheet.reveal > .eyebrow { margin-bottom: 4px; }
 
+/* ---------- dig */
+.machine.backyard { --cc: #ffffff; --h: .05; --m: 1; --p: 0; --g: 0; }
+.machine.backyard .yard { width: min(94vw, 400px); animation: yardIdle 3s ease-in-out infinite; }
+.dig-stage { gap: 4px; padding: 10px 0 24px; }
+.dig-stage .halo { top: 62%; width: 280px; height: 200px; margin: -100px 0 0 -140px; }
+.yard { width: min(92vw, 380px); max-width: 100%; height: auto; overflow: visible; touch-action: manipulation; }
+.yard .holeg { transform-box: view-box; transform-origin: 150px 163px; transform: scale(var(--h)); transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
+.yard .mound { transform-box: view-box; transform-origin: 150px 168px; transform: translateY(calc((1 - var(--m)) * 10px)) scaleY(var(--m)); opacity: calc(var(--m) * 1.6); transition: transform .3s cubic-bezier(.3, 1.4, .5, 1), opacity .3s; }
+.yard .pile { transform-box: fill-box; transform-origin: 50% 100%; transform: scale(var(--p)); transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
+.yard .glow { opacity: var(--g); transition: opacity .3s; transform-box: view-box; transform-origin: 150px 163px; transform: scale(var(--h)); }
+.yard .column { opacity: calc(var(--g) * .55); transition: opacity .4s; }
+.yard .beams { opacity: 0; transform-box: view-box; transform-origin: 150px 163px; }
+.yard.beaming .beams { opacity: 1; animation: beams 2.4s linear infinite; }
+.yard .peek { transform: translate(0, 75px); transition: transform .45s cubic-bezier(.3, 1.5, .5, 1); }
+.yard.peeking .peek { transform: translate(0, 18px); }
+.yard.wiggle .peek > g { transform-box: view-box; transform-origin: 150px 163px; animation: earWiggle .3s ease-in-out infinite; }
+.yard.burst .peek { transform: translate(0, -40px) scale(1.1); opacity: 0; transition: transform .3s ease-in, opacity .3s ease-in; }
+.yard .swipe { opacity: 0; transform: translate(150px, 130px); }
+.yard .swipe.l { animation: swipeL .32s ease-out; }
+.yard .swipe.r { animation: swipeR .32s ease-out; }
+.yard.thud { animation: thud .22s ease-out; }
+.pt.clump { width: 9px; height: 8px; border-radius: 45% 55% 50% 40%; }
+.yard-grid .slot-cap { aspect-ratio: 3 / 4; }
+.mini-yard { width: 100%; height: auto; overflow: visible; }
+.mini-yard .mini-mound { transform-box: view-box; transform-origin: 30px 36px; transition: transform .25s ease-in; }
+.mini-yard .mini-hole { transform-box: fill-box; transform-origin: center; transform: scale(.2); transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.mini-yard .mini-glow { fill: var(--cc, transparent); opacity: 0; transition: opacity .3s; filter: blur(3px); }
+.slot-cap.dug .mini-mound { transform: scaleY(0); }
+.slot-cap.dug .mini-hole { transform: scale(1); }
+.slot-cap.dug .mini-glow { opacity: .9; }
+.slot-cap.done .mini-yard { position: absolute; bottom: 0; opacity: .35; }
+
 /* ---------- developer tools */
 .dev-btn {
   position: fixed; z-index: 35; top: calc(24px + env(safe-area-inset-top, 0px)); left: max(70px, calc(50% - 170px));
@@ -394,6 +426,12 @@ button { font: inherit; color: inherit; }
 @keyframes dropIn { from { transform: translateY(-120px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } }
 @keyframes riseUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes yardIdle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes swipeL { 0% { opacity: 0; transform: translate(90px, 100px) rotate(-30deg) scale(1.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(180px, 160px) rotate(20deg) scale(1); } }
+@keyframes swipeR { 0% { opacity: 0; transform: translate(210px, 100px) rotate(30deg) scale(1.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(120px, 160px) rotate(-20deg) scale(1); } }
+@keyframes thud { 0% { transform: translateY(0); } 40% { transform: translateY(5px) scale(1.01, .98); } 100% { transform: none; } }
+@keyframes earWiggle { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes beams { to { transform: rotate(18deg); } }
 @keyframes sparkle { 0%, 100% { filter: none; } 40% { filter: brightness(1.8) drop-shadow(0 0 6px var(--bone)); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes jiggle { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(4deg); } }

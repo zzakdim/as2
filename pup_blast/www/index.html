@@ -29,7 +29,7 @@
       <button id="btn-play" class="btn big" type="button">Play</button>
       <p class="best">Best score <b id="home-best">0</b></p>
       <div class="home-row">
-        <button id="btn-gacha" class="btn tile" type="button"><span>Pup-a-Matic</span><span id="gacha-badge" class="badge" hidden></span></button>
+        <button id="btn-gacha" class="btn tile" type="button"><span data-gacha-name>Pup-a-Matic</span><span id="gacha-badge" class="badge" hidden></span></button>
         <button id="btn-kennel" class="btn tile" type="button"><span>Kennel</span><span id="kennel-count" class="count"></span></button>
       </div>
     </div>
@@ -65,7 +65,7 @@
       <button class="icon-btn" type="button" data-back aria-label="Back">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <h2 class="screen-title">Pup-a-Matic</h2>
+      <h2 class="screen-title" data-gacha-name>Pup-a-Matic</h2>
       <div class="bones-pill"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span data-bones>0</span></div>
     </header>
     <div class="machine" aria-hidden="true">
@@ -90,8 +90,8 @@
       <button id="btn-pull-week" class="btn weekly" type="button"><span class="label">Weekly pull</span></button>
       <button id="btn-pull-free" class="btn ad" type="button"><span class="ad-chip">AD</span><span class="label">Bonus pull</span></button>
       <div id="bone-pulls" class="pull-row">
-        <button id="btn-pull-1" class="btn" type="button">Pull ×1 <span class="cost">100</span></button>
-        <button id="btn-pull-10" class="btn alt" type="button">Pull ×10 <span class="cost">900</span></button>
+        <button id="btn-pull-1" class="btn" type="button"><span data-verb>Pull</span> ×1 <span class="cost">100</span></button>
+        <button id="btn-pull-10" class="btn alt" type="button"><span data-verb>Pull</span> ×10 <span class="cost">900</span></button>
       </div>
       <p class="fine">Odds: Common 62% · Rare 27% · Epic 9% · Legendary 2%</p>
     </div>

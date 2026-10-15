@@ -291,8 +291,8 @@
     const label = o.silhouette ? 'Unknown pup' : `${pup.name} the ${pup.breed}`;
     const silo = o.silhouette ? ' style="filter:brightness(0) opacity(.35)"' : '';
     const up = UP_EARS[l.ears];
-    const aura = l.aura ? `<circle cx="60" cy="58" r="54" fill="${rc}" opacity=".22"/><circle cx="60" cy="58" r="40" fill="${rc}" opacity=".18"/>` : '';
-    const twinkle = l.stars || l.aura ? sparkles(l.stars ? '#fff6c2' : rc) : '';
+    const aura = l.aura && !o.plain ? `<circle cx="60" cy="58" r="54" fill="${rc}" opacity=".22"/><circle cx="60" cy="58" r="40" fill="${rc}" opacity=".18"/>` : '';
+    const twinkle = !o.plain && (l.stars || l.aura) ? sparkles(l.stars ? '#fff6c2' : rc) : '';
 
     if (style === 'sticker') {
       // Outlined layers go in one group, drawn twice: a fat white border, then the ink line.
