@@ -141,10 +141,15 @@
     } else {
       const o = ctx.owned(p);
       const pips = Array.from({ length: ctx.maxLevel }, (_, k) => `<i class="${k < o.level ? 'on' : ''}${result.leveledUp && k === o.level - 1 ? ' fresh' : ''}"></i>`).join('');
+      const need = ctx.copiesToNext(p, result.leveledUp ? o.level - 1 : o.level);
       const line = result.leveledUp
         ? `Level ${o.level}! ${pw.name} ×${ctx.charges(p, o.level)} per run`
-        : o.level >= ctx.maxLevel ? 'Max level' : `${o.dupes}/${ctx.copiesToNext(o.level)} copies to level ${o.level + 1}`;
-      progress = `<div class="lvl${result.leveledUp ? ' up' : ''}"><span class="pips">${pips}</span><b>${line}</b><small>+${result.refund} bones</small></div>`;
+        : o.level >= ctx.maxLevel ? 'Max level' : `${o.dupes}/${need} copies to level ${o.level + 1}`;
+      // The copy bar fills from where it was to where it is now; a level-up fills it all the way.
+      const from = result.leveledUp ? (need - 1) / need : Math.max(0, o.dupes - 1) / (need || 1);
+      const to = result.leveledUp || o.level >= ctx.maxLevel ? 1 : o.dupes / need;
+      const bar = `<span class="copybar"><i style="--from:${from.toFixed(3)};--to:${to.toFixed(3)}"></i></span>`;
+      progress = `<div class="lvl${result.leveledUp ? ' up' : ''}"><span class="pips">${pips}</span>${bar}<b>${line}</b><small>+${result.refund} bones</small></div>`;
     }
     sheet.innerHTML = `
       <div class="result r-${r}">

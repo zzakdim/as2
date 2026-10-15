@@ -46,6 +46,7 @@
       ads: { gamesSinceInterstitial: 0, lastInterstitialAt: 0, rewardedToday: 0 },
       settings: { sound: true, haptics: true, noAds: false, dev: false, devSkipAds: false, devInfinite: false },
       stats: { games: 0, pulls: 0, lines: 0 },
+      tutorial: { step: 0, done: false },
     };
   }
 
@@ -54,7 +55,9 @@
     const base = freshState();
     if (!raw || typeof raw !== 'object') return base;
     const out = Object.assign(base, raw);
-    for (const k of ['pity', 'daily', 'weekly', 'ads', 'settings', 'stats']) out[k] = Object.assign(freshState()[k], raw[k]);
+    for (const k of ['pity', 'daily', 'weekly', 'ads', 'settings', 'stats', 'tutorial']) out[k] = Object.assign(freshState()[k], raw[k]);
+    // Saves from before the tutorial existed belong to players who already know the game.
+    if (!raw.tutorial && raw.stats && raw.stats.games > 0) out.tutorial = { step: 0, done: true };
     out.pups = Object.assign({}, raw.pups);
     if (!out.pups[Pups.STARTER_ID]) out.pups[Pups.STARTER_ID] = { level: 1, dupes: 0 };
     for (const id of Object.keys(out.pups)) {

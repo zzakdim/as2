@@ -62,9 +62,10 @@ test('duplicates refund bones and level up', () => {
   assert.ok(first.isNew);
   const bones = state.bones;
   const second = Gacha.pull(state, rng);
-  assert.ok(!second.isNew && second.leveledUp);
-  assert.strictEqual(state.pups[first.pup.id].level, 2);
+  assert.ok(!second.isNew && !second.leveledUp, 'a common needs 5 copies per level');
   assert.strictEqual(state.bones, bones + Pups.RARITY.common.refund);
+  for (let i = 0; i < 4; i++) Gacha.pull(state, rng);
+  assert.strictEqual(state.pups[first.pup.id].level, 2);
 });
 
 test('daily rollover grants a login bonus once per day and tracks streaks', () => {
@@ -121,7 +122,7 @@ test('levels cap at 5 and duplicates past the cap still refund', () => {
   const s = State.freshState();
   s.pups = {};
   const rng = () => 0.999;
-  for (let i = 0; i < 11; i++) { s.pity.sinceEpic = 0; Gacha.pull(s, rng); }
+  for (let i = 0; i < 21; i++) { s.pity.sinceEpic = 0; Gacha.pull(s, rng); } // 1 + 4 levels x 5 copies (common)
   const id = Object.keys(s.pups)[0];
   assert.strictEqual(s.pups[id].level, 5);
   const bones = s.bones;

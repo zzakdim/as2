@@ -59,7 +59,7 @@
     let leveledUp = false;
     if (owned.level < Pups.MAX_LEVEL) {
       owned.dupes++;
-      if (owned.dupes >= Pups.copiesToNext(owned.level)) { owned.dupes = 0; owned.level++; leveledUp = true; }
+      if (owned.dupes >= Pups.copiesToNext(owned.level, pup.rarity)) { owned.dupes = 0; owned.level++; leveledUp = true; }
     }
     return { pup, rarity, isNew: false, leveledUp, refund, level: owned.level };
   }

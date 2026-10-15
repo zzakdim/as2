@@ -109,6 +109,17 @@
     <div id="kennel-grid" class="kennel-grid"></div>
   </section>
 
+  <div id="coach" class="coach" hidden>
+    <div class="coach-spot" hidden></div>
+    <div class="coach-paw" hidden><svg viewBox="-16 -18 32 32" aria-hidden="true"><g fill="#fff4e2" stroke="#6b4329" stroke-width="1.6"><ellipse cx="0" cy="6" rx="9" ry="7.5"/><circle cx="-10" cy="-5" r="4"/><circle cx="-3.6" cy="-11" r="4"/><circle cx="3.6" cy="-11" r="4"/><circle cx="10" cy="-5" r="4"/></g></svg></div>
+    <div class="coach-bubble" role="status">
+      <div class="coach-face" aria-hidden="true"></div>
+      <div class="coach-body">
+        <p class="coach-text"></p>
+        <div class="coach-actions"><button type="button" class="btn small coach-next" hidden>Got it</button><button type="button" class="coach-skip">Skip tutorial</button></div>
+      </div>
+    </div>
+  </div>
   <button id="dev-btn" class="dev-btn" type="button" hidden aria-label="Developer tools">DEV</button>
   <div id="modal" class="modal" hidden><div id="modal-sheet" class="sheet" role="dialog" aria-modal="true"></div></div>
   <div id="toast" class="toast" role="status" hidden></div>

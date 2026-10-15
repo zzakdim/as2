@@ -22,7 +22,7 @@ The game is plain HTML/CSS/JS in `www/`, wrapped for iOS with Capacitor. It has 
 
 **Per day.** Login bonus of 50 bones plus 10 per streak day (up to 6), and 1 bonus pull for watching an ad.
 
-**Long term.** Companions are the whole meta. 24 pups, and each one has its **own** power. Duplicates level a pup up, and **each level is one more charge per run**. Max level is 5 (5 charges), and going from level L to L+1 takes L more copies, so maxing a pup takes 11 copies in total. Duplicates past max still refund bones.
+**Long term.** Companions are the whole meta. 24 pups, and each one has its **own** power. Duplicates level a pup up, and **each level is one more charge per run**. Max level is 5 (5 charges). Copies per level scale by rarity: 5 for a common, 4 for a rare, 3 for an epic and 2 for a legendary. That makes 21, 17, 13 and 9 copies to max, so every rarity maxes out in roughly 1 to 4 months. Every duplicate fills a visible progress bar, and duplicates past max still refund bones.
 
 The pull sources live in one config block (`ECONOMY` in `www/js/gacha.js`). For a strict one-pull-a-week game, set `BONE_PULLS: false` and `DAILY_AD_PULLS: 0`.
 
@@ -115,6 +115,19 @@ Then in Xcode:
 - Analytics: `window.PB_TRACK(event, params)` gets `run_start`, `run_end`, `gacha_pull`, `power_used`, and the ad request and grant events. Point it at Firebase or GameAnalytics.
 - Tune the economy against real data. A weak run of about 250 points earns about 23 bones, which is roughly 4 runs per pull. A typical run of 1,000 to 2,000 points gets a pull every run or two.
 - Collection goals: set bonuses (all corgis gives +5%) and a weekly limited-time banner pup.
+
+## Tutorial
+
+New players start inside a scripted first run (in `www/js/main.js`, the tutorial section). Mochi coaches with a speech bubble, a paw demonstrates each gesture, and a spotlight dims everything except the one thing to tap.
+
+1. Drag a piece into the gap. Only the right spot accepts it.
+2. Fill a corner to clear a row and a column at once, collecting a bone treat on the way.
+3. Get stuck, then tap Fetch.
+4. Play a real run.
+5. Go home, open the Dig Spot, and use the free weekly dig. The first dig is guaranteed Rare or better.
+6. A closing line about the Kennel and buddies.
+
+Each step is saved, so closing the app resumes at the right step. A Skip link is always available. Saves from before the tutorial existed skip it automatically, and dev mode has a **Replay tutorial** button.
 
 ## Developer mode
 

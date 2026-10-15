@@ -47,7 +47,8 @@ test('piece-swap powers hand you a guaranteed shape', () => {
 test('charges grow by one per level and copies needed grow too', () => {
   const pup = Pups.BY_ID.mochi;
   assert.deepStrictEqual([1, 2, 3, 4, 5].map((l) => Pups.chargesFor(pup, l)), [1, 2, 3, 4, 5]);
-  assert.deepStrictEqual([1, 2, 3, 4, 5].map(Pups.copiesToNext), [1, 2, 3, 4, 0]);
+  assert.deepStrictEqual([1, 2, 3, 4, 5].map((l) => Pups.copiesToNext(l, 'common')), [5, 5, 5, 5, 0]);
+  assert.deepStrictEqual(['common', 'rare', 'epic', 'legendary'].map((r) => Pups.copiesToNext(1, r)), [5, 4, 3, 2]);
 });
 
 test('area powers clear the expected number of blocks on a full board', () => {

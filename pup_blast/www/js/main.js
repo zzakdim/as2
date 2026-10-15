@@ -44,6 +44,7 @@
     if (name === 'home') renderHome();
     if (name === 'gacha') renderGacha();
     if (name === 'kennel') renderKennel();
+    tutorialOnShow(name);
   }
 
   // Two pull styles: dig in the backyard (default) or the gumball machine. Dev mode switches them.
@@ -149,9 +150,9 @@
 
   let run = null;
 
-  function startRun() {
-    const pup = Pups.BY_ID[state.buddy];
-    const level = state.pups[pup.id].level;
+  function startRun(opts) {
+    const pup = (opts && opts.pup) || Pups.BY_ID[state.buddy];
+    const level = opts && opts.pup ? 1 : state.pups[pup.id].level;
     run = {
       game: Core.createGame((rng() * 4294967296) >>> 0),
       pup, level,
@@ -252,6 +253,7 @@
 
   function startDrag(e, i, slot) {
     if (!run || run.over) return;
+    if (run.tutLock) { sfx.nope(); coachBump(); return; }
     const piece = run.game.tray[i];
     if (!piece) return;
     if (run.targeting) cancelTargeting();
@@ -312,6 +314,8 @@
     const { i, target } = drag;
     detachDrag();
     drag = null;
+    const want = run.tutTarget;
+    if (want && (!target || i !== want.i || target.r !== want.r || target.c !== want.c)) { sfx.nope(); coachBump(); return; }
     if (target) place(i, target.r, target.c);
     else sfx.nope();
   }
@@ -357,6 +361,7 @@
     renderBoard();
     if (res.lines > 0) { popCells(res.cleared); celebrate(res); }
     renderTray(); renderScore(); renderBuddyBar();
+    if (run.tut) { tutorialAfterPlace(res); return; }
     if (res.gameOver) handleStuck();
   }
 
@@ -385,6 +390,7 @@
 
   $('#btn-power').addEventListener('click', () => {
     if (!run || run.charges <= 0) return;
+    if (run.tut && state.tutorial.step !== TUT.POWER) { coachBump(); return; }
     Audio.unlock();
     if (run.targeting) { cancelTargeting(); return; }
     const id = run.pup.power;
@@ -425,6 +431,7 @@
     $('#btn-power').classList.remove('nudge');
     renderTray(); renderScore(); renderBuddyBar();
     track('power_used', { power: run.pup.power, level: run.level });
+    if (run.tut) { tutorialAfterPower(); return; }
     if (Core.isGameOver(run.game)) handleStuck();
   }
 
@@ -585,6 +592,8 @@
         state.daily.freePullsLeft--;
         state.ads.rewardedToday++;
       }
+      if (!state.tutorial.done && state.tutorial.step === TUT.DIG) opts = Object.assign({ minRarity: 'rare' }, opts);
+      coachHide();
       const results = Gacha.pullMany(state, rng, count, opts);
       save();
       track('gacha_pull', { count, source, best: results.reduce((b, r) => Math.max(b, Gacha.rarityRank(r.rarity)), 0) });
@@ -614,7 +623,7 @@
     rarityLabel: (r) => Pups.RARITY[r].label,
     owned: (p) => state.pups[p.id],
     charges: (p, lvl) => Pups.chargesFor(p, lvl),
-    copiesToNext: (lvl) => Pups.copiesToNext(lvl),
+    copiesToNext: (p, lvl) => Pups.copiesToNext(lvl, p.rarity),
     maxLevel: Pups.MAX_LEVEL,
     miniCard: (r) => {
       const note = r.isNew ? '<span class="tag new">New!</span>'
@@ -644,6 +653,7 @@
         if (!act) return;
         if (act.dataset.act === 'buddy') { state.buddy = r.pup.id; save(); sfx.woof(); toast(`${r.pup.name} is your buddy now`); }
         closeModal(); renderGacha();
+        tutorialAfterReveal();
         if (act.dataset.act === 'again') again.run();
       };
       return;
@@ -656,6 +666,7 @@
       const act = e.target.closest('[data-act]');
       if (!act) return;
       closeModal(); renderGacha();
+      tutorialAfterReveal();
       if (act.dataset.act === 'again') again.run();
     };
   }
@@ -698,7 +709,7 @@
     }
     const isBuddy = state.buddy === pup.id;
     const n = Pups.chargesFor(pup, o.level);
-    const need = o.level >= Pups.MAX_LEVEL ? 'Max level' : `${o.dupes}/${Pups.copiesToNext(o.level)} copies to Lv ${o.level + 1} (${n + 1} ${chargeWord(n + 1, pup)})`;
+    const need = o.level >= Pups.MAX_LEVEL ? 'Max level' : `${o.dupes}/${Pups.copiesToNext(o.level, pup.rarity)} copies to Lv ${o.level + 1} (${n + 1} ${chargeWord(n + 1, pup)})`;
     openModal(`<p class="eyebrow">${pup.breed}</p>
       <div class="detail-art r-${pup.rarity}">${Pups.renderPup(pup)}</div>
       <p class="detail-name">${pup.name} ${stars(pup.rarity)}</p>
@@ -760,6 +771,156 @@
     };
   }
 
+  // ---------------------------------------------------------------- tutorial
+  // A scripted first run (place, double clear + treat, buddy power), then a guided first dig.
+  // Each step is saved as it completes, so closing the app resumes at the right place.
+  const TUT = { PLACE: 0, DOUBLE: 1, POWER: 2, POSTRUN: 3, DIG: 4, KENNEL: 5 };
+  const coachEl = $('#coach');
+  let coachOpts = null;
+
+  function rectOf(target) {
+    if (!target) return null;
+    if (Array.isArray(target)) {
+      const rs = target.map((el) => el.getBoundingClientRect());
+      const l = Math.min(...rs.map((r) => r.left)), t = Math.min(...rs.map((r) => r.top));
+      return { left: l, top: t, width: Math.max(...rs.map((r) => r.right)) - l, height: Math.max(...rs.map((r) => r.bottom)) - t };
+    }
+    const el = typeof target === 'string' ? $(target) : target;
+    return el ? el.getBoundingClientRect() : null;
+  }
+
+  // opts: { text, spot, drag: [from, to], tap, next }  (targets are elements, selectors or element lists)
+  function coachShow(opts) {
+    coachOpts = opts;
+    coachEl.hidden = false;
+    $('.coach-face').innerHTML = Pups.renderPup(Pups.BY_ID[Pups.STARTER_ID], { plain: true });
+    $('.coach-text').textContent = opts.text;
+    const spot = $('.coach-spot'), paw = $('.coach-paw'), bubble = $('.coach-bubble');
+    const sr = rectOf(opts.spot);
+    spot.hidden = !sr;
+    if (sr) Object.assign(spot.style, { left: sr.left - 8 + 'px', top: sr.top - 8 + 'px', width: sr.width + 16 + 'px', height: sr.height + 16 + 'px' });
+    paw.hidden = !(opts.drag || opts.tap);
+    paw.className = 'coach-paw';
+    const center = (r) => [r.left + r.width / 2 + 'px', r.top + r.height / 2 + 'px'];
+    if (opts.drag) {
+      const [a, b] = [rectOf(opts.drag[0]), rectOf(opts.drag[1])];
+      const [x0, y0] = center(a), [x1, y1] = center(b);
+      paw.style.setProperty('--x0', x0); paw.style.setProperty('--y0', y0);
+      paw.style.setProperty('--x1', x1); paw.style.setProperty('--y1', y1);
+      void paw.offsetWidth; paw.classList.add('drag');
+    } else if (opts.tap) {
+      const [x1, y1] = center(rectOf(opts.tap));
+      paw.style.setProperty('--x1', x1); paw.style.setProperty('--y1', y1);
+      paw.classList.add('tap');
+    }
+    const focusY = sr ? sr.top + sr.height / 2 : opts.drag ? rectOf(opts.drag[1]).top : 0;
+    bubble.classList.toggle('at-top', focusY > innerHeight * 0.55);
+    bubble.classList.toggle('at-bottom', !(focusY > innerHeight * 0.55));
+    const next = $('.coach-next');
+    next.hidden = !opts.next;
+    if (opts.next) { next.textContent = opts.next; next.onclick = () => { const fn = opts.onNext; coachHide(); if (fn) fn(); }; }
+    bubble.style.animation = 'none'; void bubble.offsetWidth; bubble.style.animation = '';
+  }
+  function coachHide() { coachOpts = null; coachEl.hidden = true; document.querySelectorAll('.cell.tut-target').forEach((c) => c.classList.remove('tut-target')); }
+  function coachBump() { const b = $('.coach-bubble'); if (coachEl.hidden) return; b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); }
+  window.addEventListener('resize', () => { if (coachOpts) coachShow(coachOpts); });
+  $('.coach-skip').addEventListener('click', () => {
+    finishTutorial();
+    if (run && run.tut) startRun();
+    else renderHome();
+    track('tutorial_skipped', {});
+  });
+
+  function setStep(n) { state.tutorial.step = n; save(); track('tutorial_step', { step: n }); }
+  function finishTutorial() { state.tutorial.done = true; save(); coachHide(); track('tutorial_done', {}); }
+
+  function startTutorial() {
+    const step = state.tutorial.step;
+    if (step <= TUT.POWER) {
+      startRun({ pup: Pups.BY_ID[Pups.STARTER_ID] });
+      run.tut = true;
+      setupTutorialStep(step);
+    } else if (step >= TUT.KENNEL) finishTutorial();
+    else show('home');
+  }
+
+  function setupTutorialStep(step) {
+    const g = run.game, idx = Core.idx, piece = (id, color, treat) => Object.assign(Core.makePiece(g, Core.SHAPE_BY_ID[id]), { color, treat: treat == null ? -1 : treat });
+    g.board.fill(0); g.treats.fill(0);
+    g.score = 0; g.combo = 0; g.history = null;
+    run.tutLock = false; run.tutTarget = null;
+    coachHide();
+    const slot = () => document.querySelectorAll('#tray .slot')[1];
+    const mark = (cells) => cells.forEach((i) => cellEls[i].classList.add('tut-target'));
+    if (step === TUT.PLACE) {
+      for (let c = 0; c < 6; c++) g.board[idx(7, c)] = 2 + (c % 3);
+      g.tray = [null, piece('i2h', 5), null];
+      run.tutTarget = { i: 1, r: 7, c: 6 };
+      renderBoard(); renderTray(); renderScore(); renderBuddyBar();
+      mark([idx(7, 6), idx(7, 7)]);
+      coachShow({ text: "Hi, I'm Mochi! Drag the piece into the gap.", drag: [slot(), [cellEls[idx(7, 6)], cellEls[idx(7, 7)]]] });
+    } else if (step === TUT.DOUBLE) {
+      for (let c = 0; c < 7; c++) g.board[idx(7, c)] = 2 + (c % 3);
+      for (let r = 0; r < 7; r++) g.board[idx(r, 7)] = 5 + (r % 2);
+      g.tray = [null, piece('dot', 4, 0), null];
+      run.tutTarget = { i: 1, r: 7, c: 7 };
+      renderBoard(); renderTray(); renderScore(); renderBuddyBar();
+      mark([idx(7, 7)]);
+      coachShow({ text: 'Fill the corner to clear a row and a column at once!', drag: [slot(), cellEls[idx(7, 7)]] });
+    } else if (step === TUT.POWER) {
+      for (let r = 0; r < Core.SIZE; r++) for (let c = 0; c < Core.SIZE; c++) g.board[idx(r, c)] = (r + 3 * c) % Core.SIZE === 0 ? 0 : 1 + ((r + c) % Core.COLORS);
+      g.tray = [0, 1, 2].map((k) => piece('o2', 1 + k * 2));
+      run.charges = 1; run.tutLock = true;
+      renderBoard(); renderTray(); renderScore(); renderBuddyBar();
+      coachShow({ text: "Uh oh, nothing fits! Tap me and I'll Fetch new pieces.", spot: '#btn-power', tap: '#btn-power' });
+    }
+  }
+
+  function tutorialAfterPlace(res) {
+    const step = state.tutorial.step;
+    run.tutTarget = null; run.tutLock = true;
+    coachHide();
+    if (step === TUT.PLACE) {
+      setTimeout(() => coachShow({ text: 'Full rows and columns clear!' }), 350);
+      setTimeout(() => { setStep(TUT.DOUBLE); if (run && run.tut) setupTutorialStep(TUT.DOUBLE); }, 2000);
+    } else if (step === TUT.DOUBLE) {
+      setTimeout(() => coachShow({ text: 'Two lines at once means bonus points. And that bone? Bones buy digs!' }), 350);
+      setTimeout(() => { setStep(TUT.POWER); if (run && run.tut) setupTutorialStep(TUT.POWER); }, 2800);
+    }
+  }
+
+  function tutorialAfterPower() {
+    run.tutLock = true;
+    coachHide();
+    setTimeout(() => coachShow({
+      text: "That's it! Clear lines to make room. The run ends when nothing fits.", next: "Let's play",
+      onNext: () => { setStep(TUT.POSTRUN); startRun(); },
+    }), 700);
+  }
+
+  function tutorialOnShow(name) {
+    if (state.tutorial.done) return;
+    const step = state.tutorial.step;
+    if (step < TUT.POSTRUN) return;
+    if (name === 'game') { coachHide(); return; }
+    if (name === 'home' && (step === TUT.POSTRUN || step === TUT.DIG)) {
+      if (step === TUT.POSTRUN) setStep(TUT.DIG);
+      coachShow({ text: `You've got a free dig waiting! Let's dig up a new friend.`, spot: '#btn-gacha', tap: '#btn-gacha' });
+    } else if (name === 'gacha' && step === TUT.DIG) {
+      const btn = state.weekly.pullsLeft > 0 ? '#btn-pull-week' : '#btn-pull-1';
+      coachShow({ text: 'Tap to dig!', spot: btn, tap: btn });
+    } else if (name !== 'gacha' && step === TUT.DIG) coachHide();
+  }
+
+  function tutorialAfterReveal() {
+    if (state.tutorial.done || state.tutorial.step !== TUT.DIG) return;
+    setStep(TUT.KENNEL);
+    coachShow({
+      text: 'Your pups live in the Kennel. Your buddy brings its power into every run. Have fun!', next: 'Got it',
+      onNext: () => finishTutorial(),
+    });
+  }
+
   // ---------------------------------------------------------------- developer tools
   function renderDevButton() { $('#dev-btn').hidden = !dev(); }
   $('#dev-btn').addEventListener('click', openDev);
@@ -798,6 +959,7 @@
         <button type="button" class="btn ghost small" data-dev="max">Max all pups</button>
         <button type="button" class="btn ghost small" data-dev="pity">Reset pity</button>
         <button type="button" class="btn ghost small" data-dev="starter">Back to starter only</button>
+        <button type="button" class="btn ghost small" data-dev="tutorial">Replay tutorial</button>
       </div>
       <p class="eyebrow">Pull a specific rarity</p>
       <div class="dev-grid four">
@@ -833,6 +995,7 @@
       if (act === 'unlock') { Pups.ROSTER.forEach((p) => { if (!state.pups[p.id]) state.pups[p.id] = { level: 1, dupes: 0 }; }); msg = 'All pups unlocked'; }
       if (act === 'max') { Pups.ROSTER.forEach((p) => { state.pups[p.id] = { level: Pups.MAX_LEVEL, dupes: 0 }; }); msg = 'All pups at max level'; }
       if (act === 'pity') { state.pity = { sinceEpic: 0, sinceLegendary: 0 }; msg = 'Pity reset'; }
+      if (act === 'tutorial') { state.tutorial = { step: 0, done: false }; save(); closeModal(); run = null; startTutorial(); return; }
       if (act === 'starter') { state.pups = { [Pups.STARTER_ID]: { level: 1, dupes: 0 } }; state.buddy = Pups.STARTER_ID; msg = 'Collection reset to Mochi'; }
       if (act.startsWith('pull-')) {
         const results = Gacha.pullMany(state, rng, 1, { rarity: act.slice(5) });
@@ -855,6 +1018,7 @@
   renderGachaTheme();
   show('home');
   renderDevButton();
-  if (newWeek) setTimeout(() => toast(`Your weekly ${verb().toLowerCase()} is ready at the ${gachaName()}`), 500);
+  if (!state.tutorial.done) startTutorial();
+  if (!state.tutorial.done) { /* no toasts over the tutorial */ } else if (newWeek) setTimeout(() => toast(`Your weekly ${verb().toLowerCase()} is ready at the ${gachaName()}`), 500);
   else if (loginBonus) setTimeout(() => toast(`Daily treat: +${loginBonus} bones${state.daily.streak > 1 ? ` · ${state.daily.streak}-day streak` : ''}`), 500);
 })();

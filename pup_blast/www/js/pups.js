@@ -72,14 +72,16 @@
   const STARTER_ID = 'mochi';
 
   // Copies raise a pup's level, and each level is one more power charge per run.
-  // Going from level L to L+1 takes L more copies, so max level takes 1+1+2+3+4 = 11 copies.
+  // Copies per level scale with rarity: commons turn up often so need more, legendaries need fewer.
+  // Max level 5 takes 1 + 4 x copies: 21 common, 17 rare, 13 epic, 9 legendary.
   const MAX_LEVEL = 5;
+  const COPIES_PER_LEVEL = { common: 5, rare: 4, epic: 3, legendary: 2 };
 
   function chargesFor(pup, level) {
     return Math.max(1, Math.min(level || 1, MAX_LEVEL));
   }
-  function copiesToNext(level) {
-    return level >= MAX_LEVEL ? 0 : level;
+  function copiesToNext(level, rarity) {
+    return level >= MAX_LEVEL ? 0 : COPIES_PER_LEVEL[rarity || 'common'];
   }
 
   // ---------------------------------------------------------------- drawing helpers
@@ -335,7 +337,7 @@
       </g>${twinkle}</svg>`;
   }
 
-  const Pups = { RARITY, BREEDS, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, chargesFor, copiesToNext, renderPup };
+  const Pups = { RARITY, BREEDS, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, COPIES_PER_LEVEL, chargesFor, copiesToNext, renderPup };
 
   root.PB = root.PB || {};
   root.PB.Pups = Pups;
