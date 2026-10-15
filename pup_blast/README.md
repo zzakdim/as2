@@ -115,7 +115,7 @@ npm run build:preview    # dist/pup-blast.html, a single-file build for sharing 
    - Add the app and create an interstitial unit and a rewarded unit. Put their IDs in `UNITS` in `www/js/ads.js`.
    - Under Privacy & messaging, create the GDPR message and the US states message.
    - Host `app-ads.txt` on your developer website.
-3. **Build:**
+3. **Build:** `./scripts/ios-bootstrap.sh --admob-app-id ca-app-pub-XXXX~YYYY` does all of this and a simulator build in one go (leave the flag off to use Google's test app ID). By hand:
 
 ```bash
 npm install
