@@ -62,6 +62,7 @@
   // opts.start: 8 strings of 8 chars ('.' empty, '#' block, 'b' block with a bone, 'C' crate cell,
   //             'P' fence post, 'x' off the board)
   // opts.helpers: { golden, ball } chance per dealt piece of carrying that helper
+  // opts.scoreBonus: extra share of every point scored (0.06 = +6%), from the buddy's bond
   function createGame(seed, opts) {
     const o = opts || {};
     const game = {
@@ -78,6 +79,7 @@
       linesCleared: 0,
       treatsCollected: 0,
       scoreMult: 1, multMoves: 0,
+      scoreBonus: o.scoreBonus || 0,
       history: null,
       rng: mulberry32(seed == null ? (Date.now() & 0xffffffff) : seed),
     };
@@ -215,10 +217,11 @@
     const { rows, cols } = fullLines(game.board);
     const lines = rows.length + cols.length;
     const res = clearCells(game, lineIndices(rows, cols));
-    if (lines) { game.linesCleared += lines; game.score += lineScore(lines); }
+    if (lines) { game.linesCleared += lines; game.score += withBonus(game, lineScore(lines)); }
     return Object.assign(res, { lines });
   }
 
+  function withBonus(game, points) { return game.scoreBonus ? Math.round(points * (1 + game.scoreBonus)) : points; }
   function isFixed(game, i) { return fixedValue(game.board[i]); }
   // A cell holding a block that can be cleared (not empty, not a post or hole).
   function isBlock(game, i) { return !!game.board[i] && !isFixed(game, i); }
@@ -282,6 +285,7 @@
       if (game.movesSinceClear >= COMBO_GRACE_MOVES) game.combo = 0;
     }
     if (game.multMoves > 0) { points *= game.scoreMult; game.multMoves--; }
+    points = withBonus(game, points);
     game.score += points;
 
     let dealt = false;

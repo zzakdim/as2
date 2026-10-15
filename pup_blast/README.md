@@ -116,6 +116,16 @@ Then in Xcode:
 - Tune the economy against real data. A weak run of about 250 points earns about 23 bones, which is roughly 4 runs per pull. A typical run of 1,000 to 2,000 points gets a pull every run or two.
 - Collection goals: set bonuses (all corgis gives +5%) and a weekly limited-time banner pup.
 
+## Bond
+
+Each pup has a **bond** level from 1 to 10, separate from its copy level. Bond adds **+3% score per level above 1** (+27% at Bond 10) when that pup is your buddy.
+
+- **Play:** a run gives the buddy 1 bond XP per 20 points (a 1,000-point run = 50 XP).
+- **Treats:** in the Kennel, feed bones for XP at 1 bone = 1 XP: a 50-bone snack, or straight to the next bond level. This is the bone sink beside digs.
+- **Curve:** 100, 300, 600, 1,000, 1,500, 2,100, 2,800, 3,600 and 4,500 total XP for Bond 2 to 10, about 90 average runs with one pup.
+- **Balance:** star targets are tuned with no bond, so Worlds 1 and 2 stay fair for basic pups with patience. Bond is headroom for 3-star chasing. Later worlds can lean on it.
+- Numbers live in `Pups.BOND` (`www/js/pups.js`). The bonus applies to every point scored, via `scoreBonus` in `Core.createGame`. Dev mode adds Bond −/+ buttons in the Kennel.
+
 ## Levels and the map
 
 **Play** opens the map; **Endless** is the classic score chase with first-time milestone bonuses (1,000 to 40,000 points, 25 to 800 bones).

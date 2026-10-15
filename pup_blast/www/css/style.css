@@ -564,3 +564,10 @@ button { font: inherit; color: inherit; }
 }
 /* The dev panel sits above the tutorial coach; the DEV tab steps aside while any sheet is open. */
 body:has(#modal:not([hidden]) .sheet.dev) .coach, body:has(#modal:not([hidden])) .dev-btn { display: none !important; }
+
+/* ---------- bond */
+.bond-bar { display: block; width: 120px; max-width: 100%; height: 8px; margin-left: auto; border-radius: 999px; background: var(--grid); overflow: hidden; }
+.bond-bar i { display: block; height: 100%; background: #ff8fb1; border-radius: inherit; }
+.bond-line { color: #ff8fb1; font-weight: 700; }
+.feed-note { margin: 0; font-size: 13px; }
+.btn .bone { width: 15px; height: 15px; vertical-align: -2px; }

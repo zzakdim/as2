@@ -101,6 +101,13 @@
     const n = Pups.chargesFor(pup, level);
     return `${powerOf(pup).name} ×${n} · ${powerOf(pup).desc}`;
   }
+  // Bond: per-pup, grows with play and bone feeding, +3% score per level above 1.
+  const bondOf = (id) => Pups.bondLevel((state.pups[id] || {}).bond);
+  const pct = (b) => `+${Math.round(b * 100)}%`;
+  function bondText(id) {
+    const b = bondOf(id);
+    return b > 1 ? `Bond ${b} · ${pct(Pups.bondBonus(b))} score` : 'Bond 1';
+  }
   function chargeWord(n, pup) { return pup.power === 'guardian' ? (n === 1 ? 'save' : 'saves') : (n === 1 ? 'charge' : 'charges'); }
   function pips(level) {
     let out = '';
@@ -119,7 +126,7 @@
     const lvl = state.pups[pup.id].level;
     $('#home-buddy').innerHTML = Pups.renderPup(pup);
     $('#home-buddy').className = 'buddy-stage r-' + pup.rarity;
-    $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> · Lv ${lvl} ${stars(pup.rarity)}<br><span>${perkText(pup, lvl)}</span>`;
+    $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> · Lv ${lvl} ${stars(pup.rarity)}<br><span>${perkText(pup, lvl)}</span><br><span class="bond-line">♥ ${bondText(pup.id)}</span>`;
     $('#home-best').textContent = state.best.toLocaleString();
     const nextLvl = nextLevel();
     $('#play-sub').textContent = nextLvl ? `${Levels.WORLDS.find((w) => w.id === nextLvl.world).name} ${nextLvl.n} · ${nextLvl.name}` : 'All levels cleared';
@@ -170,9 +177,11 @@
       const crate = lvl.gift && !state.gifts[lvl.id];
       gameOpts = { start: crate ? lvl.start : lvl.start.map((row) => row.replace(/C/g, '.')), helpers: lvl.helpers };
     }
+    const bond = o.pup ? 1 : bondOf(pup.id);
+    gameOpts = Object.assign({}, gameOpts, { scoreBonus: Pups.bondBonus(bond) });
     run = {
       game: Core.createGame((rng() * 4294967296) >>> 0, gameOpts),
-      pup, level, lvl,
+      pup, level, lvl, bond,
       charges: Pups.chargesFor(pup, level),
       revived: false, doubled: false, over: false, targeting: false, aim: null,
       starsShown: 0, giftResult: null,
@@ -280,7 +289,7 @@
     const { pup, level, charges } = run;
     const power = powerOf(pup);
     $('#game-buddy').innerHTML = Pups.renderPup(pup);
-    $('#game-buddy-name').textContent = `${pup.name} · Lv ${level}`;
+    $('#game-buddy-name').textContent = `${pup.name} · Lv ${level}${run.bond > 1 ? ` · ♥${run.bond} ${pct(Pups.bondBonus(run.bond))}` : ''}`;
     $('#game-buddy-perk').textContent = run.targeting ? targetHint() : power.desc;
     const btn = $('#btn-power');
     if (power.passive) {
@@ -656,6 +665,17 @@
     return { got, prevStars: prev.stars, newBest: score > prev.best && prev.best > 0, firstClear, rewards, sweep };
   }
 
+  // Gives the buddy bond XP for a run. Returns reward lines for the result sheet.
+  function gainBond(pup, score) {
+    const rec = state.pups[pup.id];
+    const xp = Pups.bondXpForRun(score);
+    if (!rec || xp <= 0 || Pups.bondToNext(rec.bond) === 0) return [];
+    const { from, to } = Pups.addBond(rec, xp);
+    const out = [`+${xp} bond with ${pup.name}`];
+    if (to > from) { out.push(`${pup.name} reached Bond ${to}: ${pct(Pups.bondBonus(to))} score`); track('bond_up', { pup: pup.id, bond: to }); }
+    return out;
+  }
+
   async function finishRun(next) {
     const g = run.game;
     const lvl = run.lvl;
@@ -668,6 +688,8 @@
     state.ads.gamesSinceInterstitial++;
     const summary = lvl ? recordLevel(lvl, g.score) : null;
     const milestones = lvl ? [] : payMilestones(g.score);
+    const bondNotes = gainBond(run.pup, g.score);
+    if (summary) summary.rewards.push(...bondNotes);
     track('run_end', { score: g.score, bones, revived: run.revived, doubled: run.doubled, level: lvl ? lvl.id : 'endless', stars: summary ? summary.got : null });
     run = null;
     closeModal();
@@ -679,7 +701,8 @@
       await ads.interstitial();
     }
     if (lvl) { showLevelResult(lvl, g.score, bones, summary, gift); return; }
-    milestones.forEach(([m, b], k) => setTimeout(() => toast(`Milestone ${m.toLocaleString()}! +${b} bones`), 300 + k * 2700));
+    const notes = [...milestones.map(([m, b]) => `Milestone ${m.toLocaleString()}! +${b} bones`), ...bondNotes.filter((x) => x.includes('Bond '))];
+    notes.forEach((x, k) => setTimeout(() => toast(x), 300 + k * 2700));
     if (next === 'again') startRun(); else show('home');
   }
 
@@ -806,6 +829,7 @@
       ${NOTE_HELP[lvl.note] ? `<p class="go-sub ls-note">New: <b>${lvl.note}</b>. ${NOTE_HELP[lvl.note]}</p>` : ''}
       <div class="ls-stars">${t.map((v, k) => `<div><span>${'★'.repeat(k + 1)}</span><b>${v.toLocaleString()}</b></div>`).join('')}</div>
       ${giftLine}
+      ${bondOf(state.buddy) > 1 ? `<p class="go-sub">${Pups.BY_ID[state.buddy].name}'s bond: <b>${pct(Pups.bondBonus(bondOf(state.buddy)))} score</b></p>` : ''}
       <p class="go-sub">First clear: ${rec && rec.stars ? 'claimed' : reward}${rec ? ` · Best ${rec.best.toLocaleString()}` : ''}</p>
       <div class="stack"><button type="button" class="btn big" data-act="play">Play</button><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
       .onclick = (e) => {
@@ -965,6 +989,24 @@
   }
 
   // ---------------------------------------------------------------- kennel
+  const FEED_SNACK = 50; // bones per snack
+  function bondRow(pup, o) {
+    const b = Pups.bondLevel(o.bond);
+    const max = b >= Pups.BOND.MAX;
+    const lo = Pups.BOND.XP[b - 1], hi = max ? lo : Pups.BOND.XP[b];
+    const fill = max ? 100 : Math.round((100 * ((o.bond || 0) - lo)) / (hi - lo));
+    const note = max ? 'Max bond' : `${Pups.bondToNext(o.bond)} XP to Bond ${b + 1} (${pct(Pups.bondBonus(b + 1))} score)`;
+    return `<div><dt>Bond ${b}</dt><dd><span class="bond-bar"><i style="width:${fill}%"></i></span><small>${b > 1 ? `${pct(Pups.bondBonus(b))} score · ` : ''}${note}</small></dd></div>`;
+  }
+  function feedButtons(o) {
+    const need = Pups.bondToNext(o.bond);
+    if (!need) return '';
+    const snack = Math.min(FEED_SNACK, need) * Pups.BOND.BONES_PER_XP, full = need * Pups.BOND.BONES_PER_XP;
+    return `<p class="go-sub feed-note">Bond grows as you play with this pup. Treats speed it up.</p><div class="pull-row">
+      <button type="button" class="btn ghost small" data-act="feed" ${state.bones < snack ? 'disabled' : ''}>Snack · ${snack} ${BONE_SVG}</button>
+      ${full > snack ? `<button type="button" class="btn ghost small" data-act="feednext" ${state.bones < full ? 'disabled' : ''}>Bond ${Pups.bondLevel(o.bond) + 1} · ${full.toLocaleString()} ${BONE_SVG}</button>` : ''}
+    </div>`;
+  }
   function renderKennel() {
     renderBones();
     const owned = Object.keys(state.pups).length;
@@ -1010,15 +1052,36 @@
         <div><dt>${powerOf(pup).name}</dt><dd><small>${powerOf(pup).desc}</small></dd></div>
         <div><dt>Per run</dt><dd>${n} ${chargeWord(n, pup)}</dd></div>
         <div><dt>Level ${o.level}</dt><dd>${pips(o.level)}<small>${need}</small></dd></div>
+        ${bondRow(pup, o)}
       </dl>
       <div class="stack">
+        ${feedButtons(o)}
         ${isBuddy ? '<p class="go-sub">Your current buddy</p>' : '<button type="button" class="btn" data-act="buddy">Make buddy</button>'}
-        ${dev() ? '<div class="dev-row"><span class="dev-tag">DEV</span><button type="button" class="btn ghost small" data-act="lvdown">Level −</button><button type="button" class="btn ghost small" data-act="lvup">Level +</button></div>' : ''}
+        ${dev() ? '<div class="dev-row"><span class="dev-tag">DEV</span><button type="button" class="btn ghost small" data-act="lvdown">Level −</button><button type="button" class="btn ghost small" data-act="lvup">Level +</button></div><div class="dev-row"><span class="dev-tag">DEV</span><button type="button" class="btn ghost small" data-act="bonddown">Bond −</button><button type="button" class="btn ghost small" data-act="bondup">Bond +</button></div>' : ''}
         <button type="button" class="btn ghost" data-act="close">Close</button>
       </div>`).onclick = (ev) => {
       const a = ev.target.closest('[data-act]');
       if (!a) return;
       const act = a.dataset.act;
+      const reopen = () => { save(); renderKennel(); $(`#kennel-grid .card[data-id="${pup.id}"]`).click(); };
+      if (act === 'feed' || act === 'feednext') {
+        const xp = act === 'feed' ? Math.min(FEED_SNACK, Pups.bondToNext(o.bond)) : Pups.bondToNext(o.bond);
+        const cost = xp * Pups.BOND.BONES_PER_XP;
+        if (!xp || state.bones < cost) return;
+        state.bones -= cost;
+        const { from, to } = Pups.addBond(o, xp);
+        sfx.coin(); haptic('LIGHT');
+        track('bond_feed', { pup: pup.id, bones: cost });
+        reopen();
+        if (to > from) { sfx.woof(); toast(`${pup.name} reached Bond ${to}: ${pct(Pups.bondBonus(to))} score`); }
+        return;
+      }
+      if (act === 'bondup' || act === 'bonddown') {
+        const b = Math.max(1, Math.min(Pups.BOND.MAX, Pups.bondLevel(o.bond) + (act === 'bondup' ? 1 : -1)));
+        o.bond = Pups.BOND.XP[b - 1];
+        reopen();
+        return;
+      }
       if (act === 'lvup' || act === 'lvdown') {
         o.level = Math.max(1, Math.min(Pups.MAX_LEVEL, o.level + (act === 'lvup' ? 1 : -1)));
         o.dupes = 0;

@@ -337,7 +337,39 @@
       </g>${twinkle}</svg>`;
   }
 
-  const Pups = { RARITY, BREEDS, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, COPIES_PER_LEVEL, chargesFor, copiesToNext, renderPup };
+  // Bond: a second track per pup, separate from copies. It grows by playing with that pup as
+  // your buddy (and faster by feeding it bones), and each bond level adds a small score bonus.
+  // Star targets are tuned with no bond, so bond is pure headroom for chasing 3 stars.
+  const BOND = {
+    MAX: 10,
+    PCT_PER_LEVEL: 3, // +3% score per bond level above 1
+    XP: [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500], // total XP to reach bond 1..10
+    SCORE_PER_XP: 20, // a run gives 1 XP per 20 points
+    BONES_PER_XP: 1, // feeding: 1 bone = 1 XP
+  };
+  function bondLevel(xp) {
+    let lv = 1;
+    while (lv < BOND.MAX && (xp || 0) >= BOND.XP[lv]) lv++;
+    return lv;
+  }
+  function bondBonus(level) { return ((Math.min(level, BOND.MAX) - 1) * BOND.PCT_PER_LEVEL) / 100; }
+  function bondXpForRun(score) { return Math.floor(score / BOND.SCORE_PER_XP); }
+  // XP still needed for the next bond level (0 at max).
+  function bondToNext(xp) {
+    const lv = bondLevel(xp);
+    return lv >= BOND.MAX ? 0 : BOND.XP[lv] - (xp || 0);
+  }
+  // Adds XP to an owned pup's record. Returns { from, to } bond levels.
+  function addBond(record, xp) {
+    const from = bondLevel(record.bond);
+    record.bond = Math.min((record.bond || 0) + Math.max(0, Math.floor(xp)), BOND.XP[BOND.MAX - 1]);
+    return { from, to: bondLevel(record.bond) };
+  }
+
+  const Pups = {
+    RARITY, BREEDS, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, COPIES_PER_LEVEL, chargesFor, copiesToNext, renderPup,
+    BOND, bondLevel, bondBonus, bondXpForRun, bondToNext, addBond,
+  };
 
   root.PB = root.PB || {};
   root.PB.Pups = Pups;
