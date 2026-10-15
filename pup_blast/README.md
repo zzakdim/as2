@@ -150,7 +150,7 @@ Each step is saved, so closing the app resumes at the right step. A Skip link is
 
 ## Developer mode
 
-Settings → Developer mode shows an orange **DEV** button on every screen. It has tools for bones, free pulls, unlocking or maxing every pup, resetting pity, pulling a chosen rarity, skipping ads, unlimited power charges, and in-run helpers (refill charges, new pieces, clear the board, get stuck on purpose, +score). While it's on, the Kennel detail sheet also gets Level −/+ buttons. Set `ALLOW_DEV = false` in `www/js/main.js` for App Store builds.
+Settings → Developer mode shows an orange **DEV** tab on the left edge of every screen. While `ALLOW_DEV` is true, a brand-new save starts with it on, so a wiped save never hides the tools. It has tools for bones, free pulls, unlocking or maxing every pup, resetting pity, pulling a chosen rarity, skipping ads, unlimited power charges, and in-run helpers (refill charges, new pieces, clear the board, get stuck on purpose, +score). While it's on, the Kennel detail sheet also gets Level −/+ buttons. Set `ALLOW_DEV = false` in `www/js/main.js` for App Store builds.
 
 ## Art direction
 

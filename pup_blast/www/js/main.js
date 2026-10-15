@@ -13,6 +13,7 @@
     try { const s = window.localStorage; s.getItem('x'); return s; } catch (e) { return null; }
   }
   const storage = safeStorage();
+  const firstBoot = !storage || !storage.getItem(State.KEY);
   let state = State.load(storage);
   const loginBonus = State.rollDaily(state, Date.now());
   const newWeek = State.rollWeekly(state, Date.now());
@@ -25,6 +26,8 @@
   // Dev mode is a tester tool. Set ALLOW_DEV to false for App Store builds.
   const ALLOW_DEV = true;
   const dev = () => ALLOW_DEV && state.settings.dev;
+  // Tester builds start with dev mode on, so a wiped save (new device, cleared browser data) never hides the tools.
+  if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
 
   const adProvider = Ads.createProvider(document);
   adProvider.init().catch(() => {});
@@ -1243,7 +1246,7 @@
         <button type="button" class="btn ghost small" data-dev="stuck">Get stuck now</button>
         <button type="button" class="btn ghost small" data-dev="score">+1,000 score</button>
       </div>` : ''}
-      <div class="stack"><button type="button" class="btn" data-act="close">Done</button></div>`);
+      <div class="stack"><button type="button" class="btn" data-act="close">Done</button></div>`, { cls: 'dev' });
     sheet.querySelector('#dev-skipads').onchange = (e) => { s.devSkipAds = e.target.checked; save(); };
     sheet.querySelector('#dev-infinite').onchange = (e) => { s.devInfinite = e.target.checked; save(); };
     sheet.querySelector('#dev-gumball').onchange = (e) => { s.pullStyle = e.target.checked ? 'gumball' : 'dig'; save(); renderGachaTheme(); refreshAll(); };

@@ -469,8 +469,9 @@ button { font: inherit; color: inherit; }
 
 /* ---------- developer tools */
 .dev-btn {
-  position: fixed; z-index: 35; top: calc(24px + env(safe-area-inset-top, 0px)); left: max(70px, calc(50% - 170px));
-  border: 0; border-radius: 999px; padding: 4px 9px; cursor: pointer;
+  /* A tab on the left edge, clear of every screen's header and the tutorial bubble. */
+  position: fixed; z-index: 60; left: 0; top: 58%; writing-mode: vertical-rl;
+  border: 0; border-radius: 0 10px 10px 0; padding: 9px 4px; cursor: pointer; opacity: .85;
   background: var(--c2); color: #2a1630; font: 800 11px/1.2 var(--body); letter-spacing: .08em;
 }
 .btn.small { font-size: 14px; min-height: 40px; padding: 6px 10px; border-radius: 12px; }
@@ -549,3 +550,5 @@ button { font: inherit; color: inherit; }
   .score { font-size: 32px; }
   .tray { min-height: 104px; }
 }
+/* The dev panel sits above the tutorial coach; the DEV tab steps aside while any sheet is open. */
+body:has(#modal:not([hidden]) .sheet.dev) .coach, body:has(#modal:not([hidden])) .dev-btn { display: none !important; }
