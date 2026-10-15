@@ -59,21 +59,41 @@
     return Object.assign({}, piece, { cells, w: piece.h, h: piece.w });
   }
 
+  // Swaps one tray piece for `shape`: the first piece that can't be placed, else the biggest one.
+  function swapPiece(g, shapeIds) {
+    const live = g.tray.map((p, i) => [p, i]).filter(([p]) => p);
+    if (!live.length) return none();
+    const stuck = live.find(([p]) => !Core.fitsAnywhere(g.board, p));
+    const [, i] = stuck || live.reduce((a, b) => (b[0].cells.length > a[0].cells.length ? b : a));
+    const shapes = shapeIds.map((id) => Core.SHAPE_BY_ID[id]);
+    const fits = shapes.filter((sh) => Core.fitsAnywhere(g.board, sh));
+    const pick = (fits.length ? fits : shapes)[Math.floor(g.rng() * (fits.length || shapes.length))];
+    g.tray[i] = Core.makePiece(g, pick);
+    return Object.assign(none(), { swapped: i });
+  }
+
+  // tier: 1 common, 2 rare, 3 epic, 4 legendary. Pups only get powers of their own tier.
+  // Tier 1 = piece tools and tiny clears, 2 = one line or area, 3 = big or clever, 4 = game-changing.
   const POWERS = {
-    // ---- common
-    fetch: { name: 'Fetch', desc: 'Swap your three pieces for new ones', apply: (g) => { Core.dealTray(g); return none(); } },
-    dig: { name: 'Dig', desc: 'Clear a 3×3 patch you tap', target: 'cell', can: filled, apply: (g, r, c) => clear(g, square(r, c, 1)) },
-    tailwag: { name: 'Tail Wag', desc: 'Clear a whole row you tap', target: 'row', can: filled, apply: (g, r) => clear(g, Core.lineIndices([r], [])) },
-    pounce: { name: 'Pounce', desc: 'Clear a whole column you tap', target: 'col', can: filled, apply: (g, r, c) => clear(g, Core.lineIndices([], [c])) },
-    nap: { name: 'Nap Time', desc: 'Swap in three small pieces', apply: (g) => { Core.dealTray(g, { small: true }); return none(); } },
+    // ---- tier 1: common
+    fetch: { tier: 1, name: 'Fetch', desc: 'Swap your three pieces for new ones', apply: (g) => { Core.dealTray(g); return none(); } },
     spin: {
-      name: 'Spin', desc: 'Rotate all your pieces a quarter turn',
+      tier: 1, name: 'Spin', desc: 'Rotate all your pieces a quarter turn',
       can: (g) => g.tray.some(Boolean),
       apply: (g) => { g.tray = g.tray.map((p) => (p ? rotate(p) : null)); return none(); },
     },
-    zigzag: { name: 'Zigzag', desc: 'Clear both diagonals', can: filled, apply: (g) => clear(g, all((r, c) => r === c || r + c === N - 1)) },
+    goodsit: { tier: 1, name: 'Good Sit', desc: 'Swap your worst piece for a 2×2 square', can: (g) => g.tray.some(Boolean), apply: (g) => swapPiece(g, ['o2']) },
+    stick: { tier: 1, name: 'Stick!', desc: 'Swap your worst piece for a 4-long stick', can: (g) => g.tray.some(Boolean), apply: (g) => swapPiece(g, ['i4h', 'i4v']) },
+    nap: { tier: 1, name: 'Nap Time', desc: 'Swap in three small pieces', apply: (g) => { Core.dealTray(g, { small: true }); return none(); } },
+    pampered: {
+      tier: 1, name: 'Pampered', desc: 'Turn your pieces into single blocks',
+      apply: (g) => { g.tray = g.tray.map(() => Core.makePiece(g, Core.SHAPE_BY_ID.dot)); return none(); },
+    },
+    scratch: { tier: 1, name: 'Scratch', desc: 'Clear a 2×2 patch you tap', target: 'cell', can: filled, apply: (g, r, c) => clear(g, all((rr, cc) => rr >= Math.min(r, N - 2) && rr < Math.min(r, N - 2) + 2 && cc >= Math.min(c, N - 2) && cc < Math.min(c, N - 2) + 2)) },
+    nibble: { tier: 1, name: 'Nibble', desc: 'Clear one block you tap', target: 'block', can: filled, apply: (g, r, c) => clear(g, [idx(r, c)]) },
+    shakeoff: { tier: 1, name: 'Shake Off', desc: 'Clear 4 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, all((r, c) => g.board[idx(r, c)])).slice(0, 4)) },
     treattoss: {
-      name: 'Treat Toss', desc: 'Hide 4 bone treats in your blocks',
+      tier: 1, name: 'Treat Toss', desc: 'Hide 4 bone treats in your blocks',
       can: (g) => g.board.some((v, i) => v && !g.treats[i]),
       apply: (g) => {
         const spots = shuffle(g, all((r, c) => g.board[idx(r, c)] && !g.treats[idx(r, c)])).slice(0, 4);
@@ -81,41 +101,43 @@
         return Object.assign(none(), { treated: spots });
       },
     },
-    yap: { name: 'Yap Yap', desc: 'Clear the two fullest rows', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 2), [])) },
+    // ---- tier 2: rare
+    dig: { tier: 2, name: 'Dig', desc: 'Clear a 3×3 patch you tap', target: 'cell', can: filled, apply: (g, r, c) => clear(g, square(r, c, 1)) },
+    tailwag: { tier: 2, name: 'Tail Wag', desc: 'Clear a whole row you tap', target: 'row', can: filled, apply: (g, r) => clear(g, Core.lineIndices([r], [])) },
+    pounce: { tier: 2, name: 'Pounce', desc: 'Clear a whole column you tap', target: 'col', can: filled, apply: (g, r, c) => clear(g, Core.lineIndices([], [c])) },
+    howl: { tier: 2, name: 'Howl', desc: 'Clear the fullest row', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 1), [])) },
+    spotted: { tier: 2, name: 'Spotted', desc: 'Clear 8 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, all((r, c) => g.board[idx(r, c)])).slice(0, 8)) },
+    zigzag: { tier: 2, name: 'Zigzag', desc: 'Clear both diagonals', can: filled, apply: (g) => clear(g, all((r, c) => r === c || r + c === N - 1)) },
     sniff: {
-      name: 'Sniff Out', desc: 'Tap a block to clear every block of its color', target: 'block', can: filled,
+      tier: 2, name: 'Sniff Out', desc: 'Tap a block to clear every block of its color', target: 'block', can: filled,
       apply: (g, r, c) => { const color = g.board[idx(r, c)]; return clear(g, all((rr, cc) => g.board[idx(rr, cc)] === color)); },
     },
-    // ---- rare
-    spotted: { name: 'Spotted', desc: 'Clear 12 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, all((r, c) => g.board[idx(r, c)])).slice(0, 12)) },
-    zoomies: { name: 'Zoomies', desc: 'Clear the fullest row and column', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 1), fullest(g, false, 1))) },
-    cuddle: { name: 'Cuddle Pile', desc: 'Clear the middle 4×4', can: filled, apply: (g) => clear(g, all((r, c) => r >= 2 && r < 6 && c >= 2 && c < 6)) },
-    avalanche: { name: 'Avalanche', desc: 'Drop every block to the bottom, then clear full lines', can: filled, apply: (g) => compact(g, true) },
-    herd: { name: 'Herd', desc: 'Push every block to the left, then clear full lines', can: filled, apply: (g) => compact(g, false) },
-    trim: { name: 'Trim', desc: 'Clear the outer edge of the board', can: filled, apply: (g) => clear(g, all((r, c) => r === 0 || c === 0 || r === N - 1 || c === N - 1)) },
-    pampered: {
-      name: 'Pampered', desc: 'Turn your pieces into single blocks',
-      apply: (g) => { g.tray = g.tray.map(() => Core.makePiece(g, Core.SHAPE_BY_ID.dot)); return none(); },
-    },
-    // ---- epic
-    hopscotch: { name: 'Hopscotch', desc: 'Clear every other square, like a checkerboard', can: filled, apply: (g) => clear(g, all((r, c) => (r + c) % 2 === 0)) },
-    cannonball: { name: 'Cannonball', desc: 'Clear a 5×5 area you tap', target: 'cell', can: filled, apply: (g, r, c) => clear(g, square(r, c, 2)) },
+    // ---- tier 3: epic
+    zoomies: { tier: 3, name: 'Zoomies', desc: 'Clear the fullest row and column', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 1), fullest(g, false, 1))) },
+    cannonball: { tier: 3, name: 'Cannonball', desc: 'Clear a 5×5 area you tap', target: 'cell', can: filled, apply: (g, r, c) => clear(g, square(r, c, 2)) },
     doover: {
-      name: 'Do-Over', desc: 'Undo your last move',
+      tier: 3, name: 'Do-Over', desc: 'Undo your last move',
       can: (g) => !!g.history,
       apply: (g) => { Core.restore(g, g.history); return none(); },
     },
     clairvoyance: {
-      name: 'Crystal Ball', desc: 'Get three pieces that each complete a line',
+      tier: 3, name: 'Crystal Ball', desc: 'Get three pieces that each complete a line',
       apply: (g) => {
         g.tray = [0, 1, 2].map(() => Core.makePiece(g, Core.findHelpfulShape(g) || Core.SHAPE_BY_ID.dot));
         return none();
       },
     },
-    dropthebeat: { name: 'Drop the Beat', desc: 'Clear the two fullest rows and columns', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 2), fullest(g, false, 2))) },
-    // ---- legendary
-    guardian: { name: 'Guardian', desc: 'Saves your run when you get stuck', passive: true, apply: (g) => Core.revive(g) },
-    bigbang: { name: 'Big Bang', desc: 'Clear the entire board', can: filled, apply: (g) => clear(g, all(() => true)) },
+    bassdrop: { tier: 3, name: 'Bass Drop', desc: 'Clear the middle 4×4', can: filled, apply: (g) => clear(g, all((r, c) => r >= 2 && r < 6 && c >= 2 && c < 6)) },
+    // ---- tier 4: legendary
+    guardian: { tier: 4, name: 'Guardian', desc: 'Saves your run when you get stuck', passive: true, apply: (g) => Core.revive(g) },
+    bigbang: { tier: 4, name: 'Big Bang', desc: 'Clear the entire board', can: filled, apply: (g) => clear(g, all(() => true)) },
+
+    // ---- reserved for future pups (DLC / events). Built and tested, not on anyone yet.
+    avalanche: { tier: 4, reserved: true, name: 'Avalanche', desc: 'Drop every block to the bottom, then clear full lines', can: filled, apply: (g) => compact(g, true) },
+    herd: { tier: 4, reserved: true, name: 'Herd', desc: 'Push every block to the left, then clear full lines', can: filled, apply: (g) => compact(g, false) },
+    hopscotch: { tier: 4, reserved: true, name: 'Hopscotch', desc: 'Clear every other square, like a checkerboard', can: filled, apply: (g) => clear(g, all((r, c) => (r + c) % 2 === 0)) },
+    trim: { tier: 3, reserved: true, name: 'Trim', desc: 'Clear the outer edge of the board', can: filled, apply: (g) => clear(g, all((r, c) => r === 0 || c === 0 || r === N - 1 || c === N - 1)) },
+    dropthebeat: { tier: 3, reserved: true, name: 'Drop the Beat', desc: 'Clear the two fullest rows and columns', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 2), fullest(g, false, 2))) },
   };
 
   function canUse(id, game) {

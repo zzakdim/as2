@@ -33,29 +33,33 @@ Targeted powers work in two taps: the first shows which blocks will clear, and t
 | Pup | Breed | Rarity | Power |
 |---|---|---|---|
 | Mochi (starter) | Shiba Inu | Common | **Fetch**: swap your three pieces for new ones |
-| Biscuit | Corgi | Common | **Dig**: clear a 3×3 patch you tap |
-| Pudding | Beagle | Common | **Sniff Out**: tap a block to clear every block of its color |
-| Noodle | Dachshund | Common | **Spin**: rotate all your pieces a quarter turn |
+| Biscuit | Corgi | Common | **Good Sit**: swap your worst piece for a 2×2 square |
+| Pudding | Beagle | Common | **Scratch**: clear a 2×2 patch you tap |
+| Noodle | Dachshund | Common | **Stick!**: swap your worst piece for a 4-long stick |
 | Peanut | Pug | Common | **Nap Time**: swap in three small pieces |
-| Waffles | Black Labrador | Common | **Tail Wag**: clear a row you tap |
-| Pickles | Chihuahua | Common | **Pounce**: clear a column you tap |
-| Toffee | Pomeranian | Common | **Yap Yap**: clear the two fullest rows |
-| Bean | French Bulldog | Common | **Zigzag**: clear both diagonals |
+| Waffles | Black Labrador | Common | **Spin**: rotate all your pieces a quarter turn |
+| Pickles | Chihuahua | Common | **Nibble**: clear one block you tap |
+| Toffee | Pomeranian | Common | **Pampered**: turn your pieces into single blocks |
+| Bean | French Bulldog | Common | **Shake Off**: clear 4 random blocks |
 | Muffin | Golden Retriever | Common | **Treat Toss**: hide 4 bone treats in your blocks |
-| Sprout | Dalmatian | Rare | **Spotted**: clear 12 random blocks |
-| Clover | Husky | Rare | **Zoomies**: clear the fullest row and column |
-| Marshmallow | Samoyed | Rare | **Cuddle Pile**: clear the middle 4×4 |
-| Domino | Border Collie | Rare | **Herd**: push every block left, then clear full lines |
-| Cocoa | Poodle | Rare | **Trim**: clear the outer edge |
-| Ziggy | Bernese | Rare | **Avalanche**: drop every block to the bottom, then clear full lines |
-| Scoop | Shih Tzu | Rare | **Pampered**: turn your pieces into single blocks |
-| Disco | Pug | Epic | **Hopscotch**: clear every other square, like a checkerboard |
+| Sprout | Dalmatian | Rare | **Spotted**: clear 8 random blocks |
+| Clover | Husky | Rare | **Howl**: clear the fullest row |
+| Marshmallow | Samoyed | Rare | **Dig**: clear a 3×3 patch you tap |
+| Domino | Border Collie | Rare | **Pounce**: clear a column you tap |
+| Cocoa | Poodle | Rare | **Zigzag**: clear both diagonals |
+| Ziggy | Bernese | Rare | **Tail Wag**: clear a row you tap |
+| Scoop | Shih Tzu | Rare | **Sniff Out**: tap a block to clear every block of its color |
+| Disco | Pug | Epic | **Zoomies**: clear the fullest row and column |
 | Captain Biscuit | Corgi | Epic | **Cannonball**: clear a 5×5 area you tap |
 | Duchess | Pomeranian | Epic | **Do-Over**: undo your last move |
 | Merlin | Shiba Inu | Epic | **Crystal Ball**: get three pieces that each complete a line |
-| DJ Woofles | Husky | Epic | **Drop the Beat**: clear the two fullest rows and columns |
+| DJ Woofles | Husky | Epic | **Bass Drop**: clear the middle 4×4 |
 | Sunny | Golden Retriever | Legendary | **Guardian** (automatic): saves your run when you get stuck |
 | Cosmo | Samoyed (halo) | Legendary | **Big Bang**: clear the entire board |
+
+**Power tiers.** Each power has a tier, and a test enforces that it matches the pup's rarity. Tier 1 (common) covers piece tools and tiny clears of 1 to 4 blocks. Tier 2 (rare) clears one line or area of about 8 to 9 blocks. Tier 3 (epic) is big or clever: 15 to 25 blocks, undo, or made-to-fit pieces. Tier 4 (legendary) changes the game.
+
+**Reserved for future pups (DLC, events).** These are built and tested but not on anyone yet: Avalanche (gravity, then clear lines, which is very strong), Herd (push left, then clear lines), Hopscotch (checkerboard, 32 blocks), Trim (outer edge, 28) and Drop the Beat (two fullest rows and columns, about 28).
 
 Odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Pity: Epic or better every 10 pulls, Legendary every 60. A bone pull costs 100 bones and a 10-pull costs 900. Odds are shown on the gacha screen and in settings, which App Store guideline 3.1.1 requires for loot boxes.
 

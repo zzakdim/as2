@@ -387,7 +387,7 @@ button { font: inherit; color: inherit; }
 /* ---------- toast + mock ad */
 .toast {
   position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 70;
-  transform: translateX(-50%); max-width: calc(100% - 32px); width: max-content;
+  transform: translateX(-50%); max-width: calc(100% - 32px); width: max-content; pointer-events: none;
   background: var(--ink); color: #2a1630; font-weight: 800; border-radius: 999px; padding: 10px 18px; text-align: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
 }

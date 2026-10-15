@@ -18,6 +18,32 @@ test('every pup has its own power, and every power exists', () => {
   for (const id of used) assert.ok(Powers.POWERS[id], id);
 });
 
+test('power strength matches rarity, and reserved powers stay off the roster', () => {
+  const TIER = { common: 1, rare: 2, epic: 3, legendary: 4 };
+  for (const p of Pups.ROSTER) {
+    const pw = Powers.POWERS[p.power];
+    assert.strictEqual(pw.tier, TIER[p.rarity], `${p.name} (${p.rarity}) has ${pw.name} (tier ${pw.tier})`);
+    assert.ok(!pw.reserved, `${p.name} uses reserved ${pw.name}`);
+  }
+  const reserved = Object.keys(Powers.POWERS).filter((id) => Powers.POWERS[id].reserved);
+  assert.deepStrictEqual(reserved.sort(), ['avalanche', 'dropthebeat', 'herd', 'hopscotch', 'trim']);
+});
+
+test('piece-swap powers hand you a guaranteed shape', () => {
+  const g = fullGame(11);
+  g.board.fill(0);
+  g.tray = [Core.makePiece(g, Core.SHAPE_BY_ID.o3), Core.makePiece(g, Core.SHAPE_BY_ID.dot), Core.makePiece(g, Core.SHAPE_BY_ID.dot)];
+  const res = Powers.use('goodsit', g);
+  assert.strictEqual(res.swapped, 0, 'swaps the biggest piece');
+  assert.strictEqual(g.tray[0].shapeId, 'o2');
+  Powers.use('stick', g);
+  assert.ok(g.tray.some((p) => p.shapeId === 'i4h' || p.shapeId === 'i4v'));
+  // A piece that can't fit is swapped first.
+  g.board.fill(1); g.board[0] = 0; g.board[1] = 0; g.board[8] = 0; g.board[9] = 0;
+  g.tray = [Core.makePiece(g, Core.SHAPE_BY_ID.dot), Core.makePiece(g, Core.SHAPE_BY_ID.i5h), Core.makePiece(g, Core.SHAPE_BY_ID.dot)];
+  assert.strictEqual(Powers.use('goodsit', g).swapped, 1);
+});
+
 test('charges grow by one per level and copies needed grow too', () => {
   const pup = Pups.BY_ID.mochi;
   assert.deepStrictEqual([1, 2, 3, 4, 5].map((l) => Pups.chargesFor(pup, l)), [1, 2, 3, 4, 5]);
@@ -25,7 +51,7 @@ test('charges grow by one per level and copies needed grow too', () => {
 });
 
 test('area powers clear the expected number of blocks on a full board', () => {
-  const expect = { dig: 9, cannonball: 25, tailwag: 8, pounce: 8, zigzag: 16, yap: 16, zoomies: 15, cuddle: 16, trim: 28, hopscotch: 32, dropthebeat: 28, spotted: 12, bigbang: 64 };
+  const expect = { nibble: 1, scratch: 4, shakeoff: 4, dig: 9, cannonball: 25, tailwag: 8, pounce: 8, howl: 8, zigzag: 16, zoomies: 15, bassdrop: 16, trim: 28, hopscotch: 32, dropthebeat: 28, spotted: 8, bigbang: 64 };
   for (const [id, n] of Object.entries(expect)) {
     const g = fullGame(1);
     const res = Powers.use(id, g, 3, 3);
@@ -126,7 +152,7 @@ test('previewCells matches what the power then clears, without changing the game
 test('board-clearing powers are unavailable on an empty board', () => {
   const g = Core.createGame(9);
   g.board.fill(0);
-  for (const id of ['dig', 'bigbang', 'avalanche', 'sniff']) assert.ok(!Powers.canUse(id, g), id);
-  for (const id of ['fetch', 'nap', 'pampered', 'spin']) assert.ok(Powers.canUse(id, g), id);
+  for (const id of ['dig', 'bigbang', 'avalanche', 'sniff', 'scratch', 'nibble', 'shakeoff']) assert.ok(!Powers.canUse(id, g), id);
+  for (const id of ['fetch', 'nap', 'pampered', 'spin', 'goodsit', 'stick']) assert.ok(Powers.canUse(id, g), id);
   assert.ok(!Powers.canUse('guardian', g), 'guardian is passive');
 });
