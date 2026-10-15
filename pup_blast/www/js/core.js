@@ -60,6 +60,8 @@
       placements: 0,
       linesCleared: 0,
       treatsCollected: 0,
+      scoreMult: 1, multMoves: 0,
+      history: null,
       rng: mulberry32(seed == null ? (Date.now() & 0xffffffff) : seed),
     };
     dealTray(game);
@@ -142,11 +144,35 @@
     return set;
   }
 
+  // One-step history for the Do-Over power.
+  function snapshot(game) {
+    return {
+      board: game.board.slice(), treats: game.treats.slice(),
+      tray: game.tray.map((p) => (p ? Object.assign({}, p) : null)),
+      score: game.score, combo: game.combo, movesSinceClear: game.movesSinceClear,
+      placements: game.placements, linesCleared: game.linesCleared, treatsCollected: game.treatsCollected,
+    };
+  }
+  function restore(game, snap) {
+    Object.assign(game, snap, { board: snap.board.slice(), treats: snap.treats.slice() });
+    game.history = null;
+  }
+
+  // Clears any full rows/columns (after a power reshapes the board) and scores them.
+  function settleLines(game) {
+    const { rows, cols } = fullLines(game.board);
+    const lines = rows.length + cols.length;
+    const res = clearCells(game, lineIndices(rows, cols));
+    if (lines) { game.linesCleared += lines; game.score += lineScore(lines); }
+    return Object.assign(res, { lines });
+  }
+
   function isEmpty(board) { return board.every((v) => v === 0); }
 
   function placePiece(game, trayIndex, r, c) {
     const piece = game.tray[trayIndex];
     if (!piece || !canPlace(game.board, piece, r, c)) return { ok: false };
+    game.history = snapshot(game);
 
     piece.cells.forEach(([dr, dc], k) => {
       const i = idx(r + dr, c + dc);
@@ -172,6 +198,7 @@
       game.movesSinceClear++;
       if (game.movesSinceClear >= COMBO_GRACE_MOVES) game.combo = 0;
     }
+    if (game.multMoves > 0) { points *= game.scoreMult; game.multMoves--; }
     game.score += points;
 
     let dealt = false;
@@ -203,8 +230,8 @@
   }
 
   function dealTray(game, opts) {
-    const small = opts && opts.small;
-    const pool = small ? SMALL_SHAPES : SHAPES;
+    const small = opts && (opts.small || opts.pool);
+    const pool = (opts && opts.pool) || (small ? SMALL_SHAPES : SHAPES);
     let tray = null;
     for (let attempt = 0; attempt < 30; attempt++) {
       const shapes = [0, 1, 2].map(() => weightedShape(game.rng, pool));
@@ -221,35 +248,6 @@
     return tray;
   }
 
-  // --- Buddy powers ---------------------------------------------------------
-
-  function powerDig(game, r, c) {
-    const indices = [];
-    for (let dr = -1; dr <= 1; dr++) {
-      for (let dc = -1; dc <= 1; dc++) {
-        const rr = r + dr, cc = c + dc;
-        if (rr >= 0 && cc >= 0 && rr < SIZE && cc < SIZE) indices.push(idx(rr, cc));
-      }
-    }
-    return clearCells(game, indices);
-  }
-
-  function powerZoomies(game) {
-    let bestRow = 0, bestCol = 0, rowFill = -1, colFill = -1;
-    for (let k = 0; k < SIZE; k++) {
-      let rf = 0, cf = 0;
-      for (let j = 0; j < SIZE; j++) { if (game.board[idx(k, j)]) rf++; if (game.board[idx(j, k)]) cf++; }
-      if (rf > rowFill) { rowFill = rf; bestRow = k; }
-      if (cf > colFill) { colFill = cf; bestCol = k; }
-    }
-    return clearCells(game, lineIndices([bestRow], [bestCol]));
-  }
-
-  function powerFetch(game) {
-    dealTray(game);
-    return { tray: game.tray };
-  }
-
   // Revive: clears the middle 4x4 and deals small pieces so the run can go on.
   function revive(game) {
     const indices = [];
@@ -261,16 +259,15 @@
     return res;
   }
 
-  function bonesForRun(game, multiplier) {
-    const base = Math.floor(game.score / 20) + game.treatsCollected * BONES_PER_TREAT;
-    return Math.round(base * (multiplier || 1));
+  function bonesForRun(game) {
+    return Math.floor(game.score / 20) + game.treatsCollected * BONES_PER_TREAT;
   }
 
   const Core = {
-    SIZE, COLORS, SHAPES, SHAPE_BY_ID, BONES_PER_TREAT,
-    mulberry32, createGame, canPlace, fitsAnywhere, fullLines, previewClears,
-    placePiece, isGameOver, dealTray, lineScore,
-    powerDig, powerZoomies, powerFetch, revive, bonesForRun,
+    SIZE, COLORS, SHAPES, SHAPE_BY_ID, SMALL_SHAPES, BONES_PER_TREAT,
+    mulberry32, idx, createGame, makePiece, canPlace, fitsAnywhere, fullLines, previewClears,
+    placePiece, isGameOver, dealTray, findHelpfulShape, lineScore, lineIndices, clearCells,
+    settleLines, snapshot, restore, revive, bonesForRun,
   };
 
   root.PB = root.PB || {};

@@ -16,24 +16,50 @@ The game is plain HTML/CSS/JS in `www/`, wrapped for iOS with Capacitor. It has 
 
 **Minute to minute.** Drag three pieces onto the board. Full rows and columns clear. Clearing on consecutive turns builds a combo, which survives two non-clearing moves. About 18% of pieces carry a bone treat that pays 5 bones when cleared. The dealer guarantees that at least one piece in every tray fits, and 35% of trays include a piece that can complete a line, so good moments come often.
 
-**Per run.** Bones = score ÷ 20 + treats × 5, times the buddy bonus. When you get stuck you first get a nudge to use your buddy's power. After that comes the game-over sheet with two rewarded ads (keep playing, double bones).
+**Per run.** Bones = score ÷ 20 + treats × 5. Your buddy pup brings its power with one charge per level. When you get stuck you first get a nudge to use a charge. After that comes the game-over sheet with two rewarded ads (keep playing, double bones).
 
-**Per day.** Login bonus of 50 bones plus 10 per streak day (up to 6), and 3 free ad pulls.
+**Per week.** One free weekly pull, Rare or better, that resets Monday 00:00 local time. This is the headline pull.
 
-**Long term.** 24 pups across 4 rarities. Duplicates refund bones and level pups up (level N needs N copies, max 10). Each level adds +2% bones, and level 5 gives a second power charge.
+**Per day.** Login bonus of 50 bones plus 10 per streak day (up to 6), and 1 bonus pull for watching an ad.
+
+**Long term.** Companions are the whole meta. 24 pups, and each one has its **own** power. Duplicates level a pup up, and **each level is one more charge per run**. Max level is 5 (5 charges), and going from level L to L+1 takes L more copies, so maxing a pup takes 11 copies in total. Duplicates past max still refund bones.
+
+The pull sources live in one config block (`ECONOMY` in `www/js/gacha.js`). For a strict one-pull-a-week game, set `BONE_PULLS: false` and `DAILY_AD_PULLS: 0`.
 
 ### Pups and powers
 
-| Rarity | Count | Odds | Bone bonus | Powers |
-|---|---|---|---|---|
-| Common | 10 | 62% | +5% | Fetch (new pieces), Dig (clear a 3×3) |
-| Rare | 7 | 27% | +12% | Fetch, Dig, Zoomies (clear the fullest row and column) |
-| Epic | 5 | 9% | +25% | Fetch, Dig, Zoomies. These are costume pups (Disco Pug, Captain Biscuit…) |
-| Legendary | 2 | 2% | +50% | Guardian: saves the run once, automatically |
+Targeted powers work in two taps: the first shows which blocks will clear, and the second confirms.
 
-Pity: Epic or better every 10 pulls, Legendary every 60. A pull costs 100 bones and a 10-pull costs 900. Odds are shown on the gacha screen and in settings, which App Store guideline 3.1.1 requires for loot boxes.
+| Pup | Breed | Rarity | Power |
+|---|---|---|---|
+| Mochi (starter) | Shiba Inu | Common | **Fetch**: swap your three pieces for new ones |
+| Biscuit | Corgi | Common | **Dig**: clear a 3×3 patch you tap |
+| Pudding | Beagle | Common | **Sniff Out**: tap a block to clear every block of its color |
+| Noodle | Dachshund | Common | **Spin**: rotate all your pieces a quarter turn |
+| Peanut | Pug | Common | **Nap Time**: swap in three small pieces |
+| Waffles | Labrador | Common | **Tail Wag**: clear a row you tap |
+| Pickles | Chihuahua | Common | **Pounce**: clear a column you tap |
+| Toffee | Pomeranian | Common | **Yap Yap**: clear the two fullest rows |
+| Bean | French Bulldog | Common | **Zigzag**: clear both diagonals |
+| Muffin | Golden Retriever | Common | **Treat Toss**: hide 4 bone treats in your blocks |
+| Sprout | Dalmatian | Rare | **Spotted**: clear 12 random blocks |
+| Clover | Husky | Rare | **Zoomies**: clear the fullest row and column |
+| Marshmallow | Samoyed | Rare | **Cuddle Pile**: clear the middle 4×4 |
+| Domino | Border Collie | Rare | **Herd**: push every block left, then clear full lines |
+| Cocoa | Poodle | Rare | **Trim**: clear the outer edge |
+| Ziggy | Bernese | Rare | **Avalanche**: drop every block to the bottom, then clear full lines |
+| Scoop | Shih Tzu | Rare | **Pampered**: turn your pieces into single blocks |
+| Disco | Pug | Epic | **Hopscotch**: clear every other square, like a checkerboard |
+| Captain Biscuit | Corgi | Epic | **Cannonball**: clear a 5×5 area you tap |
+| Duchess | Pomeranian | Epic | **Do-Over**: undo your last move |
+| Merlin | Shiba Inu | Epic | **Crystal Ball**: get three pieces that each complete a line |
+| DJ Woofles | Husky | Epic | **Drop the Beat**: clear the two fullest rows and columns |
+| Sunny | Golden Retriever | Legendary | **Guardian** (automatic): saves your run when you get stuck |
+| Cosmo | Cloud Pup | Legendary | **Big Bang**: clear the entire board |
 
-New pups are one line of data in `www/js/pups.js`. Portraits are generated SVG built from traits (ears, pattern, accessory), so there are no art files yet.
+Odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Pity: Epic or better every 10 pulls, Legendary every 60. A bone pull costs 100 bones and a 10-pull costs 900. Odds are shown on the gacha screen and in settings, which App Store guideline 3.1.1 requires for loot boxes.
+
+Powers live in `www/js/powers.js`, and each one is a small function on the board. A new pup is one line in `www/js/pups.js`. Portraits are generated SVG built from traits (ears, pattern, accessory), so there are no art files yet.
 
 ## Ads
 
@@ -43,7 +69,7 @@ All ad code is in `www/js/ads.js`. Inside the iOS app it uses AdMob through `@ca
 |---|---|---|
 | Keep playing | Rewarded | Game-over sheet, once per run |
 | Double bones | Rewarded | Game-over sheet |
-| Free pull | Rewarded | Pup-a-Matic, 3 per day |
+| Bonus pull | Rewarded | Pup-a-Matic, 1 per day |
 | Between runs | Interstitial | After a run ends: never in the first 3 games, at most every 2nd game, at least 90 s apart |
 
 The design leans on rewarded ads. Players opt in to them, they pay the best eCPM, and the gacha gives every one of them a reason to exist. Interstitials are capped so they don't drive players away. Banners are left out because they earn little and take space from the board. If you want one, put it on the Kennel screen only.

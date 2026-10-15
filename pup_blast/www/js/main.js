@@ -2,7 +2,8 @@
 (function () {
   'use strict';
 
-  const { Core, Pups, Gacha, State, Ads, Audio } = window.PB;
+  const { Core, Pups, Powers, Gacha, State, Ads, Audio } = window.PB;
+  const ECON = Gacha.ECONOMY;
   const { sfx, haptic } = Audio;
   const $ = (sel) => document.querySelector(sel);
 
@@ -14,6 +15,7 @@
   const storage = safeStorage();
   let state = State.load(storage);
   const loginBonus = State.rollDaily(state, Date.now());
+  const newWeek = State.rollWeekly(state, Date.now());
   const save = () => State.save(storage, state);
   save();
   Audio.setSound(state.settings.sound);
@@ -66,9 +68,20 @@
     return `<span class="stars r-${rarity}" aria-label="${Pups.RARITY[rarity].label}">${'★'.repeat(n)}</span>`;
   }
 
+  function powerOf(pup) { return Powers.POWERS[pup.power]; }
   function perkText(pup, level) {
-    const pct = Math.round(Pups.bonusFor(pup, level) * 100);
-    return `+${pct}% bones · ${Pups.POWERS[pup.power].name}`;
+    const n = Pups.chargesFor(pup, level);
+    return `${powerOf(pup).name} ×${n} · ${powerOf(pup).desc}`;
+  }
+  function chargeWord(n, pup) { return pup.power === 'guardian' ? (n === 1 ? 'save' : 'saves') : (n === 1 ? 'charge' : 'charges'); }
+  function pips(level) {
+    let out = '';
+    for (let k = 1; k <= Pups.MAX_LEVEL; k++) out += `<i class="${k <= level ? 'on' : ''}"></i>`;
+    return `<span class="pips" aria-label="Level ${level} of ${Pups.MAX_LEVEL}">${out}</span>`;
+  }
+  function fmtWait(ms) {
+    const h = Math.ceil(ms / 3600000);
+    return h >= 24 ? `${Math.floor(h / 24)}d ${h % 24}h` : `${h}h`;
   }
 
   // ---------------------------------------------------------------- home
@@ -83,8 +96,9 @@
     const owned = Object.keys(state.pups).length;
     $('#kennel-count').textContent = `${owned}/${Pups.ROSTER.length}`;
     const badge = $('#gacha-badge');
-    if (state.daily.freePullsLeft > 0) { badge.hidden = false; badge.textContent = `${state.daily.freePullsLeft} free`; }
-    else if (state.bones >= Gacha.COST_1) { badge.hidden = false; badge.textContent = 'Pull!'; }
+    if (state.weekly.pullsLeft > 0) { badge.hidden = false; badge.textContent = 'Weekly pull!'; }
+    else if (state.daily.freePullsLeft > 0) { badge.hidden = false; badge.textContent = 'Free pull'; }
+    else if (ECON.BONE_PULLS && state.bones >= Gacha.COST_1) { badge.hidden = false; badge.textContent = 'Pull!'; }
     else badge.hidden = true;
   }
 
@@ -118,9 +132,8 @@
     run = {
       game: Core.createGame((rng() * 4294967296) >>> 0),
       pup, level,
-      mult: 1 + Pups.bonusFor(pup, level),
       charges: Pups.chargesFor(pup, level),
-      revived: false, doubled: false, over: false, digMode: false,
+      revived: false, doubled: false, over: false, targeting: false, aim: null,
     };
     show('game');
     renderBoard(); renderTray(); renderBuddyBar(); renderScore();
@@ -139,7 +152,7 @@
   function renderScore() {
     $('#score').textContent = run.game.score.toLocaleString();
     $('#game-best').textContent = Math.max(state.best, run.game.score).toLocaleString();
-    $('#run-bones').textContent = Core.bonesForRun(run.game, run.mult).toLocaleString();
+    $('#run-bones').textContent = Core.bonesForRun(run.game).toLocaleString();
   }
 
   function pieceEl(piece, cellPx, gapPx) {
@@ -176,21 +189,26 @@
 
   function renderBuddyBar() {
     const { pup, level, charges } = run;
+    const power = powerOf(pup);
     $('#game-buddy').innerHTML = Pups.renderPup(pup);
     $('#game-buddy-name').textContent = `${pup.name} · Lv ${level}`;
-    $('#game-buddy-perk').textContent = `+${Math.round((run.mult - 1) * 100)}% bones`;
+    $('#game-buddy-perk').textContent = run.targeting ? targetHint() : power.desc;
     const btn = $('#btn-power');
-    const power = Pups.POWERS[pup.power];
-    if (pup.power === 'guardian') {
-      btn.textContent = charges > 0 ? 'Guardian ready' : 'Guardian used';
+    if (power.passive) {
+      btn.textContent = charges > 0 ? `${power.name} ×${charges}` : `${power.name} used`;
       btn.disabled = true;
     } else {
-      btn.textContent = run.digMode ? 'Tap the board…' : `${power.name} ×${charges}`;
-      btn.disabled = charges <= 0;
+      btn.textContent = run.targeting ? 'Cancel' : `${power.name} ×${charges}`;
+      btn.disabled = charges <= 0 || (!run.targeting && !Powers.canUse(pup.power, run.game));
     }
-    btn.title = power.desc;
-    btn.classList.toggle('armed', run.digMode);
-    boardEl.classList.toggle('dig-mode', run.digMode);
+    btn.classList.toggle('armed', run.targeting);
+    boardEl.classList.toggle('dig-mode', run.targeting);
+  }
+
+  function targetHint() {
+    const t = powerOf(run.pup).target;
+    const what = t === 'row' ? 'a row' : t === 'col' ? 'a column' : t === 'block' ? 'a block' : 'a spot';
+    return run.aim ? 'Tap again to confirm' : `Tap ${what} on the board`;
   }
 
   // ---- drag and drop
@@ -213,7 +231,7 @@
     if (!run || run.over) return;
     const piece = run.game.tray[i];
     if (!piece) return;
-    if (run.digMode) { run.digMode = false; renderBuddyBar(); }
+    if (run.targeting) cancelTargeting();
     e.preventDefault();
     Audio.unlock(); sfx.pick(); haptic('LIGHT');
     const m = boardMetrics();
@@ -315,60 +333,84 @@
     sfx.place(); haptic('LIGHT');
     renderBoard();
     if (res.lines > 0) { popCells(res.cleared); celebrate(res); }
-    renderTray(); renderScore();
+    renderTray(); renderScore(); renderBuddyBar();
     if (res.gameOver) handleStuck();
   }
 
   // ---- buddy powers
+  function clearAim() {
+    if (run && run.aim) for (const i of run.aim.cells) cellEls[i].classList.remove('aim');
+    if (run) run.aim = null;
+  }
+  function cancelTargeting() { clearAim(); run.targeting = false; renderBuddyBar(); }
+
+  function firePower(r, c) {
+    const id = run.pup.power;
+    const res = Powers.use(id, run.game, r, c);
+    sfx.woof(); haptic('HEAVY');
+    floatText(`${powerOf(run.pup).name}!`, 'praise');
+    if (id === 'doover') renderBoard();
+    else if (res.cleared && res.cleared.length) {
+      renderBoard();
+      popCells(res.cleared);
+      res.cleared.filter((x) => x.treat).forEach((x) => floatText(`+${Core.BONES_PER_TREAT}`, 'treat', x.i));
+      if (res.lines) setTimeout(() => sfx.clear(res.lines, 0), 120);
+    } else renderBoard();
+    if (res.treated) res.treated.forEach((i) => { cellEls[i].classList.add('sparkle'); });
+    usedPower();
+  }
+
   $('#btn-power').addEventListener('click', () => {
     if (!run || run.charges <= 0) return;
     Audio.unlock();
-    const power = run.pup.power;
-    if (power === 'dig') { run.digMode = !run.digMode; renderBuddyBar(); return; }
-    if (power === 'fetch') {
-      Core.powerFetch(run.game);
-      sfx.woof(); haptic('MEDIUM');
-      floatText('Fetch!', 'praise');
-    }
-    if (power === 'zoomies') {
-      const res = Core.powerZoomies(run.game);
-      sfx.woof(); haptic('HEAVY');
-      popCells(res.cleared);
-      floatText('Zoomies!', 'praise');
-      res.cleared.filter((x) => x.treat).forEach((x) => floatText(`+${Core.BONES_PER_TREAT}`, 'treat', x.i));
-    }
-    usedPower();
+    if (run.targeting) { cancelTargeting(); return; }
+    const id = run.pup.power;
+    if (!Powers.canUse(id, run.game)) return;
+    if (Powers.POWERS[id].target) { run.targeting = true; renderBuddyBar(); return; }
+    firePower();
   });
 
+  // Targeted powers: the first tap previews what will clear, a second tap on the same target fires.
   boardEl.addEventListener('click', (e) => {
-    if (!run || !run.digMode) return;
+    if (!run || !run.targeting) return;
     const cell = e.target.closest('.cell');
     if (!cell) return;
     const i = Number(cell.dataset.i);
-    const res = Core.powerDig(run.game, Math.floor(i / Core.SIZE), i % Core.SIZE);
-    run.digMode = false;
-    sfx.woof(); haptic('HEAVY');
-    popCells(res.cleared);
-    floatText('Dig!', 'praise');
-    res.cleared.filter((x) => x.treat).forEach((x) => floatText(`+${Core.BONES_PER_TREAT}`, 'treat', x.i));
-    usedPower();
+    const r = Math.floor(i / Core.SIZE), c = i % Core.SIZE;
+    const id = run.pup.power;
+    const t = Powers.POWERS[id].target;
+    if (!Powers.validTarget(id, run.game, r, c)) { sfx.nope(); toast('Tap a colored block'); return; }
+    const key = t === 'row' ? `r${r}` : t === 'col' ? `c${c}` : `${r},${c}`;
+    if (run.aim && run.aim.key === key) {
+      clearAim();
+      run.targeting = false;
+      firePower(r, c);
+      return;
+    }
+    clearAim();
+    const cells = Powers.previewCells(id, run.game, r, c);
+    cells.forEach((k) => cellEls[k].classList.add('aim'));
+    run.aim = { key, cells };
+    sfx.pick();
+    renderBuddyBar();
   });
 
   function usedPower() {
     run.charges--;
     run.over = false;
+    run.stuckWithPower = false;
     $('#btn-power').classList.remove('nudge');
     renderTray(); renderScore(); renderBuddyBar();
-    track('power_used', { power: run.pup.power });
+    track('power_used', { power: run.pup.power, level: run.level });
     if (Core.isGameOver(run.game)) handleStuck();
   }
 
   function handleStuck() {
     run.over = true;
-    if (run.pup.power === 'guardian' && run.charges > 0) {
-      run.charges = 0;
+    if (powerOf(run.pup).passive && run.charges > 0) {
+      run.charges--;
       setTimeout(() => {
-        Core.revive(run.game);
+        Powers.use(run.pup.power, run.game);
         run.over = false;
         sfx.woof(); haptic('HEAVY');
         floatText(`${run.pup.name} saved you!`, 'praise');
@@ -376,11 +418,11 @@
       }, 500);
       return;
     }
-    if (run.charges > 0) {
+    if (run.charges > 0 && Powers.canUse(run.pup.power, run.game)) {
       // Let the player try their buddy's power before calling the run.
       run.over = false;
       $('#btn-power').classList.add('nudge');
-      toast(`No room! Try ${run.pup.name}'s ${Pups.POWERS[run.pup.power].name}`);
+      toast(`No room! Try ${run.pup.name}'s ${powerOf(run.pup).name}`);
       run.stuckWithPower = true;
       return;
     }
@@ -394,7 +436,7 @@
     return false;
   }
 
-  function runBones() { return Core.bonesForRun(run.game, run.mult) * (run.doubled ? 2 : 1); }
+  function runBones() { return Core.bonesForRun(run.game) * (run.doubled ? 2 : 1); }
 
   function showGameOver() {
     const g = run.game;
@@ -403,7 +445,7 @@
     const sheet = openModal(`
       <p class="eyebrow">${isBest ? 'New best score' : 'Out of room'}</p>
       <p class="go-score">${g.score.toLocaleString()}</p>
-      <p class="go-sub">${g.linesCleared} lines · ${g.treatsCollected} treats · ${run.pup.name} +${Math.round((run.mult - 1) * 100)}%</p>
+      <p class="go-sub">${g.linesCleared} lines · ${g.treatsCollected} treats</p>
       <p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>
       <div class="stack">
         ${run.revived ? '' : '<button type="button" class="btn ad" data-act="revive"><span class="ad-chip">AD</span>Keep playing</button>'}
@@ -482,20 +524,33 @@
   // ---------------------------------------------------------------- gacha
   function renderGacha() {
     renderBones();
-    const left = state.daily.freePullsLeft;
+    const weekly = $('#btn-pull-week');
+    const wLeft = state.weekly.pullsLeft;
+    weekly.disabled = wLeft <= 0;
+    weekly.querySelector('.label').textContent = wLeft > 0
+      ? `Weekly pull · ${Pups.RARITY[ECON.WEEKLY_MIN_RARITY].label} or better`
+      : `Next weekly pull in ${fmtWait(State.msToNextWeek(Date.now()))}`;
     const free = $('#btn-pull-free');
+    const left = state.daily.freePullsLeft;
+    free.hidden = ECON.DAILY_AD_PULLS <= 0;
     free.disabled = left <= 0;
-    free.querySelector('.label').textContent = left > 0 ? `Free pull · ${left} left today` : 'Free pulls are back tomorrow';
+    free.querySelector('.label').textContent = left > 0 ? 'Bonus pull · watch an ad' : 'Bonus pull is back tomorrow';
+    $('#bone-pulls').hidden = !ECON.BONE_PULLS;
     $('#btn-pull-1').disabled = state.bones < Gacha.COST_1;
     $('#btn-pull-10').disabled = state.bones < Gacha.COST_10;
     $('#pity').textContent = `Epic or better guaranteed within ${Gacha.PITY_EPIC - state.pity.sinceEpic} pulls`;
   }
 
   async function doPull(count, source) {
+    let opts;
     if (source === 'bones') {
       const cost = count === 10 ? Gacha.COST_10 : Gacha.COST_1;
       if (state.bones < cost) { toast('Not enough bones. Play a round to earn more.'); return; }
       state.bones -= cost;
+    } else if (source === 'weekly') {
+      if (state.weekly.pullsLeft <= 0) return;
+      state.weekly.pullsLeft--;
+      opts = { minRarity: ECON.WEEKLY_MIN_RARITY };
     } else {
       if (state.daily.freePullsLeft <= 0) return;
       track('ad_rewarded_request', { placement: 'free_pull' });
@@ -504,25 +559,36 @@
       state.daily.freePullsLeft--;
       state.ads.rewardedToday++;
     }
-    const results = Gacha.pullMany(state, rng, count);
+    const results = Gacha.pullMany(state, rng, count, opts);
     save();
     track('gacha_pull', { count, source, best: results.reduce((b, r) => Math.max(b, Gacha.rarityRank(r.rarity)), 0) });
     renderGacha();
     reveal(results);
   }
 
+  $('#btn-pull-week').addEventListener('click', () => { Audio.unlock(); doPull(1, 'weekly'); });
   $('#btn-pull-1').addEventListener('click', () => { Audio.unlock(); doPull(1, 'bones'); });
   $('#btn-pull-10').addEventListener('click', () => { Audio.unlock(); doPull(10, 'bones'); });
   $('#btn-pull-free').addEventListener('click', () => { Audio.unlock(); doPull(1, 'ad'); });
 
   function resultCard(r, big) {
     const note = r.isNew ? '<span class="tag new">New!</span>'
-      : r.leveledUp ? `<span class="tag up">Lv ${r.level}!</span>`
+      : r.leveledUp ? `<span class="tag up">Lv ${r.level}! ×${Pups.chargesFor(r.pup, r.level)}</span>`
         : `<span class="tag dupe">+${r.refund} bones</span>`;
     return `<div class="card r-${r.rarity}${big ? ' big' : ''}">
       <div class="card-art">${Pups.renderPup(r.pup)}</div>
       <p class="card-name">${r.pup.name}</p>
       <p class="card-meta">${stars(r.rarity)}</p>${note}</div>`;
+  }
+
+  function revealNote(r) {
+    const p = powerOf(r.pup);
+    const o = state.pups[r.pup.id];
+    const n = Pups.chargesFor(r.pup, o.level);
+    if (r.leveledUp) return `${p.name} now has ${n} ${chargeWord(n, r.pup)} per run`;
+    if (!r.isNew && o.level < Pups.MAX_LEVEL) return `${o.dupes}/${Pups.copiesToNext(o.level)} copies to Lv ${o.level + 1} · +${r.refund} bones`;
+    if (!r.isNew) return `Max level · +${r.refund} bones`;
+    return `${p.name}: ${p.desc}`;
   }
 
   function reveal(results) {
@@ -545,7 +611,7 @@
         sheet.innerHTML = `
           <div class="burst r-${r.rarity}"></div>
           ${resultCard(r, true)}
-          <p class="reveal-line">${r.pup.breed} · ${Pups.RARITY[r.rarity].label}<br><span>${Pups.POWERS[r.pup.power].name}: ${Pups.POWERS[r.pup.power].desc}</span></p>
+          <p class="reveal-line">${r.pup.breed} · ${Pups.RARITY[r.rarity].label}<br><span>${revealNote(r)}</span></p>
           <div class="stack">
             ${canBuddy ? '<button type="button" class="btn" data-act="buddy">Make buddy</button>' : ''}
             <button type="button" class="btn ${canBuddy ? 'ghost' : ''}" data-act="done">Nice!</button>
@@ -582,7 +648,7 @@
       }
       return `<button type="button" class="card r-${p.rarity}${state.buddy === p.id ? ' is-buddy' : ''}" data-id="${p.id}">
         <div class="card-art">${Pups.renderPup(p)}</div>
-        <p class="card-name">${p.name}</p><p class="card-meta">${stars(p.rarity)} <span>Lv ${o.level}</span></p></button>`;
+        <p class="card-name">${p.name}</p><p class="card-meta">${stars(p.rarity)}</p>${pips(o.level)}</button>`;
     }).join('');
   }
 
@@ -594,7 +660,7 @@
     if (!o) {
       openModal(`<p class="eyebrow">${Pups.RARITY[pup.rarity].label} pup</p>
         <div class="detail-art locked">${Pups.renderPup(pup, { silhouette: true })}</div>
-        <p class="go-sub">Not found yet. Pull at the Pup-a-Matic to meet this one.</p>
+        <p class="go-sub">Power: <b>${powerOf(pup).name}</b>. ${powerOf(pup).desc}.<br>Not found yet. Pull at the Pup-a-Matic to meet this one.</p>
         <div class="stack"><button type="button" class="btn" data-act="gacha">Go to Pup-a-Matic</button><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
         .onclick = (ev) => {
           const a = ev.target.closest('[data-act]');
@@ -605,14 +671,15 @@
       return;
     }
     const isBuddy = state.buddy === pup.id;
-    const need = o.level >= Pups.MAX_LEVEL ? 'Max level' : `${o.dupes}/${o.level} copies to Lv ${o.level + 1}`;
+    const n = Pups.chargesFor(pup, o.level);
+    const need = o.level >= Pups.MAX_LEVEL ? 'Max level' : `${o.dupes}/${Pups.copiesToNext(o.level)} copies to Lv ${o.level + 1} (${n + 1} ${chargeWord(n + 1, pup)})`;
     openModal(`<p class="eyebrow">${pup.breed}</p>
       <div class="detail-art r-${pup.rarity}">${Pups.renderPup(pup)}</div>
       <p class="detail-name">${pup.name} ${stars(pup.rarity)}</p>
       <dl class="detail-stats">
-        <div><dt>Level</dt><dd>${o.level} <small>${need}</small></dd></div>
-        <div><dt>Bone bonus</dt><dd>+${Math.round(Pups.bonusFor(pup, o.level) * 100)}%</dd></div>
-        <div><dt>${Pups.POWERS[pup.power].name}</dt><dd><small>${Pups.POWERS[pup.power].desc} · ${Pups.chargesFor(pup, o.level)}× per run</small></dd></div>
+        <div><dt>${powerOf(pup).name}</dt><dd><small>${powerOf(pup).desc}</small></dd></div>
+        <div><dt>Per run</dt><dd>${n} ${chargeWord(n, pup)}</dd></div>
+        <div><dt>Level ${o.level}</dt><dd>${pips(o.level)}<small>${need}</small></dd></div>
       </dl>
       <div class="stack">
         ${isBuddy ? '<p class="go-sub">Your current buddy</p>' : '<button type="button" class="btn" data-act="buddy">Make buddy</button>'}
@@ -658,5 +725,6 @@
   // ---------------------------------------------------------------- boot
   $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal' && !$('#modal-sheet').classList.contains('gameover') && !$('#modal-sheet').classList.contains('reveal')) closeModal(); });
   show('home');
-  if (loginBonus) setTimeout(() => toast(`Daily treat: +${loginBonus} bones${state.daily.streak > 1 ? ` · ${state.daily.streak}-day streak` : ''}`), 500);
+  if (newWeek) setTimeout(() => toast('Your weekly pull is ready at the Pup-a-Matic'), 500);
+  else if (loginBonus) setTimeout(() => toast(`Daily treat: +${loginBonus} bones${state.daily.streak > 1 ? ` · ${state.daily.streak}-day streak` : ''}`), 500);
 })();

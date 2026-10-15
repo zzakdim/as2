@@ -4,17 +4,10 @@
   'use strict';
 
   const RARITY = {
-    common: { label: 'Common', stars: 1, bonus: 0.05, refund: 10, color: '#9fdcb4' },
-    rare: { label: 'Rare', stars: 2, bonus: 0.12, refund: 25, color: '#62bdff' },
-    epic: { label: 'Epic', stars: 3, bonus: 0.25, refund: 60, color: '#c38cff' },
-    legendary: { label: 'Legendary', stars: 4, bonus: 0.5, refund: 150, color: '#ffd04a' },
-  };
-
-  const POWERS = {
-    fetch: { name: 'Fetch', desc: 'Swap your three pieces for fresh ones' },
-    dig: { name: 'Dig', desc: 'Tap the board to clear a 3×3 patch' },
-    zoomies: { name: 'Zoomies', desc: 'Clears the fullest row and column' },
-    guardian: { name: 'Guardian', desc: 'Saves your run once when you get stuck' },
+    common: { label: 'Common', stars: 1, refund: 10, color: '#9fdcb4' },
+    rare: { label: 'Rare', stars: 2, refund: 25, color: '#62bdff' },
+    epic: { label: 'Epic', stars: 3, refund: 60, color: '#c38cff' },
+    legendary: { label: 'Legendary', stars: 4, refund: 150, color: '#ffd04a' },
   };
 
   // fur, ear color, muzzle; ears: floppy|pointy|round|fluffy; pattern: none|patch|mask|spots|blaze|saddle|curly
@@ -22,43 +15,44 @@
   const ROSTER = [
     P('mochi', 'Mochi', 'Shiba Inu', 'common', 'fetch', { fur: '#e8a35c', ear: '#d98a40', muzzle: '#fff3e2', ears: 'pointy', pattern: 'shiba' }),
     P('biscuit', 'Biscuit', 'Corgi', 'common', 'dig', { fur: '#f0a95b', ear: '#e08f3c', muzzle: '#fffaf2', ears: 'corgi', pattern: 'blaze', tongue: true }),
-    P('pudding', 'Pudding', 'Beagle', 'common', 'fetch', { fur: '#c98a52', ear: '#7a4a2a', muzzle: '#fffaf2', ears: 'floppy', pattern: 'blaze' }),
-    P('noodle', 'Noodle', 'Dachshund', 'common', 'dig', { fur: '#9b5a34', ear: '#7c4426', muzzle: '#b97a4f', ears: 'floppy', pattern: 'none' }),
-    P('peanut', 'Peanut', 'Pug', 'common', 'fetch', { fur: '#e9cfa3', ear: '#3d3030', muzzle: '#4a3a38', ears: 'round', pattern: 'mask', tongue: true }),
-    P('waffles', 'Waffles', 'Labrador', 'common', 'dig', { fur: '#f2d39a', ear: '#e3bc78', muzzle: '#f8e3bb', ears: 'floppy', pattern: 'none', tongue: true }),
-    P('pickles', 'Pickles', 'Chihuahua', 'common', 'fetch', { fur: '#e7c08c', ear: '#d6a467', muzzle: '#f6e2c4', ears: 'pointy', pattern: 'none', bigEyes: true }),
-    P('toffee', 'Toffee', 'Pomeranian', 'common', 'dig', { fur: '#f4a64e', ear: '#e58d2e', muzzle: '#fbd29b', ears: 'fluffy', pattern: 'none' }),
-    P('bean', 'Bean', 'French Bulldog', 'common', 'fetch', { fur: '#8c8a96', ear: '#75737f', muzzle: '#c9c6d2', ears: 'round', pattern: 'blaze' }),
-    P('muffin', 'Muffin', 'Golden Retriever', 'common', 'dig', { fur: '#e6b25f', ear: '#d29a45', muzzle: '#f4d39a', ears: 'floppy', pattern: 'none', tongue: true }),
+    P('pudding', 'Pudding', 'Beagle', 'common', 'sniff', { fur: '#c98a52', ear: '#7a4a2a', muzzle: '#fffaf2', ears: 'floppy', pattern: 'blaze' }),
+    P('noodle', 'Noodle', 'Dachshund', 'common', 'spin', { fur: '#9b5a34', ear: '#7c4426', muzzle: '#b97a4f', ears: 'floppy', pattern: 'none' }),
+    P('peanut', 'Peanut', 'Pug', 'common', 'nap', { fur: '#e9cfa3', ear: '#3d3030', muzzle: '#4a3a38', ears: 'round', pattern: 'mask', tongue: true }),
+    P('waffles', 'Waffles', 'Labrador', 'common', 'tailwag', { fur: '#f2d39a', ear: '#e3bc78', muzzle: '#f8e3bb', ears: 'floppy', pattern: 'none', tongue: true }),
+    P('pickles', 'Pickles', 'Chihuahua', 'common', 'pounce', { fur: '#e7c08c', ear: '#d6a467', muzzle: '#f6e2c4', ears: 'pointy', pattern: 'none', bigEyes: true }),
+    P('toffee', 'Toffee', 'Pomeranian', 'common', 'yap', { fur: '#f4a64e', ear: '#e58d2e', muzzle: '#fbd29b', ears: 'fluffy', pattern: 'none' }),
+    P('bean', 'Bean', 'French Bulldog', 'common', 'zigzag', { fur: '#8c8a96', ear: '#75737f', muzzle: '#c9c6d2', ears: 'round', pattern: 'blaze' }),
+    P('muffin', 'Muffin', 'Golden Retriever', 'common', 'treattoss', { fur: '#e6b25f', ear: '#d29a45', muzzle: '#f4d39a', ears: 'floppy', pattern: 'none', tongue: true }),
 
-    P('sprout', 'Sprout', 'Dalmatian', 'rare', 'zoomies', { fur: '#fbfbfb', ear: '#2d2a33', muzzle: '#ffffff', ears: 'floppy', pattern: 'spots' }),
+    P('sprout', 'Sprout', 'Dalmatian', 'rare', 'spotted', { fur: '#fbfbfb', ear: '#2d2a33', muzzle: '#ffffff', ears: 'floppy', pattern: 'spots' }),
     P('clover', 'Clover', 'Husky', 'rare', 'zoomies', { fur: '#6f7891', ear: '#59617a', muzzle: '#ffffff', ears: 'pointy', pattern: 'mask-light', eye: '#4fb6ff' }),
-    P('marshmallow', 'Marshmallow', 'Samoyed', 'rare', 'fetch', { fur: '#ffffff', ear: '#f1ece6', muzzle: '#ffffff', ears: 'fluffy', pattern: 'none', tongue: true }),
-    P('domino', 'Domino', 'Border Collie', 'rare', 'dig', { fur: '#2f2c36', ear: '#25222b', muzzle: '#ffffff', ears: 'floppy', pattern: 'blaze-white' }),
-    P('cocoa', 'Cocoa', 'Poodle', 'rare', 'zoomies', { fur: '#7a4b35', ear: '#6a3f2c', muzzle: '#8f5c44', ears: 'fluffy', pattern: 'curly' }),
-    P('ziggy', 'Ziggy', 'Bernese', 'rare', 'dig', { fur: '#2b2730', ear: '#2b2730', muzzle: '#ffffff', ears: 'floppy', pattern: 'tricolor' }),
-    P('scoop', 'Scoop', 'Shih Tzu', 'rare', 'fetch', { fur: '#f3e3cf', ear: '#b58456', muzzle: '#fff8ee', ears: 'fluffy', pattern: 'patch', acc: 'bow' }),
+    P('marshmallow', 'Marshmallow', 'Samoyed', 'rare', 'cuddle', { fur: '#ffffff', ear: '#f1ece6', muzzle: '#ffffff', ears: 'fluffy', pattern: 'none', tongue: true }),
+    P('domino', 'Domino', 'Border Collie', 'rare', 'herd', { fur: '#2f2c36', ear: '#25222b', muzzle: '#ffffff', ears: 'floppy', pattern: 'blaze-white' }),
+    P('cocoa', 'Cocoa', 'Poodle', 'rare', 'trim', { fur: '#7a4b35', ear: '#6a3f2c', muzzle: '#8f5c44', ears: 'fluffy', pattern: 'curly' }),
+    P('ziggy', 'Ziggy', 'Bernese', 'rare', 'avalanche', { fur: '#2b2730', ear: '#2b2730', muzzle: '#ffffff', ears: 'floppy', pattern: 'tricolor' }),
+    P('scoop', 'Scoop', 'Shih Tzu', 'rare', 'pampered', { fur: '#f3e3cf', ear: '#b58456', muzzle: '#fff8ee', ears: 'fluffy', pattern: 'patch', acc: 'bow' }),
 
-    P('disco', 'Disco', 'Pug', 'epic', 'zoomies', { fur: '#e9cfa3', ear: '#3d3030', muzzle: '#4a3a38', ears: 'round', pattern: 'mask', acc: 'shades', tongue: true }),
-    P('captain', 'Captain Biscuit', 'Corgi', 'epic', 'dig', { fur: '#f0a95b', ear: '#e08f3c', muzzle: '#fffaf2', ears: 'corgi', pattern: 'blaze', acc: 'captain' }),
-    P('duchess', 'Duchess', 'Pomeranian', 'epic', 'fetch', { fur: '#fff1f6', ear: '#ffd6e6', muzzle: '#ffffff', ears: 'fluffy', pattern: 'none', acc: 'tiara' }),
-    P('merlin', 'Merlin', 'Shiba Inu', 'epic', 'zoomies', { fur: '#e8a35c', ear: '#d98a40', muzzle: '#fff3e2', ears: 'pointy', pattern: 'shiba', acc: 'wizard' }),
-    P('dj', 'DJ Woofles', 'Husky', 'epic', 'fetch', { fur: '#6f7891', ear: '#59617a', muzzle: '#ffffff', ears: 'pointy', pattern: 'mask-light', eye: '#4fb6ff', acc: 'headphones' }),
+    P('disco', 'Disco', 'Pug', 'epic', 'hopscotch', { fur: '#e9cfa3', ear: '#3d3030', muzzle: '#4a3a38', ears: 'round', pattern: 'mask', acc: 'shades', tongue: true }),
+    P('captain', 'Captain Biscuit', 'Corgi', 'epic', 'cannonball', { fur: '#f0a95b', ear: '#e08f3c', muzzle: '#fffaf2', ears: 'corgi', pattern: 'blaze', acc: 'captain' }),
+    P('duchess', 'Duchess', 'Pomeranian', 'epic', 'doover', { fur: '#fff1f6', ear: '#ffd6e6', muzzle: '#ffffff', ears: 'fluffy', pattern: 'none', acc: 'tiara' }),
+    P('merlin', 'Merlin', 'Shiba Inu', 'epic', 'clairvoyance', { fur: '#e8a35c', ear: '#d98a40', muzzle: '#fff3e2', ears: 'pointy', pattern: 'shiba', acc: 'wizard' }),
+    P('dj', 'DJ Woofles', 'Husky', 'epic', 'dropthebeat', { fur: '#6f7891', ear: '#59617a', muzzle: '#ffffff', ears: 'pointy', pattern: 'mask-light', eye: '#4fb6ff', acc: 'headphones' }),
 
     P('sunny', 'Sunny', 'Golden Retriever', 'legendary', 'guardian', { fur: '#ffc94d', ear: '#f2ad2c', muzzle: '#ffe39a', ears: 'floppy', pattern: 'none', acc: 'crown', tongue: true, aura: true }),
-    P('cosmo', 'Cosmo', 'Cloud Pup', 'legendary', 'guardian', { fur: '#b7a6ff', ear: '#8f7cf0', muzzle: '#e7e0ff', ears: 'fluffy', pattern: 'stars', acc: 'halo', aura: true }),
+    P('cosmo', 'Cosmo', 'Cloud Pup', 'legendary', 'bigbang', { fur: '#b7a6ff', ear: '#8f7cf0', muzzle: '#e7e0ff', ears: 'fluffy', pattern: 'stars', acc: 'halo', aura: true }),
   ];
   const BY_ID = Object.fromEntries(ROSTER.map((p) => [p.id, p]));
 
   const STARTER_ID = 'mochi';
-  const MAX_LEVEL = 10;
+  // Copies raise a pup's level, and each level is one more power charge per run.
+  // Going from level L to L+1 takes L more copies, so max level takes 1+1+2+3+4 = 11 copies.
+  const MAX_LEVEL = 5;
 
-  function bonusFor(pup, level) {
-    return RARITY[pup.rarity].bonus + 0.02 * Math.max(0, (level || 1) - 1);
-  }
   function chargesFor(pup, level) {
-    if (pup.power === 'guardian') return 1;
-    return (level || 1) >= 5 ? 2 : 1;
+    return Math.max(1, Math.min(level || 1, MAX_LEVEL));
+  }
+  function copiesToNext(level) {
+    return level >= MAX_LEVEL ? 0 : level;
   }
 
   function earsSvg(l) {
@@ -140,7 +134,7 @@
     return `<svg viewBox="0 0 100 100" role="img" aria-label="${label}"${style}>${body}</svg>`;
   }
 
-  const Pups = { RARITY, POWERS, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, bonusFor, chargesFor, renderPup };
+  const Pups = { RARITY, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, chargesFor, copiesToNext, renderPup };
 
   root.PB = root.PB || {};
   root.PB.Pups = Pups;

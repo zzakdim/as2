@@ -11,7 +11,21 @@
   const PITY_LEGENDARY = 60; // every 60th pull without a Legendary is Legendary
   const ORDER = ['common', 'rare', 'epic', 'legendary'];
 
-  function rollRarity(rng, pity) {
+  // How players get pulls. The weekly pull is the headline; the others keep the gacha fed
+  // between weeks. For a strict "one pull a week" game, set BONE_PULLS false and DAILY_AD_PULLS 0.
+  const ECONOMY = {
+    WEEKLY_FREE_PULLS: 1,
+    WEEKLY_MIN_RARITY: 'rare',
+    DAILY_AD_PULLS: 1,
+    BONE_PULLS: true,
+  };
+
+  function rollRarity(rng, pity, minRarity) {
+    const rolled = baseRoll(rng, pity);
+    return minRarity && ORDER.indexOf(rolled) < ORDER.indexOf(minRarity) ? minRarity : rolled;
+  }
+
+  function baseRoll(rng, pity) {
     if (pity.sinceLegendary + 1 >= PITY_LEGENDARY) return 'legendary';
     if (pity.sinceEpic + 1 >= PITY_EPIC) {
       const share = RATES.legendary / (RATES.epic + RATES.legendary);
@@ -26,8 +40,8 @@
   }
 
   // Applies one pull to `state` (mutates collection, pity, bones refund). Returns what was won.
-  function pull(state, rng) {
-    const rarity = rollRarity(rng, state.pity);
+  function pull(state, rng, opts) {
+    const rarity = rollRarity(rng, state.pity, opts && opts.minRarity);
     const pool = Pups.ROSTER.filter((p) => p.rarity === rarity);
     const pup = pool[Math.floor(rng() * pool.length)];
 
@@ -45,20 +59,20 @@
     let leveledUp = false;
     if (owned.level < Pups.MAX_LEVEL) {
       owned.dupes++;
-      if (owned.dupes >= owned.level) { owned.dupes -= owned.level; owned.level++; leveledUp = true; }
+      if (owned.dupes >= Pups.copiesToNext(owned.level)) { owned.dupes = 0; owned.level++; leveledUp = true; }
     }
     return { pup, rarity, isNew: false, leveledUp, refund, level: owned.level };
   }
 
-  function pullMany(state, rng, count) {
+  function pullMany(state, rng, count, opts) {
     const out = [];
-    for (let i = 0; i < count; i++) out.push(pull(state, rng));
+    for (let i = 0; i < count; i++) out.push(pull(state, rng, opts));
     return out;
   }
 
   function rarityRank(r) { return ORDER.indexOf(r); }
 
-  const Gacha = { COST_1, COST_10, RATES, PITY_EPIC, PITY_LEGENDARY, rollRarity, pull, pullMany, rarityRank };
+  const Gacha = { COST_1, COST_10, RATES, ECONOMY, ORDER, PITY_EPIC, PITY_LEGENDARY, rollRarity, pull, pullMany, rarityRank };
 
   root.PB = root.PB || {};
   root.PB.Gacha = Gacha;

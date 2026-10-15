@@ -83,16 +83,11 @@ test('game over is detected when nothing fits', () => {
   assert.ok(!Core.isGameOver(g));
 });
 
-test('powers clear what they promise', () => {
+test('revive clears the middle and deals small pieces', () => {
   const g = emptyGame(6);
   g.board.fill(1);
-  const dig = Core.powerDig(g, 0, 0);
-  assert.strictEqual(dig.cleared.length, 4);
-  const zoom = Core.powerZoomies(g);
-  assert.ok(zoom.cleared.length >= 13);
   const rev = Core.revive(g);
-  assert.ok(rev.cleared.length > 0);
-  for (let r = 2; r < 6; r++) for (let c = 2; c < 6; c++) assert.strictEqual(g.board[r * 8 + c], 0);
+  assert.strictEqual(rev.cleared.length, 16);
   assert.ok(g.tray.every((p) => p.cells.length <= 3));
 });
 

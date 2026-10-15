@@ -91,3 +91,30 @@ test('interstitial pacing respects grace games, frequency and gap', () => {
   s.settings.noAds = true;
   assert.ok(!Ads.canShowInterstitial(s, now + 91_000));
 });
+
+test('weekly pull is granted once per week and respects its minimum rarity', () => {
+  const s = State.freshState();
+  const mon = new Date(2026, 9, 12, 10).getTime(); // Monday
+  assert.ok(State.rollWeekly(s, mon));
+  assert.strictEqual(s.weekly.pullsLeft, State.WEEKLY_FREE_PULLS);
+  s.weekly.pullsLeft = 0;
+  assert.ok(!State.rollWeekly(s, mon + 5 * 86400e3), 'same week (Saturday)');
+  assert.ok(State.rollWeekly(s, mon + 7 * 86400e3), 'next Monday');
+  assert.strictEqual(s.weekly.pullsLeft, State.WEEKLY_FREE_PULLS);
+  const r = Gacha.pull(s, () => 0.999, { minRarity: 'rare' });
+  assert.strictEqual(r.rarity, 'rare');
+});
+
+test('levels cap at 5 and duplicates past the cap still refund', () => {
+  const s = State.freshState();
+  s.pups = {};
+  const rng = () => 0.999;
+  for (let i = 0; i < 11; i++) { s.pity.sinceEpic = 0; Gacha.pull(s, rng); }
+  const id = Object.keys(s.pups)[0];
+  assert.strictEqual(s.pups[id].level, 5);
+  const bones = s.bones;
+  const extra = Gacha.pull(s, rng);
+  assert.ok(!extra.leveledUp);
+  assert.strictEqual(s.pups[id].level, 5);
+  assert.strictEqual(s.bones, bones + extra.refund);
+});
