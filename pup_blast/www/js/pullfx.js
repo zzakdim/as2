@@ -225,7 +225,10 @@
         if (opened.size === results.length) finish();
       };
 
+      let finished = false;
       const finish = () => {
+        if (finished) return; // several digs can complete at once; celebrate once
+        finished = true;
         const best = sheet.querySelectorAll('.slot-cap')[results.findIndex((x) => rank(x.rarity) === bestRank)];
         if (best) best.classList.add('best');
         ctx.sfx.fanfare(bestRank);

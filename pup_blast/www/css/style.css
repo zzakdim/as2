@@ -106,7 +106,7 @@ button { font: inherit; color: inherit; }
 .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 800; color: var(--muted); margin: 0; text-align: center; }
 
 /* ---------- home */
-.home { justify-content: space-between; }
+.home { justify-content: space-between; overflow-y: auto; }
 .home-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: center; }
 .logo { margin: 0; font-family: var(--display); font-weight: 800; line-height: .82; text-align: center; transform: rotate(-4deg); }
 .logo-pup { display: block; font-size: 64px; color: var(--bone); text-shadow: 0 5px 0 #b4794a; }
@@ -215,7 +215,7 @@ button { font: inherit; color: inherit; }
 }
 .card-art { width: 100%; aspect-ratio: 1; max-width: 100%; border-radius: 12px; background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--rc) 28%, transparent), transparent 70%); }
 .card-art svg { width: 100%; height: 100%; display: block; }
-.card-name { margin: 0; font-family: var(--display); font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.card-name { margin: 0; font-family: var(--display); font-weight: 700; font-size: clamp(12px, 3.6vw, 15px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .card-meta { margin: 0; font-size: 12px; color: var(--muted); }
 .card.locked { opacity: .7; }
 .card.is-buddy::after {
@@ -418,7 +418,8 @@ button { font: inherit; color: inherit; }
 .world-tab.soon { opacity: .6; }
 .world-tab .crown { color: var(--legend); margin-right: 4px; }
 .star-pill .pill-star { color: var(--legend); }
-.map-path { display: flex; flex-direction: column; gap: 10px; padding: 6px 0 24px; }
+.map-path { display: flex; flex-direction: column; gap: 10px; padding: 6px 6px 24px; }
+#map-title { font-size: clamp(20px, 6.5vw, 28px); white-space: nowrap; }
 .lvl-node { position: relative; display: flex; align-items: center; gap: 12px; width: 78%; border: 0; cursor: pointer; text-align: left;
   background: var(--panel); color: var(--ink); border-radius: 20px; padding: 10px 14px 10px 10px; box-shadow: 0 4px 0 #1a1640; }
 .lvl-node.left { align-self: flex-start; }
@@ -564,6 +565,7 @@ button { font: inherit; color: inherit; }
 }
 @media (max-height: 700px) {
   .logo-pup { font-size: 48px; } .logo-blast { font-size: 58px; }
+  .buddy-stage { width: min(40vw, 150px); }
   .score { font-size: 32px; }
   .tray { min-height: 104px; }
 }

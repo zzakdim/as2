@@ -461,7 +461,8 @@
     el.className = 'float ' + (cls || '');
     el.textContent = text;
     if (atIndex != null) {
-      el.style.left = ((atIndex % Core.SIZE) + 0.5) * 12.5 + '%';
+      // Kept off the board edges so wide text isn't cut off by the screen.
+      el.style.left = Math.min(80, Math.max(20, ((atIndex % Core.SIZE) + 0.5) * 12.5)) + '%';
       el.style.top = (Math.floor(atIndex / Core.SIZE) + 0.5) * 12.5 + '%';
     }
     fx.appendChild(el);
@@ -501,7 +502,7 @@
     const dug = [...(res.dug || []), ...((h.settle && h.settle.dug) || [])];
     const chased = [...(res.chased || []), ...((h.settle && h.settle.chased) || [])];
     dug.forEach((i, k) => setTimeout(() => { floatText(`Bone! +${Core.DUG_POINTS}`, 'treat', i); sfx.coin(); }, 200 + k * 120));
-    chased.forEach((i) => { floatText(`Shoo! +${Core.CHASE_POINTS}`, 'praise', i); sfx.woof(); haptic('MEDIUM'); });
+    chased.forEach((i) => { floatText(`Shoo! +${Core.CHASE_POINTS}`, 'treat', i); sfx.woof(); haptic('MEDIUM'); });
     (res.hits || []).forEach((i) => { cellEls[i].classList.add('chip'); setTimeout(() => cellEls[i] && cellEls[i].classList.remove('chip'), 400); });
     if (h.hopped && h.hopped.length) { h.hopped.forEach((x) => cellEls[x.to].classList.add('hop')); sfx.thunk(); }
     if (h.back && h.back.length) floatText('The squirrel is back!', 'combo');
@@ -586,6 +587,7 @@
     const t = Powers.POWERS[id].target;
     if (!Powers.validTarget(id, run.game, r, c)) { sfx.nope(); toast('Tap a colored block'); return; }
     const key = t === 'row' ? `r${r}` : t === 'col' ? `c${c}` : `${r},${c}`;
+    if (!Powers.previewCells(id, run.game, r, c).length) { clearAim(); sfx.nope(); toast('Nothing to clear there'); renderBuddyBar(); return; }
     if (run.aim && run.aim.key === key) {
       clearAim();
       run.targeting = false;
@@ -614,9 +616,11 @@
 
   function handleStuck() {
     run.over = true;
+    const thisRun = run; // the timers below must not act on a run the player has since left
     if (powerOf(run.pup).passive && run.charges > 0) {
       if (!(dev() && state.settings.devInfinite)) run.charges--;
       setTimeout(() => {
+        if (run !== thisRun) return;
         Powers.use(run.pup.power, run.game);
         run.over = false;
         sfx.woof(); haptic('HEAVY');
@@ -634,7 +638,7 @@
       return;
     }
     sfx.gameOver(); haptic('HEAVY');
-    setTimeout(showGameOver, 650);
+    setTimeout(() => { if (run === thisRun) showGameOver(); }, 650);
   }
 
   // A run that is stuck but still has a power charge can be ended by the player.
@@ -687,6 +691,7 @@
           closeModal();
           renderBoard(); renderTray(); renderScore();
           floatText('Second wind!', 'praise');
+          if (Core.isGameOver(run.game)) handleStuck();
           track('ad_rewarded_granted', { placement: 'revive' });
         }
       } else if (a === 'double') {
@@ -928,7 +933,24 @@
 
   $('#btn-quit').addEventListener('click', () => {
     if (!run) { show('home'); return; }
+    if (run.over) return; // the game-over sheet is about to open
     if (giveUpIfStuck()) return;
+    if (run.tut) {
+      const sheet = openModal(`
+        <p class="eyebrow">Skip the tutorial?</p>
+        <p class="go-sub">You can always learn as you go.</p>
+        <div class="stack">
+          <button type="button" class="btn" data-act="stay">Keep learning</button>
+          <button type="button" class="btn ghost" data-act="skip">Skip tutorial</button>
+        </div>`);
+      sheet.onclick = (e) => {
+        const act = e.target.closest('[data-act]');
+        if (!act) return;
+        closeModal();
+        if (act.dataset.act === 'skip') { finishTutorial(); run = null; show('home'); }
+      };
+      return;
+    }
     const sheet = openModal(`
       <p class="eyebrow">Leave this run?</p>
       <p class="go-sub">You keep the ${runBones().toLocaleString()} bones earned so far.</p>
@@ -1367,6 +1389,8 @@
 
   function tutorialOnShow(name) {
     if (state.tutorial.done) return;
+    // The free dig was spent but the app closed before its reveal finished: move on.
+    if (state.tutorial.step === TUT.DIG && Object.keys(state.pups).length > 1) setStep(TUT.KENNEL);
     const step = state.tutorial.step;
     if (step < TUT.POSTRUN) return;
     if (name === 'game') { coachHide(); return; }
