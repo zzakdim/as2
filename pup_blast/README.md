@@ -16,7 +16,7 @@ The game is plain HTML/CSS/JS in `www/`, wrapped for iOS with Capacitor. It has 
 
 **Minute to minute.** Drag three pieces onto the board. Full rows and columns clear. Clearing on consecutive turns builds a combo, which survives two non-clearing moves. About 18% of pieces carry a bone treat that pays 5 bones when cleared. The dealer guarantees that at least one piece in every tray fits, and 35% of trays include a piece that can complete a line, so good moments come often.
 
-**Per run.** Bones = score ÷ 20 + treats × 5. Your buddy pup brings its power with one charge per level. When you get stuck you first get a nudge to use a charge. After that comes the game-over sheet with two rewarded ads (keep playing, double bones).
+**Per run.** Bones = score ÷ 25 + treats × 5 (tuned for a free player who never watches ads). Your buddy pup brings its power with one charge per level. When you get stuck you first get a nudge to use a charge. After that comes the game-over sheet with two rewarded ads (keep playing, double bones).
 
 **Per week.** One free weekly pull, Rare or better, that resets Monday 00:00 local time. This is the headline pull.
 

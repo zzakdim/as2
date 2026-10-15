@@ -7,6 +7,7 @@
   const COLORS = 7;
   const TREAT_CHANCE = 0.18;
   const BONES_PER_TREAT = 5;
+  const BONES_SCORE_DIVISOR = 25; // bones per run = score / 25 + treats. Tuned for a free player with no ads.
   const COMBO_GRACE_MOVES = 3;
   const BOARD_CLEAR_BONUS = 300;
 
@@ -260,7 +261,7 @@
   }
 
   function bonesForRun(game) {
-    return Math.floor(game.score / 20) + game.treatsCollected * BONES_PER_TREAT;
+    return Math.floor(game.score / BONES_SCORE_DIVISOR) + game.treatsCollected * BONES_PER_TREAT;
   }
 
   const Core = {
