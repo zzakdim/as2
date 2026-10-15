@@ -41,7 +41,7 @@
 
   // Applies one pull to `state` (mutates collection, pity, bones refund). Returns what was won.
   function pull(state, rng, opts) {
-    const rarity = rollRarity(rng, state.pity, opts && opts.minRarity);
+    const rarity = (opts && opts.rarity) || rollRarity(rng, state.pity, opts && opts.minRarity);
     const pool = Pups.ROSTER.filter((p) => p.rarity === rarity);
     const pup = pool[Math.floor(rng() * pool.length)];
 

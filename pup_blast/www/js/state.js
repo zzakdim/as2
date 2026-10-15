@@ -44,7 +44,7 @@
       daily: { date: '', freePullsLeft: DAILY_FREE_PULLS, loginClaimed: false, streak: 0 },
       weekly: { week: '', pullsLeft: 0 },
       ads: { gamesSinceInterstitial: 0, lastInterstitialAt: 0, rewardedToday: 0 },
-      settings: { sound: true, haptics: true, noAds: false },
+      settings: { sound: true, haptics: true, noAds: false, dev: false, devSkipAds: false, devInfinite: false },
       stats: { games: 0, pulls: 0, lines: 0 },
     };
   }
