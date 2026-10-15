@@ -1,0 +1,10 @@
+{
+  "appId": "com.example.pupblast",
+  "appName": "Pup Blast",
+  "webDir": "www",
+  "backgroundColor": "#1f1b45",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false
+  }
+}

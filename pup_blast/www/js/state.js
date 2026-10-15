@@ -1,0 +1,78 @@
+// Saved player state: bones, collection, daily freebies and settings.
+// Stored in localStorage. On iOS, swap `storage` for @capacitor/preferences before launch,
+// since WKWebView can evict localStorage under storage pressure.
+(function (root) {
+  'use strict';
+
+  const Pups = root.PB && root.PB.Pups ? root.PB.Pups : require('./pups.js');
+
+  const KEY = 'pupblast.v1';
+  const DAILY_FREE_PULLS = 3; // rewarded-ad pulls per day
+  const DAILY_LOGIN_BONES = 50;
+  const STARTING_BONES = 100; // exactly one pull, so the gacha shows up after the first game
+
+  function dayKey(now) {
+    const d = new Date(now);
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
+  function freshState() {
+    return {
+      version: 1,
+      bones: STARTING_BONES,
+      best: 0,
+      buddy: Pups.STARTER_ID,
+      pups: { [Pups.STARTER_ID]: { level: 1, dupes: 0 } },
+      pity: { sinceEpic: 0, sinceLegendary: 0 },
+      daily: { date: '', freePullsLeft: DAILY_FREE_PULLS, loginClaimed: false, streak: 0 },
+      ads: { gamesSinceInterstitial: 0, lastInterstitialAt: 0, rewardedToday: 0 },
+      settings: { sound: true, haptics: true, noAds: false },
+      stats: { games: 0, pulls: 0, lines: 0 },
+    };
+  }
+
+  // Fills in anything an older save lacks, so new fields never crash old players.
+  function normalize(raw) {
+    const base = freshState();
+    if (!raw || typeof raw !== 'object') return base;
+    const out = Object.assign(base, raw);
+    for (const k of ['pity', 'daily', 'ads', 'settings', 'stats']) out[k] = Object.assign(freshState()[k], raw[k]);
+    out.pups = Object.assign({}, raw.pups);
+    if (!out.pups[Pups.STARTER_ID]) out.pups[Pups.STARTER_ID] = { level: 1, dupes: 0 };
+    if (!Pups.BY_ID[out.buddy] || !out.pups[out.buddy]) out.buddy = Pups.STARTER_ID;
+    return out;
+  }
+
+  // Rolls the daily counters over. Returns the login bonus granted today (0 if already claimed).
+  function rollDaily(state, now) {
+    const today = dayKey(now);
+    if (state.daily.date === today) return 0;
+    const yesterday = dayKey(now - 86400000);
+    state.daily.streak = state.daily.date === yesterday ? state.daily.streak + 1 : 1;
+    state.daily.date = today;
+    state.daily.freePullsLeft = DAILY_FREE_PULLS;
+    state.ads.rewardedToday = 0;
+    const bonus = DAILY_LOGIN_BONES + 10 * Math.min(state.daily.streak - 1, 6);
+    state.bones += bonus;
+    return bonus;
+  }
+
+  function load(storage) {
+    try {
+      const text = storage && storage.getItem(KEY);
+      return normalize(text ? JSON.parse(text) : null);
+    } catch (e) {
+      return freshState();
+    }
+  }
+
+  function save(storage, state) {
+    try { storage && storage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+  }
+
+  const State = { KEY, DAILY_FREE_PULLS, DAILY_LOGIN_BONES, STARTING_BONES, dayKey, freshState, normalize, rollDaily, load, save };
+
+  root.PB = root.PB || {};
+  root.PB.State = State;
+  if (typeof module !== 'undefined' && module.exports) module.exports = State;
+})(typeof globalThis !== 'undefined' ? globalThis : this);

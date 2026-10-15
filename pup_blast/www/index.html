@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Pup Blast</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <section id="screen-home" class="screen home">
+    <header class="topbar">
+      <button id="btn-settings" class="icon-btn" type="button" aria-label="Settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+      <div class="bones-pill"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span data-bones>0</span></div>
+    </header>
+    <div class="home-hero">
+      <h1 class="logo"><span class="logo-pup">Pup</span><span class="logo-blast">Blast</span></h1>
+      <button id="home-buddy" class="buddy-stage" type="button" aria-label="Boop your buddy"></button>
+      <p id="home-buddy-caption" class="buddy-caption"></p>
+    </div>
+    <div class="home-actions">
+      <button id="btn-play" class="btn big" type="button">Play</button>
+      <p class="best">Best score <b id="home-best">0</b></p>
+      <div class="home-row">
+        <button id="btn-gacha" class="btn tile" type="button"><span>Pup-a-Matic</span><span id="gacha-badge" class="badge" hidden></span></button>
+        <button id="btn-kennel" class="btn tile" type="button"><span>Kennel</span><span id="kennel-count" class="count"></span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-game" class="screen game" hidden>
+    <header class="game-top">
+      <button id="btn-quit" class="icon-btn" type="button" aria-label="Back to menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="score-wrap">
+        <div id="score" class="score">0</div>
+        <div class="best-sm">Best <span id="game-best">0</span></div>
+      </div>
+      <div class="bones-pill earned" title="Bones earned this run"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span id="run-bones">0</span></div>
+    </header>
+    <div class="board-wrap">
+      <div id="board" class="board" aria-label="Puzzle board"></div>
+      <div id="fx" class="fx" aria-live="polite"></div>
+    </div>
+    <div id="tray" class="tray">
+      <div class="slot"></div><div class="slot"></div><div class="slot"></div>
+    </div>
+    <div class="buddy-bar">
+      <div id="game-buddy" class="buddy-face"></div>
+      <div class="buddy-info"><b id="game-buddy-name"></b><span id="game-buddy-perk"></span></div>
+      <button id="btn-power" class="btn power" type="button">Power</button>
+    </div>
+  </section>
+
+  <section id="screen-gacha" class="screen gacha" hidden>
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-back aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="screen-title">Pup-a-Matic</h2>
+      <div class="bones-pill"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span data-bones>0</span></div>
+    </header>
+    <div class="machine" aria-hidden="true">
+      <svg viewBox="0 0 200 230">
+        <rect x="40" y="150" width="120" height="70" rx="14" fill="var(--machine)"/>
+        <rect x="80" y="178" width="40" height="26" rx="8" fill="var(--night)"/>
+        <circle cx="140" cy="170" r="9" fill="var(--accent)"/>
+        <circle cx="100" cy="88" r="74" fill="var(--glass)" stroke="var(--machine)" stroke-width="8"/>
+        <g class="balls">
+          <circle cx="70" cy="118" r="17" fill="var(--c5)"/><circle cx="104" cy="126" r="17" fill="var(--c7)"/>
+          <circle cx="136" cy="114" r="17" fill="var(--c3)"/><circle cx="86" cy="90" r="17" fill="var(--c4)"/>
+          <circle cx="120" cy="86" r="17" fill="var(--c6)"/><circle cx="58" cy="84" r="15" fill="var(--c2)"/>
+          <circle cx="100" cy="58" r="16" fill="var(--legend)"/><circle cx="142" cy="78" r="14" fill="var(--c1)"/>
+        </g>
+        <ellipse cx="74" cy="44" rx="22" ry="10" fill="#ffffff" opacity=".25" transform="rotate(-30 74 44)"/>
+      </svg>
+    </div>
+    <p id="pity" class="pity"></p>
+    <div class="pull-actions">
+      <button id="btn-pull-free" class="btn ad" type="button"><span class="ad-chip">AD</span><span class="label">Free pull</span></button>
+      <div class="pull-row">
+        <button id="btn-pull-1" class="btn" type="button">Pull ×1 <span class="cost">100</span></button>
+        <button id="btn-pull-10" class="btn alt" type="button">Pull ×10 <span class="cost">900</span></button>
+      </div>
+      <p class="fine">Odds: Common 62% · Rare 27% · Epic 9% · Legendary 2%</p>
+    </div>
+  </section>
+
+  <section id="screen-kennel" class="screen kennel" hidden>
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-back aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="screen-title">Kennel</h2>
+      <div class="bones-pill"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span data-bones>0</span></div>
+    </header>
+    <p id="kennel-progress" class="kennel-progress"></p>
+    <div id="kennel-grid" class="kennel-grid"></div>
+  </section>
+
+  <div id="modal" class="modal" hidden><div id="modal-sheet" class="sheet" role="dialog" aria-modal="true"></div></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+</div>
+
+<script src="js/pups.js"></script>
+<script src="js/core.js"></script>
+<script src="js/gacha.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ads.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
