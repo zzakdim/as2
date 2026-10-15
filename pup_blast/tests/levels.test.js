@@ -160,3 +160,42 @@ test('every Dog Park line has 0 or at least 4 open cells', () => {
     }
   }
 });
+
+test('Worlds 3-5: 40 valid, tuned levels each, opening in a chain', () => {
+  const Tuning = require('../www/js/tuning.js');
+  const expect = { w3: ['Beach', 'w2-30'], w4: ['Snowy Hill', 'w3-30'], w5: ['Autumn Backyard', 'w4-30'] };
+  for (const [id, [name, after]] of Object.entries(expect)) {
+    const w = Levels.WORLDS.find((x) => x.id === id);
+    assert.strictEqual(w.name, name);
+    assert.strictEqual(w.unlockAfter, after);
+    assert.strictEqual(w.levels.length, 40);
+    for (const l of w.levels) {
+      for (const row of l.start) assert.match(row, /^[.#bCPxoOwimS]{8}$/, `${l.id} row "${row}"`);
+      const g = Core.createGame(1, { start: l.start, helpers: l.helpers, squirrels: l.squirrels, blower: l.blower });
+      const { rows, cols } = Core.fullLines(g.board);
+      assert.strictEqual(rows.length + cols.length, 0, `${l.id} starts with a full line`);
+      assert.ok(!Core.isGameOver(g), `${l.id} has no legal first move`);
+      for (let k = 0; k < 8; k++) for (const isRow of [true, false]) {
+        let open = 0;
+        for (let j = 0; j < 8; j++) if (!Core.isFixed(g, isRow ? Core.idx(k, j) : Core.idx(j, k))) open++;
+        assert.ok(open === 0 || open >= 4, `${l.id} line ${k} has ${open} open cells`);
+      }
+      assert.strictEqual(l.reward.type, l.n % 5 === 0 ? 'dig' : 'bones', l.id);
+      assert.strictEqual(l.start.join('').split('').filter((ch) => ch === 'C').length, l.gift ? 4 : 0, l.id);
+      assert.ok(Tuning[l.id], `${l.id} is tuned`);
+      const [a, b, c] = Levels.starsFor(l);
+      assert.ok(a < b && b < c, `${l.id} stars rise`);
+    }
+    assert.ok(w.levels[19].gift && w.levels[39].gift, `${id} has gifts at 20 and 40`);
+  }
+  // Squirrels only in the Autumn Backyard; the Leaf Blower at 20 and 40 there.
+  const w5 = Levels.WORLDS[4];
+  assert.ok(w5.levels.every((l) => l.squirrels && l.start.join('').includes('S')));
+  assert.deepStrictEqual(w5.levels.filter((l) => l.blower).map((l) => l.n), [20, 40]);
+});
+
+test('every gift pup is a different, real pup: a rare at 20, an epic at 40', () => {
+  const gifts = Levels.LEVELS.filter((l) => l.gift);
+  assert.strictEqual(new Set(gifts.map((l) => l.gift)).size, gifts.length);
+  for (const l of gifts) assert.strictEqual(Pups.BY_ID[l.gift].rarity, l.n === 20 ? 'rare' : 'epic', l.id);
+});

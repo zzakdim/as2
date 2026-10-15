@@ -1,5 +1,7 @@
 // Worlds and levels. Every level is plain data, so adding level 41 is one more entry here.
-// start: 8 rows of 8 ('.' empty, '#' block, 'b' block with a bone treat, 'C' crate holding a gift pup).
+// start: 8 rows of 8 ('.' empty, '#' block, 'b' block with a bone treat, 'C' crate holding a gift pup,
+// 'P' fence post, 'x' off the board, 'o' buried bone, 'O' block over a buried bone, 'w' puddle,
+// 'i' ice, 'm' mud, 'S' squirrel). Rules for each live in www/js/core.js.
 (function (root) {
   'use strict';
 
@@ -130,6 +132,146 @@
     ['Dog Park Champion', 0, 'dig', ['xx......', 'x.......', '.....P..', '...CC...', '...CC...', '..P.....', '.......x', '......xx'], { helpers: HELP_BOTH, gift: 'disco', note: 'Finale' }],
   ];
 
+  // Worlds 3-5 were drafted by tools/genlevels.mjs (seeded boards, checked by the bot) and are
+  // plain data from here on: edit them like the hand-made worlds.
+  // World 3, Beach: buried bones (a line clear over one digs it up: +50 points, +10 bones) and puddles
+  // (count as filled, can't be placed on, dry up when a line clears through them). Shaped boards return.
+  const W3 = [
+    // <gen w3>
+    ['Low Tide', 0, 70, [E, E, E, E, '..o..o..', '..#.....', '...##...', '.....o#.'], { helpers: HELP_BOTH, note: 'Buried bones' }],
+    ['Sandcastle', 0, 70, [E, E, E, '#......#', E, '#o....o#', E, 'o.....o.'], { helpers: HELP_BOTH }],
+    ['Shell Hunt', 0, 70, ['..o..o..', E, E, '#......#', E, 'o.o..o..', E, '...##...'], { helpers: HELP_BOTH }],
+    ['Seagulls', 0, 70, ['...ooo..', E, E, E, 'o......o', '##.o..##', '..#.....', E], { helpers: HELP_BOTH }],
+    ['Sand Dig', 0, 'dig', [E, '...oo...', E, E, 'o..oo..o', '.#....#.', '.#....#.', '..#o....'], { helpers: HELP_BOTH }],
+    ['Tide Pools', 0, 70, ['..o..o..', E, E, '.....#..', '...#....', '...#o...', '.##w....', 'wo....ow'], { helpers: HELP_BOTH, note: 'Puddles' }],
+    ['Boardwalk', 0, 70, [E, E, '..owwo.o', E, '..#..#..', '...###..', E, 'wo....o.'], { helpers: HELP_BOTH }],
+    ['Beach Towel', 0, 70, ['...ww...', 'o......o', '..o..o..', E, E, '#......#', '#w.....#', 'o..##...'], { helpers: HELP_BOTH }],
+    ['Sun Hat', 0, 70, ['o.w..w.o', E, E, '..####..', '#....o..', '..w.....', '.......#', '.o....o.'], { helpers: HELP_BOTH }],
+    ['Lighthouse', 0, 'dig', [E, '..w..w.o', 'o......o', '..o.....', '..#.o#..', E, '...##...', '...w##..'], { helpers: HELP_BOTH }],
+    ['Driftwood', 0, 85, ['x..xx..x', '.......w', 'ow....wo', '##....O#', '.o.....O', 'x......x', 'xx###.xx', 'xx....xx'], { helpers: HELP_BOTH, note: 'Shaped boards' }],
+    ['Crab Walk', 0, 85, [E, E, E, '.o....#.', 'O#..w.#O', E, '.o....o.', 'w#..###w'], { helpers: HELP_BOTH }],
+    ['Surf\'s Up', 0, 85, [E, 'o.......', '...oo...', '#.w..w##', '#......#', '...OO...', '..w..w.#', '.#......'], { helpers: HELP_BOTH }],
+    ['Beach Ball', 0, 85, ['xxw..wxx', 'x......x', 'w..xxo.w', 'o#xxxx.o', '..xxxx..', '.##xx.#.', 'x##OO..x', 'xx.#..xx'], { helpers: HELP_BOTH }],
+    ['Sea Glass', 0, 'dig', [E, E, 'w.......', '#......#', '.o...#o#', '....o...', 'O#....wO', '.w#..#w.'], { helpers: HELP_BOTH }],
+    ['Pier', 0, 85, [E, E, 'o......o', '.O....#.', '..#.##.w', '..#..#..', '.o.#w.o.', 'wO.....w'], { helpers: HELP_BOTH }],
+    ['Kelp Bed', 0, 85, ['...xx...', '..o..o..', 'w.w..w.w', 'x.###O.x', 'xo....ox', E, '#.##.##O', '...xx...'], { helpers: HELP_BOTH }],
+    ['Sunscreen', 0, 85, ['o....w.o', '.o....o.', E, '##O..O##', '.#...##.', E, E, '.ww..#w.'], { helpers: HELP_BOTH }],
+    ['Splash Zone', 0, 85, [E, '.o....o.', '..#..#..', '..#o.OO#', '.......o', '.#.ww...', '.#w..w#.', '...#....'], { helpers: HELP_BOTH }],
+    ['Message in a Bottle', 0, 'dig', ['xx....xx', 'xw.oo..x', '..o.....', '#..CC...', 'Ow.CC.#O', '.#w..w#.', 'x##..##x', 'xx...oxx'], { helpers: HELP_BOTH, gift: 'cocoa' }],
+    ['Tide Turns', 0, 100, [E, 'w.......', E, '...ooo..', '##.....#', '.O.#..O.', 'o.#ww#.#', 'w.#..#.w'], { helpers: HELP_BOTH }],
+    ['Starfish', 0, 100, [E, 'wo....o.', '.w.oo.w.', '..###...', '.#....#.', '##....##', 'O......O', 'w......w'], { helpers: HELP_BOTH }],
+    ['Lifeguard Tower', 0, 100, ['xxw..wxx', 'xx....xx', '...o..w.', '..#..#..', '.#.oO.#.', '##w.#w##', 'xx.oo.xx', 'xx.O..xx'], { helpers: HELP_BOTH }],
+    ['Sandbar', 0, 100, [E, E, '......o.', '...#O...', '.#Ow###.', '.##...#.', 'o...w..o', 'w#ow...w'], { helpers: HELP_BOTH }],
+    ['Shipwreck', 0, 'dig', ['..w..w..', E, '...oo...', 'O..###..', '..ww.w.O', '...#....', E, '##o##o##'], { helpers: HELP_BOTH }],
+    ['Sand Dollar', 0, 100, ['..xxxx.o', '..w..w..', E, 'xo#..#.x', 'xoOooO.x', '.##.....', '##ww.w##', '.#xxxx#.'], { helpers: HELP_BOTH }],
+    ['Coral Cove', 0, 100, ['..o.....', '...ww...', '...w.o..', '.w..#.w.', '...##...', 'Oo....oO', '.##..##.', '##.o...#'], { helpers: HELP_BOTH }],
+    ['Rip Current', 0, 100, ['w.......', '.....w..', '.o.w..o.', '#..ww..#', '.o.##oo.', '.#.O..##', '.#......', '#...O..#'], { helpers: HELP_BOTH }],
+    ['Sea Breeze', 0, 100, ['x.wxx..x', 'w.......', '...oo...', '#..OO#oo', '..wwww.#', 'x.#o.##x', 'xx#..#xx', 'xx#..#xx'], { helpers: HELP_BOTH }],
+    ['Treasure Map', 0, 'dig', [E, E, '..w..w..', '...oo.#.', 'Oo.##.##', '.o####o.', 'w.#..#.w', 'w.O....w'], { helpers: HELP_BOTH }],
+    ['Moon Tide', 0, 115, ['.w....w.', '..o..o..', E, 'ww#..#ww', '..####..', '..#..#..', '.O#o.#O.', '.o..#.o.'], { helpers: HELP_BOTH }],
+    ['Jellyfish', 0, 115, ['xxwww.xx', 'x.o..o.x', '...xx...', 'w.xxxx#w', '.wxxxx##', '##OxxO.#', 'xo.###.x', 'xx#oo#xx'], { helpers: HELP_BOTH }],
+    ['Dune Grass', 0, 115, ['...oo...', E, 'w..ww..w', '..OooOw.', '....o...', '.##..##w', '.#....##', '#..##..#'], { helpers: HELP_BOTH }],
+    ['Bonfire', 0, 115, ['w......w', E, '...ww...', 'o.o....o', '..#OO#..', '#o..###.', '.w####wo', '..#..#..'], { helpers: HELP_BOTH }],
+    ['Deep Dig', 0, 'dig', ['...xx...', '.w..w...', 'w......w', 'x......x', 'xo.oo.ox', '.######.', '#O.ww.O#', '#.#xx#o#'], { helpers: HELP_BOTH }],
+    ['High Tide', 0, 115, ['w......w', E, 'woow..o.', '#wo..o.#', 'w.#..#..', 'O.#..o.O', '#...#.##', '...###..'], { helpers: HELP_BOTH }],
+    ['Sea Cave', 0, 115, ['w......w', '.w.oo.w.', 'ow.oo.#o', 'w#....#.', '.##..##.', E, '#O##.#O#', '....w...'], { helpers: HELP_BOTH }],
+    ['Storm Surge', 0, 115, ['xx....xx', 'xw.w..wx', 'wo....ow', '.w.oo.w#', 'O.####.O', '.#o.#o#.', 'x..##..x', 'xx###.xx'], { helpers: HELP_BOTH }],
+    ['Sunset Pier', 0, 115, [E, 'w..ww...', '...wo...', '..o..o#.', '.##..##.', '.#w##o#.', '.#wo#w#.', '..O.#Oo.'], { helpers: HELP_BOTH }],
+    ['Big Dig-Up', 0, 'dig', ['..w..w..', '.ow..w..', 'owo..owo', '#O.CC.O.', '.##CC##.', '#.oOOo..', '###..#.#', '..#o.#..'], { helpers: HELP_BOTH, gift: 'duchess', note: 'Finale' }],
+    // </gen w3>
+  ];
+  // World 4, Snowy Hill: ice (survives one clear) and mud (survives two), on 8x8, 7x7 and 6x6 boards.
+  const W4 = [
+    // <gen w4>
+    ['First Snow', 0, 85, [E, E, E, E, '.i......', '.i......', '#......#', E], { helpers: HELP_BOTH, note: 'Ice' }],
+    ['Icicles', 0, 85, [E, 'i.......', E, E, E, E, '.#....#.', '..i..i..'], { helpers: HELP_BOTH }],
+    ['Snowball', 0, 85, [E, E, E, E, E, E, '.ii..ii.', '...##...'], { helpers: HELP_BOTH }],
+    ['Frozen Pond', 0, 85, [E, E, E, '..#..#..', '.i......', 'i......i', '.i......', '.i......'], { helpers: HELP_BOTH }],
+    ['Sled Run', 0, 'dig', [E, E, '..iiii..', E, '..i..i..', E, '..#..##.', E], { helpers: HELP_BOTH }],
+    ['Mud Season', 0, 85, [E, E, E, E, E, '..#..##.', '.i.mm.i.', '.i....i.'], { helpers: HELP_BOTH, note: 'Mud' }],
+    ['Snow Boots', 0, 85, ['.i....i.', E, E, 'm..i...m', E, '....i#..', '....##..', E], { helpers: HELP_BOTH }],
+    ['Mittens', 0, 85, ['..i..i..', E, E, '.i....i.', E, '....m...', 'm#......', '.#....#.'], { helpers: HELP_BOTH }],
+    ['Hot Cocoa', 0, 85, [E, E, E, '...###..', '..i.ii..', '.i...m..', '.....m..', E], { helpers: HELP_BOTH }],
+    ['Snow Fort', 0, 'dig', [E, 'i......i', '.i......', '...##...', E, 'i.......', E, 'm.m...#.'], { helpers: HELP_BOTH }],
+    ['Little Hill', 0, 100, ['.......x', '.i....ix', '.......x', '...##..x', '.m....mx', '..iii#.x', '#......x', 'xxxxxxxx'], { helpers: HELP_BOTH, note: 'Small boards' }],
+    ['Slush', 0, 100, [E, '.ii..ii.', E, '...mm...', '....i...', E, '.#....#.', '.#....#.'], { helpers: HELP_BOTH }],
+    ['Ski Lift', 0, 100, [E, E, E, '.#....#.', E, '.i....i.', 'ii....mi', '#m....m#'], { helpers: HELP_BOTH }],
+    ['Snow Angel', 0, 100, ['.i.....x', '.......x', '..iii..x', '.m#...mx', 'i...#.mx', '.##....x', '.......x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Igloo', 0, 'dig', [E, E, E, '.ii..#..', '..i..i..', E, '.m.##imm', '...#....'], { helpers: HELP_BOTH }],
+    ['Frostbite', 0, 100, [E, E, '...ii...', E, '...ii...', 'm......m', 'i#..m.#.', '#......#'], { helpers: HELP_BOTH }],
+    ['Pine Trees', 0, 100, ['.......x', '.i.....x', '.......x', '.ii..iix', '.#....#x', '.#....#x', '..m.mm.x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Thin Ice', 0, 100, ['...i....', E, E, 'i.i..i..', '#.i..i.#', '#.m..mm.', E, '...##...'], { helpers: HELP_BOTH }],
+    ['Blizzard', 0, 100, [E, E, '.....i..', '.m....m.', '...iiim.', '.#...##.', '..#..#..', '..i....i'], { helpers: HELP_BOTH }],
+    ['Snowed In', 0, 'dig', ['...iii.x', '....i..x', '..CC...x', '.mCC..mx', '..mii..x', '.#....#x', '.#...##x', 'xxxxxxxx'], { helpers: HELP_BOTH, gift: 'clover' }],
+    ['Sled Dogs', 0, 115, [E, '..iiii..', E, '.O....m.', E, '..o..o..', '.m####m.', 'i....#mi'], { helpers: HELP_BOTH }],
+    ['Ice Rink', 0, 115, ['i......i', E, 'i.i..i.i', '#......#', 'o..m.#..', '.mm#..m.', '#.......', '..o.O...'], { helpers: HELP_BOTH }],
+    ['Snowdrift', 0, 115, ['io....ox', '.i...iix', '.......x', '.#....#x', '..mmmm.x', '...##..x', '.i.#.Oix', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Avalanche Zone', 0, 115, [E, '.i..i.i.', '.m....m.', 'im.oo.m#', '.#....O.', '##.....#', '......i#', '.i....i.'], { helpers: HELP_BOTH }],
+    ['Mountain Hut', 0, 'dig', [E, E, '.i.i..i.', '..i..i..', '..i..i..', '.o####..', '.Oo##...', '.m.mm.m.'], { helpers: HELP_BOTH }],
+    ['Tiny Peak', 0, 115, ['o......x', 'i......x', '..i..i.x', '.#....#x', '..###O.x', '..mmmm.x', 'o#iiii.x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Frozen Creek', 0, 115, ['xxxxxxxx', 'x..ii..x', 'xo.....x', 'x..##.Ox', 'x#.....x', 'xo.....x', 'x.immi.x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Muddy Trail', 0, 115, [E, '.i....i.', '.i....i.', E, '...###..', '#......#', 'mmm..m#.', 'iioO.o.i'], { helpers: HELP_BOTH }],
+    ['Whiteout', 0, 115, ['.......x', '...ii..x', '.i.....x', 'm...mm.x', '.Om##m#x', '.o##o..x', '..iiii#x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Summit', 0, 'dig', ['xxxxxxxx', 'x.o..o.x', 'x......x', 'x.#ii#.x', 'x.....#x', 'x.miim.x', 'x.mO...x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Northern Lights', 0, 130, [E, 'i......i', E, 'O#iiii#.', '.#i..i#m', '.#......', 'm......m', 'm#.oo.#m'], { helpers: HELP_BOTH }],
+    ['Ice Cave', 0, 130, ['.......x', '......ix', 'o..i...x', 'iiO##.ix', '#m....mx', '#o.mm#ix', '#i.#m.ix', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Cold Snap', 0, 130, ['xxxxxxxx', 'x.....ix', 'x.i....x', 'xi.##.ix', 'xm.mm.ix', 'x.o..o.x', 'x#...O#x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Glacier', 0, 130, ['iii..iii', '....o...', '.o....o.', '#..imi..', '......#.', '##Omm.#.', E, '.#m..m#.'], { helpers: HELP_BOTH }],
+    ['Yeti Tracks', 0, 'dig', ['.i....ix', '.......x', '#......x', '#io.Ooix', '..#om#mx', '..#.##ix', '.iimmmix', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Deep Freeze', 0, 130, ['xxxxxxxx', 'x.....ix', 'x.....ix', 'x.Ooo.ix', 'x.#o.##x', 'x.#iim.x', 'x.m..m.x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Polar Night', 0, 130, [E, '.i....i.', '.ii...i.', 'Oi.i..i#', 'om.#..mo', 'mm.#i..m', '#..om..#', '..#.##..'], { helpers: HELP_BOTH }],
+    ['Permafrost', 0, 130, ['o..ii..x', '...ii.ix', '.......x', '.moiiomx', '.##ii##x', 'Om#..#mx', '..m##m.x', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Ice Storm', 0, 130, ['xxxxxxxx', 'x..ii..x', 'x.immi.x', 'x##mm.#x', 'xo#O..ox', 'xi.....x', 'x.....ox', 'xxxxxxxx'], { helpers: HELP_BOTH }],
+    ['Frozen Fortress', 0, 'dig', ['..m..m..', E, '...ooi..', '..OCCm..', 'i.mCCm.i', '..immo..', 'mm#..#mm', '......m.'], { helpers: HELP_BOTH, gift: 'merlin', note: 'Finale' }],
+    // </gen w4>
+  ];
+  // World 5, Autumn Backyard: squirrels hop every 3 moves after a warning look; a line through one
+  // chases it off (+100). Later they drop acorns and come back. The Leaf Blower pushes a row sideways.
+  const W5 = [
+    // <gen w5>
+    ['Falling Leaves', 0, 100, ['.......S', E, E, E, '.....#..', '...##...', E, '..#.....'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0}, note: 'Squirrels' }],
+    ['Squirrel Spotted', 0, 100, [E, '......S.', E, E, E, '..#..#..', '..#.....', '......#.'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Bird Feeder', 0, 100, ['.....S..', E, E, E, E, '#......#', '#......#', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Garden Gnome', 0, 100, [E, 'S.......', E, E, '.#......', E, E, '##....##'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Leaf Pile', 0, 'dig', [E, E, '......S.', E, '#......#', E, '.......#', '#......#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Pumpkin Patch', 0, 100, [E, E, E, '......S.', E, '..#..#..', '##.....#', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Tree Swing', 0, 100, ['..S.....', E, E, E, '......#.', '.#.##.#.', E, E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Sandbox', 0, 100, [E, E, E, '#.#.S#.#', E, '.......#', E, E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Hammock', 0, 100, [E, '.......S', E, E, E, '.##..##.', E, '#......#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Back Porch', 0, 'dig', [E, E, E, 'S.......', '##...##.', '.#....#.', E, E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: false, returns: 0} }],
+    ['Acorn Drop', 0, 115, [E, '..S.....', E, E, '..#..#..', E, '...##...', '.#....#.'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0}, note: 'Acorns' }],
+    ['Rake Lines', 0, 115, ['..S.....', E, E, '#.#..#.#', '#......#', E, E, E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Apple Tree', 0, 115, [E, E, E, '.....S..', '#......#', E, '..####..', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Garden Hose', 0, 115, [E, '.S......', '...##...', '...#....', '.#......', '.#.#....', '...#....', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Treehouse', 0, 'dig', ['..S.....', E, E, '.#....##', '..#..#..', '..#..#..', E, E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Compost Heap', 0, 115, ['....S...', E, E, E, '...##...', '....#...', '...##...', '..##....'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Fence Run', 0, 115, ['......S.', E, E, E, '...##...', '#......#', E, '#.....##'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Scarecrow', 0, 115, ['.S......', E, E, E, E, E, '...##...', '.##.###.'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Windy Day', 0, 115, ['.....S..', E, E, E, '##....##', '...##...', '...##...', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['First Gust', 0, 'dig', [E, '...S....', E, '...CC...', '#..CC#..', '..#..#..', '..#..##.', '#.......'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0}, blower: {every: 4}, gift: 'ziggy', note: 'Leaf Blower' }],
+    ['Two Squirrels', 0, 130, [E, E, E, '..S..S..', '#......#', 'ii...#i#', '.#.....#', '#......#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Frosty Morning', 0, 130, [E, E, 'i.S.....', 'i.....Si', '..#..#..', '...##...', '...#.#..', '...##...'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Wheelbarrow', 0, 130, ['...S....', E, '.i.S..ii', '##....##', '......#.', '.......#', '#......#', '.......#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Hay Bales', 0, 130, [E, 'S......S', E, '.#....#.', '..#..#..', '..#i.#..', 'i...#.#i', '.#......'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Harvest', 0, 'dig', [E, 'S......S', E, '###...##', 'i......i', '..#..#..', '.#....#i', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Mud Kitchen', 0, 130, ['..i..i..', E, '#......#', '#.S..S.#', '..##.#..', '..i..i..', E, '...##...'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Bird Bath', 0, 130, [E, E, E, 'iiS..Sii', '.....#..', '...##...', '#......#', '##....##'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Woodpile', 0, 130, ['.....S..', E, '.......S', 'i......i', E, '..#..##.', '..#.i#..', '.####i#.'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Lantern Night', 0, 130, [E, '..ii.i..', '...SS...', '..#..#..', '..#..#i.', '.##..##.', '...##...', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['Cider Press', 0, 'dig', [E, E, '..S..S..', '..#.##..', '...#....', '#.#..###', '..i..i#.', '..i..i..'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 0} }],
+    ['They\'re Back', 0, 145, [E, E, '...S...S', 'i....#.i', '..#..#.#', '#.#....#', 'ii###...', E], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6}, note: 'Squirrels come back' }],
+    ['Squirrel Gang', 0, 145, ['.....S..', '.......S', '..i..i..', '.i#.....', E, '..#..#..', '..#..#.#', 'i.####..'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Chipmunk Run', 0, 145, ['S......S', E, '...ii...', '...##...', '..#..#..', 'i.#..#.i', '..#.##..', '...##...'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Gutter Leaves', 0, 145, [E, '.......S', E, '#.i..S.#', '..#..#.#', '###....#', '.i#..#i.', '..i.....'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Nut Heist', 0, 'dig', [E, '...SS...', E, '..i#.i..', '..i..i..', '.#.....#', '##..#.#.', '#.###...'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Cold Front', 0, 145, ['S......S', '.i....i.', '.i....i.', E, '##....#i', '#.......', '#..###.#', '..#..#..'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Storm Clouds', 0, 145, ['.i....i.', E, '...SS...', '.i####i.', '..##.#.i', E, '....#...', '##.....#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Last Leaves', 0, 145, ['S.i..i.S', E, '...ii...', '.####.i.', '.....#..', '.##..##.', '......#.', '#......#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['Calm Before', 0, 145, ['.i....i.', '.i....i.', E, '#.S...S#', E, '#.#.##..', '..#..#..', '##i...##'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6} }],
+    ['The Leaf Blower', 0, 'dig', [E, '....S...', '.......i', '.iiCCii.', '#..CC#.#', '#..##..#', '..#.##..', '#......#'], { helpers: HELP_BOTH, squirrels: {every: 3, acorns: true, returns: 6}, blower: {every: 3}, gift: 'dj', note: 'Finale' }],
+    // </gen w5>
+  ];
+
   function buildWorld(id, name, rows, extra) {
     return {
       id, name, unlockAfter: null, ...extra,
@@ -145,9 +287,9 @@
   const WORLDS = [
     buildWorld('w1', 'Living Room', W1),
     buildWorld('w2', 'Dog Park', W2, { unlockAfter: 'w1-30' }),
-    { id: 'w3', name: 'Beach', levels: [], soon: 'Buried bones and puddles' },
-    { id: 'w4', name: 'Snowy Hill', levels: [], soon: 'Ice, mud and smaller boards' },
-    { id: 'w5', name: 'Autumn Backyard', levels: [], soon: 'Squirrels and the Leaf Blower' },
+    buildWorld('w3', 'Beach', W3, { unlockAfter: 'w2-30' }),
+    buildWorld('w4', 'Snowy Hill', W4, { unlockAfter: 'w3-30' }),
+    buildWorld('w5', 'Autumn Backyard', W5, { unlockAfter: 'w4-30' }),
   ];
   const LEVELS = WORLDS.flatMap((w) => w.levels);
   const BY_ID = Object.fromEntries(LEVELS.map((l) => [l.id, l]));

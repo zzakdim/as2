@@ -161,9 +161,21 @@ Each pup has a **bond** level from 1 to 10, separate from its copy level. Bond a
 
 **Play** opens the map; **Endless** is the classic score chase with first-time milestone bonuses (1,000 to 40,000 points, 25 to 800 bones).
 
-- `www/js/levels.js` holds the worlds. Each level is one entry: name, starting pattern (8 rows of `.` `#` `b` `C` `P` `x`), first-clear reward, helpers, gift pup and tease. Worlds 3–5 (Beach, Snowy Hill, Autumn Backyard) show as "coming soon" until their mechanics land.
+- `www/js/levels.js` holds the worlds. Each level is one entry: name, starting pattern (8 rows of `.` `#` `b` `C` `P` `x` `o` `O` `w` `i` `m` `S`), first-clear reward, helpers, gift pup, squirrel and Leaf Blower rules, and tease. There are 5 worlds of 40 levels. Each world opens when level 30 of the one before it is cleared.
 - **World 1, the Living Room** (40 levels): score goals, starting blocks, crates and helpers.
 - **World 2, the Dog Park** (40 levels) opens when **Living Room level 30** is cleared, so a player stuck late in the Living Room can move on. It adds **fence posts** (`P`) and **shaped boards** (`x` marks squares off the board: round pen, plus, bone, heart, donut, clover, hourglass). Both count as filled, so lines complete around them, but they never clear and nothing can go on them. Every row and column keeps 0 or at least 4 open squares, and a board only deals pieces that fit its shape. Gift pups: **Domino** at level 20 and **Disco** at level 40. The board turns grass green.
+- **World 3, the Beach** (opens at Dog Park 30):
+  - **Buried bones** (`o`, or `O` under a block): a line clear over one digs it up for +50 points and 10 bones.
+  - **Puddles** (`w`): count as filled and can't be built on. A line cleared through one dries it up, and powers can't.
+  - Shaped boards return from level 11. Gifts: Cocoa (20) and Duchess (40). The finale is the Big Dig-Up.
+- **World 4, Snowy Hill** (opens at Beach 30):
+  - **Ice** (`i`) shrugs off one clear and **mud** (`m`) two, from lines or powers.
+  - 7×7 boards from level 11, 6×6 from 26, and buried bones from 21. Gifts: Clover (20) and Merlin (40). The finale is the Frozen Fortress, with mud walls around the crate.
+- **World 5, Autumn Backyard** (opens at Snowy Hill 30):
+  - **Squirrels** (`S`) hop every 3 moves, after showing where they'll go. A line through one chases it off for +100.
+  - From 11 they leave **acorn** blocks behind, and from 31 a chased squirrel comes back after 6 moves. Ice is mixed in from 21.
+  - The **Leaf Blower** appears at 20 (every 4 moves) and as the finale boss at 40 (every 3). It marks a row, then pushes it one cell sideways, and the end block falls off. Gifts: Ziggy (20) and DJ Woofles (40).
+- Worlds 3–5 were drafted by `node tools/genlevels.mjs`: seeded, mostly symmetric boards on a difficulty ramp. A board is kept only if it passes the level rules and the starter bot neither dies at once nor plays forever. The boards are plain data now; edit them by hand.
 - A dig every 5 levels (paid as a free dig token at the Dig Spot), bones otherwise. A 3-star sweep of a world pays a crown on the map and an **Epic dig** token.
 - **Gift pups:** Living Room levels 20 and 40 start with a crate holding Sprout and Captain Biscuit. Two line clears through the crate free the pup the moment it breaks, even if the run is then lost, and it never repeats. Powers can't break crates.
 - **Helpers (no fouls):** golden bones double a clear's points (from level 15), and tennis balls also clear their row (from level 17).
@@ -185,7 +197,15 @@ Dog Park bot results:
 | 21–30 | ~50% / ~2% | ~98% / ~19% |
 | 31–40 | ~39% / ~0% | ~94% / ~9% (finale 5%) |
 
-`node tools/bot.mjs 60 w2` prints the Dog Park report. People plan ahead better than the greedy bot, so expect real pass rates to be higher. Re-run the tuner whenever a level changes. `node tools/bot.mjs 60` prints the full per-level report.
+Worlds 3–5 ramp from "patience" to "need dogs". The Beach's 1★ is still set against a starter. From Snowy Hill on, 1★ assumes a leveled rare at Bond 5. Every 3★ from the Beach on assumes a maxed epic at Bond 10.
+
+| World | Levels | Starter pass | Leveled rare pass | Maxed + bonded: pass / 3★ |
+|---|---|---|---|---|
+| Beach | 1–10 → 31–40 | 64% → 38% | | 100% / 30% → 98% / 8% (finale 4%) |
+| Snowy Hill | 1–10 → 31–40 | 26% → 12% | 63% → 38% | 97% / 24% → 93% / 7% (finale 3%) |
+| Autumn Backyard | 1–10 → 31–40 | 19% → 10% | 59% → 34% | 95% / 19% → 85% / 4% (finale 2%) |
+
+`node tools/bot.mjs 60 w2` prints a world's report, and `node tools/bot.mjs tune 120 w4` retunes one world. People plan ahead better than the greedy bot, so expect real pass rates to be higher. Re-run the tuner whenever a level changes. `node tools/bot.mjs 60` prints the full per-level report.
 
 ## Tutorial
 

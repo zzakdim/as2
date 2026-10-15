@@ -202,7 +202,7 @@
     if (lvl) {
       // A level's crate only appears until its pup has been freed once.
       const crate = lvl.gift && !state.gifts[lvl.id];
-      gameOpts = { start: crate ? lvl.start : lvl.start.map((row) => row.replace(/C/g, '.')), helpers: lvl.helpers };
+      gameOpts = { start: crate ? lvl.start : lvl.start.map((row) => row.replace(/C/g, '.')), helpers: lvl.helpers, squirrels: lvl.squirrels, blower: lvl.blower };
     }
     const bond = o.pup ? 1 : bondOf(pup.id);
     gameOpts = Object.assign({}, gameOpts, { scoreBonus: Pups.bondBonus(bond) });
@@ -235,6 +235,15 @@
     return k === piece.treat ? BONE_SVG : '';
   }
 
+  const CELL_KIND = {
+    [Core.PUDDLE_COLOR]: 'puddle', [Core.SQUIRREL_COLOR]: 'squirrel',
+    [Core.ICE_COLOR]: 'b ice', [Core.MUD_COLOR]: 'b mud', [Core.ACORN_COLOR]: 'b acorn',
+  };
+  const SQUIRREL_SVG = '<svg class="critter" viewBox="0 0 32 32" aria-label="Squirrel"><path d="M21 27c6 0 9-5 8-11-1-5-6-7-8-4 3 0 5 3 4 6-1 4-4 5-6 5z" fill="#c9773a" stroke="#5a3214" stroke-width="1.2"/><ellipse cx="14" cy="21" rx="7" ry="6.5" fill="#d88a47" stroke="#5a3214" stroke-width="1.2"/><circle cx="11" cy="12" r="5.5" fill="#d88a47" stroke="#5a3214" stroke-width="1.2"/><path d="M8 7.5l1-3 2.5 3M12.5 7l2-2.5 1 3.5" fill="#d88a47" stroke="#5a3214" stroke-width="1.1" stroke-linejoin="round"/><circle cx="9.5" cy="11.5" r="1.1" fill="#2a1630"/><circle cx="6.2" cy="13.2" r=".9" fill="#2a1630"/><ellipse cx="13" cy="23" rx="3.4" ry="2.8" fill="#f1c99b"/><ellipse cx="12" cy="18.5" rx="2.2" ry="1.6" fill="#9a5a2a"/></svg>';
+  const ACORN_SVG = '<svg class="critter" viewBox="0 0 24 24" aria-label="Acorn"><path d="M6 11c0 6 3 10 6 10s6-4 6-10z" fill="#c98a4a" stroke="#5a3214" stroke-width="1.2"/><path d="M4.5 11c0-3.5 3-5.5 7.5-5.5s7.5 2 7.5 5.5z" fill="#7a4a24" stroke="#3b2414" stroke-width="1.2"/><path d="M12 5.5V3" stroke="#3b2414" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const PUDDLE_SVG = '<svg class="ripple" viewBox="0 0 24 24" aria-label="Puddle"><path d="M5 10c2-1.5 4 1.5 6 0s4-1.5 6 0M7 15c2-1.5 4 1.5 6 0s3-1 4 0" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  const BURIED_SVG = '<svg class="buried-bone" viewBox="0 0 24 24" aria-label="Buried bone"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.2 1.6"/></svg>';
+  const CELL_ART = { [Core.SQUIRREL_COLOR]: SQUIRREL_SVG, [Core.ACORN_COLOR]: ACORN_SVG, [Core.PUDDLE_COLOR]: PUDDLE_SVG };
   const POST_SVG = '<svg class="post" viewBox="0 0 24 24" aria-label="Fence post"><rect x="6" y="3" width="12" height="19" rx="3" fill="#b07a45" stroke="#5e3b1c" stroke-width="1.4"/><path d="M6 8h12M6 15h12" stroke="#5e3b1c" stroke-width="1.2" opacity=".55"/><circle cx="12" cy="5.6" r="1.1" fill="#5e3b1c"/></svg>';
   function renderBoard() {
     const g = run.game;
@@ -243,9 +252,20 @@
       const v = g.board[i];
       if (v === Core.POST_COLOR) { cellEls[i].className = 'cell post'; cellEls[i].innerHTML = POST_SVG; continue; }
       if (v === Core.HOLE_COLOR) { cellEls[i].className = 'cell hole'; cellEls[i].innerHTML = ''; continue; }
-      cellEls[i].className = v === Core.CRATE_COLOR ? 'cell b crate' : v ? `cell b c${v}` : 'cell';
-      cellEls[i].innerHTML = v && v !== Core.CRATE_COLOR ? cellArt(g, i) : '';
+      const kind = CELL_KIND[v];
+      let cls = kind ? `cell ${kind}` : v === Core.CRATE_COLOR ? 'cell b crate' : v ? `cell b c${v}` : 'cell';
+      let art = kind ? (CELL_ART[v] || '') : v && v !== Core.CRATE_COLOR ? cellArt(g, i) : '';
+      if (v === Core.MUD_COLOR && g.armor[i] === 1) cls += ' cracked';
+      if (g.buried[i]) { cls += v ? ' buried-under' : ' buried'; art += BURIED_SVG; }
+      cellEls[i].className = cls;
+      cellEls[i].innerHTML = art;
     }
+    // Warnings one move ahead: where a squirrel will hop, which row the Leaf Blower will push.
+    for (const q of g.squirrels) if (q.at >= 0 && q.target >= 0) { cellEls[q.target].classList.add('sq-target'); cellEls[q.at].classList.add('sq-ready'); }
+    const bl = g.blower;
+    if (bl && bl.row >= 0) for (let c = 0; c < Core.SIZE; c++) cellEls[bl.row * Core.SIZE + c].classList.add('gust', bl.dir > 0 ? 'gust-r' : 'gust-l');
+    $('#blower').hidden = !bl;
+    if (bl) { $('#blower').classList.toggle('blowing', bl.row >= 0); $('#blower').style.setProperty('--row', bl.row >= 0 ? bl.row : 3); $('#blower').classList.toggle('from-right', bl.dir < 0); }
     renderCrate();
   }
 
@@ -465,10 +485,29 @@
     if (res.ballRows && res.ballRows.length) floatText('Fetch!', 'praise');
     if (res.crateHit && !res.crateFreed) { const c = $('#crate'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); sfx.thunk(); haptic('MEDIUM'); floatText('One more!', 'combo'); }
     if (res.crateFreed) freeGift();
+    hazardFx(res);
     renderTray(); renderScore(); renderBuddyBar();
     checkStars();
     if (run.tut) { tutorialAfterPlace(res); return; }
     if (res.gameOver) handleStuck();
+  }
+
+  // ---- World 3+: bones dug up, squirrels, the Leaf Blower
+  function hazardFx(res) {
+    const h = res.hazard || {};
+    const dug = [...(res.dug || []), ...((h.settle && h.settle.dug) || [])];
+    const chased = [...(res.chased || []), ...((h.settle && h.settle.chased) || [])];
+    dug.forEach((i, k) => setTimeout(() => { floatText(`Bone! +${Core.DUG_POINTS}`, 'treat', i); sfx.coin(); }, 200 + k * 120));
+    chased.forEach((i) => { floatText(`Shoo! +${Core.CHASE_POINTS}`, 'praise', i); sfx.woof(); haptic('MEDIUM'); });
+    (res.hits || []).forEach((i) => { cellEls[i].classList.add('chip'); setTimeout(() => cellEls[i] && cellEls[i].classList.remove('chip'), 400); });
+    if (h.hopped && h.hopped.length) { h.hopped.forEach((x) => cellEls[x.to].classList.add('hop')); sfx.thunk(); }
+    if (h.back && h.back.length) floatText('The squirrel is back!', 'combo');
+    if (h.gust) floatText('Gust incoming!', 'combo');
+    if (h.blown) {
+      sfx.thunk(); haptic('MEDIUM');
+      const board = $('#board'); board.classList.remove('shake'); void board.offsetWidth; board.classList.add('shake');
+      if (h.settle && h.settle.lines) { popCells(h.settle.cleared); floatText('Lucky gust!', 'praise'); }
+    }
   }
 
   // ---- levels: star progress and the crated gift pup
@@ -797,6 +836,15 @@
   const NOTE_HELP = {
     'Fence posts': 'Posts never clear, but lines complete around them',
     'Shaped boards': 'Lines only need the squares that are on the board',
+    'Buried bones': 'Clear a line over a dashed bone to dig it up: +50 points and 10 bones',
+    Puddles: "Can't build on water. A line cleared through a puddle dries it up",
+    Ice: 'Ice takes one extra clear to break',
+    Mud: 'Mud takes two extra clears',
+    'Small boards': 'Less room: 7×7 and later 6×6 boards',
+    Squirrels: 'Every 3 moves a squirrel hops, after a look where it is going. Clear a line through it to chase it off: +100',
+    Acorns: 'Hopping squirrels now leave an acorn block behind',
+    'Leaf Blower': 'Every few moves the Leaf Blower pushes the marked row one cell sideways. The end block falls off',
+    'Squirrels come back': 'A chased squirrel returns after 6 moves',
   };
 
   function renderMap() {
@@ -847,10 +895,11 @@
   function openLevelSheet(lvl) {
     const t = Levels.starsFor(lvl);
     const rec = state.levels[lvl.id];
-    const miniCls = (ch) => (ch === '.' ? 'e' : ch === 'P' ? 'p' : ch === 'x' ? 'x' : ch === 'C' ? (lvl.gift && !state.gifts[lvl.id] ? 'c' : 'e') : 'b');
+    const MINI = { '.': 'e', P: 'p', x: 'x', o: 'o', O: 'bo', w: 'w', i: 'i', m: 'm', S: 's' };
+    const miniCls = (ch) => MINI[ch] || (ch === 'C' ? (lvl.gift && !state.gifts[lvl.id] ? 'c' : 'e') : 'b');
     const mini = lvl.start.map((row) => [...row].map((ch) => `<i class="m-${miniCls(ch)}"></i>`).join('')).join('');
     const reward = lvl.reward.type === 'dig' ? `a free ${verb().toLowerCase()}` : `${lvl.reward.amount} bones`;
-    const giftLine = lvl.gift && !state.gifts[lvl.id] ? `<p class="go-sub gift-line"><b>${Pups.BY_ID[lvl.gift].name}</b> is stuck in a crate! Clear 2 lines through it to free him.</p>` : '';
+    const giftLine = lvl.gift && !state.gifts[lvl.id] ? `<p class="go-sub gift-line"><b>${Pups.BY_ID[lvl.gift].name}</b> is stuck in a crate! Clear 2 lines through the crate to set ${Pups.BY_ID[lvl.gift].name} free.</p>` : '';
     openModal(`<p class="eyebrow">Level ${lvl.n}</p>
       <h3 class="ls-name">${lvl.name}</h3>
       <div class="mini-board" data-world="${lvl.world}" aria-label="Starting board">${mini}</div>

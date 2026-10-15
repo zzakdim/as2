@@ -160,10 +160,14 @@
 
   // Cells a targeted power would clear at (r, c), worked out on a throwaway copy of the game.
   function previewCells(id, game, r, c) {
-    const copy = Object.assign({}, game, { board: game.board.slice(), treats: game.treats.slice(), specials: game.specials.slice(), tray: game.tray.slice() });
+    const copy = Object.assign({}, game, {
+      board: game.board.slice(), treats: game.treats.slice(), specials: game.specials.slice(), tray: game.tray.slice(),
+      buried: game.buried.slice(), armor: game.armor.slice(), squirrels: game.squirrels.map((q) => Object.assign({}, q)),
+    });
     POWERS[id].apply(copy, r, c);
     const out = [];
-    for (let i = 0; i < game.board.length; i++) if (game.board[i] && !copy.board[i]) out.push(i);
+    // Cleared cells, plus ice and mud that would lose armor.
+    for (let i = 0; i < game.board.length; i++) if ((game.board[i] && !copy.board[i]) || copy.armor[i] < game.armor[i]) out.push(i);
     return out;
   }
 

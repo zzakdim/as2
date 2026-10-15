@@ -19,6 +19,21 @@
   // clear and nothing can be placed there. A post sits on the board; a hole is off the board's shape.
   const POST_COLOR = 9;
   const HOLE_COLOR = 10;
+  // World 3+: more cells with rules of their own.
+  //   Puddle: counts as filled, can't be placed on, dries up when a LINE clears through it (powers can't).
+  //   Squirrel: counts as filled; a clear through it chases it off. It hops every few moves.
+  //   Ice / mud: blocks that shrug off 1 / 2 clears before they break (powers chip them too).
+  //   Acorn: an ordinary block a squirrel leaves behind.
+  // Buried bones sit under a cell (game.buried); a line clear over one digs it up.
+  const PUDDLE_COLOR = 11;
+  const SQUIRREL_COLOR = 12;
+  const ICE_COLOR = 13;
+  const MUD_COLOR = 14;
+  const ACORN_COLOR = 15;
+  const THAWED_COLOR = 6; // what ice and mud become once their armor is gone
+  const DUG_POINTS = 50;
+  const DUG_TREATS = 2; // a dug-up bone is worth two bone treats
+  const CHASE_POINTS = 100;
 
   function mulberry32(seed) {
     let a = seed >>> 0;
@@ -63,12 +78,23 @@
   //             'P' fence post, 'x' off the board)
   // opts.helpers: { golden, ball } chance per dealt piece of carrying that helper
   // opts.scoreBonus: extra share of every point scored (0.06 = +6%), from the buddy's bond
+  // opts.squirrels: { every, acorns, returns } squirrels ('S' cells) hop every `every` placements,
+  //                 after a one-move warning; acorns: leave an acorn block behind; returns: moves until
+  //                 a chased squirrel comes back (0 = never)
+  // opts.blower: { every } the Leaf Blower pushes one row a cell sideways every `every` placements,
+  //              after a one-move warning gust
   function createGame(seed, opts) {
     const o = opts || {};
     const game = {
       board: new Array(SIZE * SIZE).fill(0),
       treats: new Array(SIZE * SIZE).fill(0),
       specials: new Array(SIZE * SIZE).fill(0),
+      buried: new Array(SIZE * SIZE).fill(0),
+      armor: new Array(SIZE * SIZE).fill(0),
+      squirrels: [],
+      squirrelRules: o.squirrels || null,
+      blower: o.blower ? { every: o.blower.every || 3, row: -1, dir: 0 } : null,
+      bonesDug: 0, squirrelsChased: 0,
       crate: null,
       helpers: o.helpers || null,
       tray: [null, null, null],
@@ -101,6 +127,12 @@
       if (ch === 'b') game.treats[i] = 1;
       if (ch === 'C') { game.board[i] = CRATE_COLOR; game.specials[i] = SPECIAL.CRATE; crateCells.push(i); }
       if (ch === 'P' || ch === 'x') game.board[i] = ch === 'P' ? POST_COLOR : HOLE_COLOR;
+      if (ch === 'o' || ch === 'O') game.buried[i] = 1;
+      if (ch === 'O') game.board[i] = 1 + ((r * 3 + c * 5) % COLORS);
+      if (ch === 'w') game.board[i] = PUDDLE_COLOR;
+      if (ch === 'i') { game.board[i] = ICE_COLOR; game.armor[i] = 1; }
+      if (ch === 'm') { game.board[i] = MUD_COLOR; game.armor[i] = 2; }
+      if (ch === 'S') { game.board[i] = SQUIRREL_COLOR; game.squirrels.push({ at: i, target: -1, away: 0 }); }
     }));
     if (crateCells.length) game.crate = { cells: crateCells, hp: CRATE_HP, freed: false };
   }
@@ -172,23 +204,43 @@
 
   function lineScore(lines) { return (10 * lines * (lines + 1)) / 2; }
 
-  // Powers never clear crate cells; only line clears can break a crate (allowCrate).
-  function clearCells(game, indices, allowCrate) {
-    const cleared = [];
+  // fromLine: the clear comes from a completed line. Only line clears dry puddles and dig up buried
+  // bones; powers can't. Crate cells clear only with fromLine === 'crate' (placePiece decides when the
+  // crate breaks). Armored cells (ice, mud) lose one armor instead of clearing.
+  function clearCells(game, indices, fromLine) {
+    const cleared = [], hits = [], dug = [], chased = [];
     let treats = 0;
     const sp = game.specials || [];
     for (const i of indices) {
-      if (!game.board[i] || isFixed(game, i)) continue;
-      if (sp[i] === SPECIAL.CRATE && !allowCrate) continue;
-      cleared.push({ i, color: game.board[i], treat: game.treats[i], special: sp[i] || 0 });
+      const v = game.board[i];
+      if (!v || isFixed(game, i)) continue;
+      if (sp[i] === SPECIAL.CRATE && fromLine !== 'crate') continue;
+      if (v === PUDDLE_COLOR && !fromLine) continue;
+      if (game.armor && game.armor[i] > 0) {
+        game.armor[i]--;
+        if (!game.armor[i]) game.board[i] = THAWED_COLOR;
+        hits.push(i);
+        continue;
+      }
+      cleared.push({ i, color: v, treat: game.treats[i], special: sp[i] || 0 });
       if (game.treats[i]) treats++;
+      if (v === SQUIRREL_COLOR) {
+        const sq = game.squirrels.find((q) => q.at === i);
+        if (sq) { sq.at = -1; sq.target = -1; sq.away = 0; chased.push(i); }
+      }
+      if (fromLine && game.buried && game.buried[i]) { game.buried[i] = 0; dug.push(i); }
       game.board[i] = 0;
       game.treats[i] = 0;
       if (game.specials) game.specials[i] = 0;
     }
+    treats += dug.length * DUG_TREATS;
     game.treatsCollected += treats;
-    return { cleared, treats };
+    game.bonesDug = (game.bonesDug || 0) + dug.length;
+    game.squirrelsChased = (game.squirrelsChased || 0) + chased.length;
+    return { cleared, treats, hits, dug, chased };
   }
+  // Points for what a clear dug up or chased off.
+  function extrasScore(res) { return res.dug.length * DUG_POINTS + res.chased.length * CHASE_POINTS; }
 
   function lineIndices(rows, cols) {
     const set = new Set();
@@ -201,6 +253,10 @@
   function snapshot(game) {
     return {
       board: game.board.slice(), treats: game.treats.slice(), specials: game.specials.slice(),
+      buried: game.buried.slice(), armor: game.armor.slice(),
+      squirrels: game.squirrels.map((q) => Object.assign({}, q)),
+      blower: game.blower ? Object.assign({}, game.blower) : null,
+      bonesDug: game.bonesDug, squirrelsChased: game.squirrelsChased,
       crate: game.crate ? Object.assign({}, game.crate, { cells: game.crate.cells.slice() }) : null,
       tray: game.tray.map((p) => (p ? Object.assign({}, p) : null)),
       score: game.score, combo: game.combo, movesSinceClear: game.movesSinceClear,
@@ -208,7 +264,11 @@
     };
   }
   function restore(game, snap) {
-    Object.assign(game, snap, { board: snap.board.slice(), treats: snap.treats.slice(), specials: snap.specials.slice() });
+    Object.assign(game, snap, {
+      board: snap.board.slice(), treats: snap.treats.slice(), specials: snap.specials.slice(),
+      buried: snap.buried.slice(), armor: snap.armor.slice(), squirrels: snap.squirrels.map((q) => Object.assign({}, q)),
+      blower: snap.blower ? Object.assign({}, snap.blower) : null,
+    });
     game.history = null;
   }
 
@@ -216,15 +276,15 @@
   function settleLines(game) {
     const { rows, cols } = fullLines(game.board);
     const lines = rows.length + cols.length;
-    const res = clearCells(game, lineIndices(rows, cols));
-    if (lines) { game.linesCleared += lines; game.score += withBonus(game, lineScore(lines)); }
+    const res = clearCells(game, lineIndices(rows, cols), true);
+    if (lines) { game.linesCleared += lines; game.score += withBonus(game, lineScore(lines) + extrasScore(res)); }
     return Object.assign(res, { lines });
   }
 
   function withBonus(game, points) { return game.scoreBonus ? Math.round(points * (1 + game.scoreBonus)) : points; }
   function isFixed(game, i) { return fixedValue(game.board[i]); }
   // A cell holding a block that can be cleared (not empty, not a post or hole).
-  function isBlock(game, i) { return !!game.board[i] && !isFixed(game, i); }
+  function isBlock(game, i) { const v = game.board[i]; return !!v && !isFixed(game, i) && v !== PUDDLE_COLOR && v !== SQUIRREL_COLOR; }
   function isEmpty(game) { return game.board.every((v, i) => v === 0 || isFixed(game, i)); }
 
   function placePiece(game, trayIndex, r, c) {
@@ -270,9 +330,10 @@
       if (cr.hp > 0) cr.cells.forEach((i) => set.delete(i));
       else { cr.freed = true; crateFreed = true; cr.cells.forEach((i) => set.add(i)); } // the whole crate breaks open
     }
-    const { cleared, treats } = clearCells(game, set, true);
+    const res = clearCells(game, set, 'crate');
+    const { cleared, treats } = res;
 
-    let points = piece.cells.length;
+    let points = piece.cells.length + extrasScore(res);
     let boardClear = false;
     if (lines > 0) {
       game.combo++;
@@ -288,13 +349,118 @@
     points = withBonus(game, points);
     game.score += points;
 
+    const hazard = tickHazards(game);
+    if (hazard.settle && hazard.settle.lines) points += withBonus(game, lineScore(hazard.settle.lines) + extrasScore(hazard.settle));
+
     let dealt = false;
     if (game.tray.every((p) => p === null)) { dealTray(game); dealt = true; }
 
     return {
       ok: true, rows, cols, lines, cleared, treats, points, boardClear, dealt, golden, ballRows, crateHit, crateFreed,
+      hits: res.hits, dug: res.dug, chased: res.chased, hazard,
       combo: game.combo, gameOver: isGameOver(game),
     };
+  }
+
+  function emptyCells(game) {
+    const out = [];
+    for (let i = 0; i < SIZE * SIZE; i++) if (!game.board[i]) out.push(i);
+    return out;
+  }
+  const pick = (game, list) => list[Math.floor(game.rng() * list.length)];
+
+  // Squirrels and the Leaf Blower act after each placement. One move before acting they show
+  // where they're going (squirrel.target, blower.row/dir) so the player can react.
+  function tickHazards(game) {
+    const ev = { warned: [], hopped: [], back: [], gust: null, blown: null, settle: null };
+    const n = game.placements;
+    const rules = game.squirrelRules;
+    if (rules && game.squirrels.length) {
+      const every = rules.every || 3;
+      for (const q of game.squirrels) {
+        if (q.at < 0) {
+          if (rules.returns && ++q.away >= rules.returns) {
+            const spot = pick(game, emptyCells(game));
+            if (spot != null) { q.at = spot; q.target = -1; q.away = 0; game.board[spot] = SQUIRREL_COLOR; ev.back.push(spot); }
+          }
+          continue;
+        }
+        if (n % every === every - 1) {
+          const options = emptyCells(game);
+          q.target = options.length ? pick(game, options) : -1;
+          if (q.target >= 0) ev.warned.push({ from: q.at, to: q.target });
+        } else if (n % every === 0 && q.target >= 0) {
+          let to = q.target;
+          if (game.board[to]) { const options = emptyCells(game); to = options.length ? pick(game, options) : -1; }
+          if (to >= 0) {
+            const from = q.at;
+            game.board[from] = rules.acorns ? ACORN_COLOR : 0;
+            game.board[to] = SQUIRREL_COLOR;
+            q.at = to;
+            ev.hopped.push({ from, to, acorn: !!rules.acorns });
+          }
+          q.target = -1;
+        }
+      }
+    }
+    const bl = game.blower;
+    if (bl) {
+      const every = bl.every;
+      if (n % every === every - 1) {
+        // Aim at the row with the most movable blocks, so the gust always does something.
+        let best = -1, most = 0;
+        for (let r = 0; r < SIZE; r++) {
+          let k = 0;
+          for (let c = 0; c < SIZE; c++) if (movable(game, idx(r, c))) k++;
+          if (k > most || (k === most && k > 0 && game.rng() < 0.5)) { most = k; best = r; }
+        }
+        bl.row = best; bl.dir = game.rng() < 0.5 ? -1 : 1;
+        if (best >= 0) ev.gust = { row: bl.row, dir: bl.dir };
+      } else if (n % every === 0 && bl.row >= 0) {
+        ev.blown = blowRow(game, bl.row, bl.dir);
+        bl.row = -1;
+        const settle = settleLinesQuiet(game);
+        if (settle.lines) ev.settle = settle;
+      }
+    }
+    return ev;
+  }
+
+  function movable(game, i) {
+    const v = game.board[i];
+    return !!v && !isFixed(game, i) && v !== PUDDLE_COLOR && v !== SQUIRREL_COLOR && v !== CRATE_COLOR;
+  }
+
+  // Slides every movable block in a row one cell toward `dir`. A block pushed off the edge is lost.
+  // Blocks stop against posts, holes, puddles, squirrels, crates and each other.
+  function blowRow(game, r, dir) {
+    const moved = [], lost = [];
+    const order = dir > 0 ? [...Array(SIZE).keys()].reverse() : [...Array(SIZE).keys()];
+    for (const c of order) {
+      const i = idx(r, c);
+      if (!movable(game, i)) continue;
+      const nc = c + dir;
+      if (nc < 0 || nc >= SIZE) {
+        lost.push(i);
+        game.board[i] = 0; game.treats[i] = 0; game.specials[i] = 0; game.armor[i] = 0;
+        continue;
+      }
+      const j = idx(r, nc);
+      if (game.board[j]) continue;
+      game.board[j] = game.board[i]; game.treats[j] = game.treats[i]; game.specials[j] = game.specials[i]; game.armor[j] = game.armor[i];
+      game.board[i] = 0; game.treats[i] = 0; game.specials[i] = 0; game.armor[i] = 0;
+      moved.push([i, j]);
+    }
+    return { row: r, dir, moved, lost };
+  }
+
+  // Clears lines a hazard completed. Scored by the caller.
+  function settleLinesQuiet(game) {
+    const { rows, cols } = fullLines(game.board);
+    const lines = rows.length + cols.length;
+    const res = clearCells(game, lineIndices(rows, cols), true);
+    if (lines) game.linesCleared += lines;
+    return Object.assign(res, { lines, rows, cols });
   }
 
   function isGameOver(game) {
@@ -352,7 +518,8 @@
 
   const Core = {
     SIZE, COLORS, SHAPES, SHAPE_BY_ID, SMALL_SHAPES, BONES_PER_TREAT, SPECIAL, CRATE_COLOR, CRATE_HP, POST_COLOR, HOLE_COLOR,
-    isFixed, isBlock,
+    PUDDLE_COLOR, SQUIRREL_COLOR, ICE_COLOR, MUD_COLOR, ACORN_COLOR, DUG_POINTS, CHASE_POINTS,
+    isFixed, isBlock, tickHazards, blowRow,
     mulberry32, idx, createGame, loadPattern, makePiece, canPlace, fitsAnywhere, fullLines, previewClears,
     placePiece, isGameOver, dealTray, findHelpfulShape, lineScore, lineIndices, clearCells,
     settleLines, snapshot, restore, revive, bonesForRun,
