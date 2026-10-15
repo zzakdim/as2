@@ -93,7 +93,7 @@
       armor: new Array(SIZE * SIZE).fill(0),
       squirrels: [],
       squirrelRules: o.squirrels || null,
-      blower: o.blower ? { every: o.blower.every || 3, row: -1, dir: 0 } : null,
+      blower: o.blower ? { every: Math.max(2, o.blower.every || 3), row: -1, dir: 0 } : null,
       bonesDug: 0, squirrelsChased: 0,
       crate: null,
       helpers: o.helpers || null,
@@ -198,7 +198,7 @@
   function previewClears(board, piece, r, c) {
     if (!canPlace(board, piece, r, c)) return null;
     const next = board.slice();
-    for (const [dr, dc] of piece.cells) next[idx(r + dr, c + dc)] = piece.color;
+    for (const [dr, dc] of piece.cells) next[idx(r + dr, c + dc)] = piece.color || 1; // bare shapes have no color
     return fullLines(next);
   }
 
@@ -256,7 +256,7 @@
       buried: game.buried.slice(), armor: game.armor.slice(),
       squirrels: game.squirrels.map((q) => Object.assign({}, q)),
       blower: game.blower ? Object.assign({}, game.blower) : null,
-      bonesDug: game.bonesDug, squirrelsChased: game.squirrelsChased,
+      bonesDug: game.bonesDug, squirrelsChased: game.squirrelsChased, scoreMult: game.scoreMult, multMoves: game.multMoves,
       crate: game.crate ? Object.assign({}, game.crate, { cells: game.crate.cells.slice() }) : null,
       tray: game.tray.map((p) => (p ? Object.assign({}, p) : null)),
       score: game.score, combo: game.combo, movesSinceClear: game.movesSinceClear,
@@ -273,18 +273,30 @@
   }
 
   // Clears any full rows/columns (after a power reshapes the board) and scores them.
+  // The crate takes CRATE_HP line clears (one per move that clears through it); until then its
+  // cells stay put. Mutates `set`: drops the crate's cells, or adds all of them when it breaks.
+  function hitCrate(game, set) {
+    const cr = game.crate;
+    if (!cr || cr.freed || !cr.cells.some((i) => set.has(i))) return { crateHit: false, crateFreed: false };
+    cr.hp--;
+    if (cr.hp > 0) { cr.cells.forEach((i) => set.delete(i)); return { crateHit: true, crateFreed: false }; }
+    cr.freed = true;
+    cr.cells.forEach((i) => set.add(i)); // the whole crate breaks open
+    game.history = null; // freeing a pup can't be undone (no second gift via Do-Over)
+    return { crateHit: true, crateFreed: true };
+  }
+
   function settleLines(game) {
-    const { rows, cols } = fullLines(game.board);
-    const lines = rows.length + cols.length;
-    const res = clearCells(game, lineIndices(rows, cols), true);
-    if (lines) { game.linesCleared += lines; game.score += withBonus(game, lineScore(lines) + extrasScore(res)); }
-    return Object.assign(res, { lines });
+    const res = settleLinesQuiet(game);
+    if (res.lines) game.score += withBonus(game, lineScore(res.lines) + extrasScore(res));
+    return res;
   }
 
   function withBonus(game, points) { return game.scoreBonus ? Math.round(points * (1 + game.scoreBonus)) : points; }
   function isFixed(game, i) { return fixedValue(game.board[i]); }
   // A cell holding a block that can be cleared (not empty, not a post or hole).
-  function isBlock(game, i) { const v = game.board[i]; return !!v && !isFixed(game, i) && v !== PUDDLE_COLOR && v !== SQUIRREL_COLOR; }
+  // A plain block a power can clear (not empty, fixed, a puddle, a squirrel or the gift crate).
+  function isBlock(game, i) { const v = game.board[i]; return !!v && !isFixed(game, i) && v !== PUDDLE_COLOR && v !== SQUIRREL_COLOR && v !== CRATE_COLOR; }
   function isEmpty(game) { return game.board.every((v, i) => v === 0 || isFixed(game, i)); }
 
   function placePiece(game, trayIndex, r, c) {
@@ -304,7 +316,6 @@
     const { rows, cols } = fullLines(game.board);
     const lines = rows.length + cols.length;
     const set = lineIndices(rows, cols);
-    const lineCells = set.size;
 
     // Tennis balls caught in a clear also clear their whole row (and can chain).
     const ballRows = [];
@@ -321,17 +332,12 @@
     }
     const golden = [...set].some((i) => game.specials[i] === SPECIAL.GOLDEN && game.board[i]);
 
-    // The crate takes CRATE_HP clears; until then its cells stay put.
-    let crateHit = false, crateFreed = false;
-    const cr = game.crate;
-    if (cr && !cr.freed && cr.cells.some((i) => set.has(i))) {
-      crateHit = true;
-      cr.hp--;
-      if (cr.hp > 0) cr.cells.forEach((i) => set.delete(i));
-      else { cr.freed = true; crateFreed = true; cr.cells.forEach((i) => set.add(i)); } // the whole crate breaks open
-    }
+    const { crateHit, crateFreed } = hitCrate(game, set);
     const res = clearCells(game, set, 'crate');
     const { cleared, treats } = res;
+    // Tennis-ball bonus: one point per cell cleared (or chipped) outside the completed lines.
+    const lineSet = lineIndices(rows, cols);
+    const extraCells = [...cleared.map((x) => x.i), ...res.hits].filter((i) => !lineSet.has(i)).length;
 
     let points = piece.cells.length + extrasScore(res);
     let boardClear = false;
@@ -339,7 +345,7 @@
       game.combo++;
       game.movesSinceClear = 0;
       game.linesCleared += lines;
-      points += lineScore(lines) * game.combo * (golden ? 2 : 1) + Math.max(0, set.size - lineCells);
+      points += lineScore(lines) * game.combo * (golden ? 2 : 1) + extraCells;
       if (isEmpty(game)) { boardClear = true; points += BOARD_CLEAR_BONUS; }
     } else {
       game.movesSinceClear++;
@@ -350,7 +356,11 @@
     game.score += points;
 
     const hazard = tickHazards(game);
-    if (hazard.settle && hazard.settle.lines) points += withBonus(game, lineScore(hazard.settle.lines) + extrasScore(hazard.settle));
+    if (hazard.settle && hazard.settle.lines) {
+      const hp = withBonus(game, lineScore(hazard.settle.lines) + extrasScore(hazard.settle));
+      points += hp;
+      game.score += hp;
+    }
 
     let dealt = false;
     if (game.tray.every((p) => p === null)) { dealTray(game); dealt = true; }
@@ -376,7 +386,7 @@
     const n = game.placements;
     const rules = game.squirrelRules;
     if (rules && game.squirrels.length) {
-      const every = rules.every || 3;
+      const every = Math.max(2, rules.every || 3); // a warning move, then the hop
       for (const q of game.squirrels) {
         if (q.at < 0) {
           if (rules.returns && ++q.away >= rules.returns) {
@@ -419,9 +429,12 @@
       } else if (n % every === 0 && bl.row >= 0) {
         ev.blown = blowRow(game, bl.row, bl.dir);
         bl.row = -1;
-        const settle = settleLinesQuiet(game);
-        if (settle.lines) ev.settle = settle;
       }
+    }
+    // A hop, a squirrel's return or a gust can finish a line: clear it now, not on the next move.
+    if (ev.hopped.length || ev.back.length || ev.blown) {
+      const settle = settleLinesQuiet(game);
+      if (settle.lines) ev.settle = settle;
     }
     return ev;
   }
@@ -431,8 +444,9 @@
     return !!v && !isFixed(game, i) && v !== PUDDLE_COLOR && v !== SQUIRREL_COLOR && v !== CRATE_COLOR;
   }
 
-  // Slides every movable block in a row one cell toward `dir`. A block pushed off the edge is lost.
-  // Blocks stop against posts, holes, puddles, squirrels, crates and each other.
+  // Slides the movable blocks in a row one cell toward `dir`, working from the leading edge so a run of
+  // blocks moves together and the block at the edge falls off. Blocks stop against posts, holes,
+  // puddles, squirrels and crates.
   function blowRow(game, r, dir) {
     const moved = [], lost = [];
     const order = dir > 0 ? [...Array(SIZE).keys()].reverse() : [...Array(SIZE).keys()];
@@ -454,13 +468,15 @@
     return { row: r, dir, moved, lost };
   }
 
-  // Clears lines a hazard completed. Scored by the caller.
+  // Clears lines completed by something other than a placement (a power, a hop, a gust). Scored by the caller.
   function settleLinesQuiet(game) {
     const { rows, cols } = fullLines(game.board);
     const lines = rows.length + cols.length;
-    const res = clearCells(game, lineIndices(rows, cols), true);
+    const set = lineIndices(rows, cols);
+    const crate = hitCrate(game, set);
+    const res = clearCells(game, set, 'crate');
     if (lines) game.linesCleared += lines;
-    return Object.assign(res, { lines, rows, cols });
+    return Object.assign(res, crate, { lines, rows, cols });
   }
 
   function isGameOver(game) {
@@ -506,6 +522,7 @@
     const indices = [];
     for (let r = 2; r < 6; r++) for (let c = 2; c < 6; c++) indices.push(idx(r, c));
     const res = clearCells(game, indices);
+    game.history = null; // Do-Over can't undo a revive
     game.combo = 0;
     game.movesSinceClear = 0;
     dealTray(game, { small: true });

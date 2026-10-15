@@ -19,9 +19,12 @@
   const newWeek = State.rollWeekly(state, Date.now());
   const save = () => State.save(storage, state);
   save();
-  window.PB.artStyle = state.settings.artStyle || 'bean';
-  Audio.setSound(state.settings.sound);
-  Audio.setHaptics(state.settings.haptics);
+  function applySettings() {
+    window.PB.artStyle = state.settings.artStyle || 'bean';
+    Audio.setSound(state.settings.sound);
+    Audio.setHaptics(state.settings.haptics);
+  }
+  applySettings();
 
   // Dev mode is a tester tool. Set ALLOW_DEV to false for App Store builds.
   const ALLOW_DEV = true;
@@ -30,14 +33,14 @@
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
 
   const adProvider = Ads.createProvider(document);
-  adProvider.init().catch(() => {});
+  const adsReady = adProvider.init().catch(() => {}); // consent form first; Game Center waits for it
   const ads = {
     interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.interstitial()),
     rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.rewarded()),
   };
   // Remove Ads purchase. StoreKit is the source of truth in the app; the saved flag covers offline starts.
   const store = Store.createStore(document);
-  store.init().then((owned) => {
+  store.init(() => { if (!state.settings.noAds) { state.settings.noAds = true; save(); toast('Ads removed. Thank you!'); } }).then((owned) => {
     if (owned.removeAds !== null && owned.removeAds !== state.settings.noAds) { state.settings.noAds = owned.removeAds; save(); }
   });
 
@@ -50,12 +53,12 @@
       .onclick = (e) => { if (e.target.closest('[data-act]')) closeModal(); };
   });
   // Sign in, then send what the save already holds (scores from before Game Center, or another device).
-  boards.init().then((ok) => {
+  adsReady.then(() => boards.init()).then((ok) => {
     if (!ok) return;
     if (state.best > 0) boards.submit('endless', state.best);
     if (totalStars() > 0) boards.submit('stars', totalStars());
   });
-  const totalStars = () => Object.values(state.levels).reduce((a, r) => a + (r.stars || 0), 0);
+  const totalStars = () => Object.entries(state.levels).reduce((a, [id, r]) => a + (Levels.BY_ID[id] ? r.stars || 0 : 0), 0);
   function submitScores(lvl, score) {
     if (lvl) boards.submit('stars', totalStars());
     else { boards.submit('endless', score); boards.submit('weekly', score); }
@@ -503,6 +506,9 @@
     if (h.hopped && h.hopped.length) { h.hopped.forEach((x) => cellEls[x.to].classList.add('hop')); sfx.thunk(); }
     if (h.back && h.back.length) floatText('The squirrel is back!', 'combo');
     if (h.gust) floatText('Gust incoming!', 'combo');
+    if (h.settle && h.settle.crateFreed) freeGift();
+    else if (h.settle && h.settle.crateHit) { const c = $('#crate'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+    if (h.settle && h.settle.lines && !h.blown) { popCells(h.settle.cleared); floatText('Squirrel slip-up!', 'praise'); }
     if (h.blown) {
       sfx.thunk(); haptic('MEDIUM');
       const board = $('#board'); board.classList.remove('shake'); void board.offsetWidth; board.classList.add('shake');
@@ -522,6 +528,7 @@
   }
 
   function freeGift() {
+    if (state.gifts[run.lvl.id]) return; // already freed once: the gift never repeats
     const pup = Pups.BY_ID[run.lvl.gift];
     state.gifts[run.lvl.id] = true; // counts the moment the crate breaks, even if the run is lost
     run.giftResult = Gacha.grant(state, pup);
@@ -984,7 +991,7 @@
         state.daily.freePullsLeft--;
         state.ads.rewardedToday++;
       }
-      if (!state.tutorial.done && state.tutorial.step === TUT.DIG) opts = Object.assign({ minRarity: 'rare' }, opts);
+      if (!state.tutorial.done && state.tutorial.step === TUT.DIG && count === 1) opts = Object.assign({ minRarity: 'rare' }, opts);
       coachHide();
       const results = Gacha.pullMany(state, rng, count, opts);
       save();
@@ -1208,7 +1215,7 @@
       if (act === 'restore') {
         store.restore().then((r) => {
           if (r.removeAds) { s.noAds = true; save(); closeModal(); toast('Purchases restored: ads removed'); }
-          else toast(r.removeAds === null ? 'Restore connects to the App Store in the iOS build' : 'No purchases to restore');
+          else toast(r.removeAds === null ? 'Restore connects to the App Store in the iOS build' : r.error ? "Couldn't reach the App Store. Try again later" : 'No purchases to restore');
         });
       }
       if (act === 'privacy') {
@@ -1217,7 +1224,13 @@
       }
       if (act === 'reset') {
         if (a.dataset.armed) {
-          state = State.freshState(); State.rollDaily(state, Date.now()); save(); closeModal(); show('home'); toast('Progress reset');
+          // Keeps what isn't progress: a bought Remove Ads, and dev mode in tester builds.
+          const keep = { noAds: s.noAds, dev: s.dev };
+          state = State.freshState();
+          Object.assign(state.settings, keep);
+          State.rollDaily(state, Date.now()); State.rollWeekly(state, Date.now());
+          save(); applySettings(); closeModal(); show('home'); renderDevButton(); toast('Progress reset');
+          startTutorial();
         } else { a.dataset.armed = '1'; a.textContent = 'Tap again to erase everything'; a.classList.add('danger'); }
       }
     };
@@ -1447,7 +1460,7 @@
       if (act === 'bones') { state.bones += 1000; msg = '+1,000 bones'; }
       if (act === 'pulls') { state.weekly.pullsLeft = Gacha.ECONOMY.WEEKLY_FREE_PULLS; state.daily.freePullsLeft = Gacha.ECONOMY.DAILY_AD_PULLS; msg = 'Free pulls refilled'; }
       if (act === 'unlock') { Pups.ROSTER.forEach((p) => { if (!state.pups[p.id]) state.pups[p.id] = { level: 1, dupes: 0 }; }); msg = 'All pups unlocked'; }
-      if (act === 'max') { Pups.ROSTER.forEach((p) => { state.pups[p.id] = { level: Pups.MAX_LEVEL, dupes: 0 }; }); msg = 'All pups at max level'; }
+      if (act === 'max') { Pups.ROSTER.forEach((p) => { state.pups[p.id] = Object.assign(state.pups[p.id] || {}, { level: Pups.MAX_LEVEL, dupes: 0 }); }); msg = 'All pups at max level'; }
       if (act === 'pity') { state.pity = { sinceEpic: 0, sinceLegendary: 0 }; msg = 'Pity reset'; }
       if (act === 'levels') { state.levels = {}; state.gifts = {}; state.sweeps = {}; msg = 'Level progress reset (dev mode unlocks every level)'; }
       if (act === 'tutorial') { state.tutorial = { step: 0, done: false }; save(); closeModal(); run = null; startTutorial(); return; }
@@ -1476,4 +1489,18 @@
   if (!state.tutorial.done) startTutorial();
   if (!state.tutorial.done) { /* no toasts over the tutorial */ } else if (newWeek) setTimeout(() => toast(`Your weekly ${verb().toLowerCase()} is ready at the ${gachaName()}`), 500);
   else if (loginBonus) setTimeout(() => toast(`Daily treat: +${loginBonus} bones${state.daily.streak > 1 ? ` · ${state.daily.streak}-day streak` : ''}`), 500);
+
+  // Phones resume apps from the background for days: roll the day and week over on resume too.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    const bonus = State.rollDaily(state, Date.now());
+    const week = State.rollWeekly(state, Date.now());
+    if (!bonus && !week) return;
+    save();
+    if (!$('#screen-home').hidden) renderHome();
+    if (!$('#screen-gacha').hidden) renderGacha();
+    if (!state.tutorial.done) return;
+    if (week) toast(`Your weekly ${verb().toLowerCase()} is ready at the ${gachaName()}`);
+    else toast(`Daily treat: +${bonus} bones${state.daily.streak > 1 ? ` · ${state.daily.streak}-day streak` : ''}`);
+  });
 })();

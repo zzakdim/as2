@@ -16,13 +16,22 @@
 
   function createNativeStore(NP) {
     let price = FALLBACK_PRICE;
+    // Current entitlements only: excludes refunded purchases and other Apple IDs' history on shared devices.
     const ownsRemoveAds = async () => {
-      const { purchases } = await NP.getPurchases({ productType: 'inapp' });
+      const { purchases } = await NP.getPurchases({ productType: 'inapp', onlyCurrentEntitlements: true });
       return purchases.some((t) => t.productIdentifier === PRODUCTS.removeAds && !t.revocationDate);
     };
+    let onGrant = null;
     return {
       kind: 'storekit',
-      async init() {
+      async init(grant) {
+        onGrant = grant;
+        // Purchases that finish outside the buy sheet (Ask to Buy approvals, another device).
+        try {
+          NP.addListener('transactionUpdated', (t) => {
+            if (t && t.productIdentifier === PRODUCTS.removeAds && !t.revocationDate && onGrant) onGrant();
+          });
+        } catch (e) { /* older plugin */ }
         try {
           const { product } = await NP.getProduct({ productIdentifier: PRODUCTS.removeAds, productType: 'inapp' });
           if (product && product.priceString) price = product.priceString;
@@ -38,7 +47,7 @@
         } catch (e) { return false; }
       },
       async restore() {
-        try { await NP.restorePurchases(); return { removeAds: await ownsRemoveAds() }; } catch (e) { return { removeAds: false }; }
+        try { await NP.restorePurchases(); return { removeAds: await ownsRemoveAds() }; } catch (e) { return { removeAds: false, error: true }; }
       },
     };
   }

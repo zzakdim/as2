@@ -10,6 +10,10 @@ import { join } from 'node:path';
 const TEST_APP_ID = 'ca-app-pub-3940256099942544~1458002511'; // Google's sample app ID
 const argIdx = process.argv.indexOf('--admob-app-id');
 const admobAppId = argIdx > 0 ? process.argv[argIdx + 1] : TEST_APP_ID;
+if (!/^ca-app-pub-\d+~\d+$/.test(admobAppId || '')) {
+  console.error(`--admob-app-id needs an AdMob app ID like ca-app-pub-1234567890123456~1234567890 (got "${admobAppId}")`);
+  process.exit(1);
+}
 
 const app = join('ios', 'App', 'App');
 if (!existsSync(app)) {
@@ -43,7 +47,18 @@ for (const f of SWIFT) {
 writeFileSync(pbxPath, pbx);
 if (manual) console.warn('! Could not add the Swift files to the Xcode project automatically. Drag them into the App folder in Xcode (target: App).');
 
-// 2. Storyboard: use our view controller so the local plugin gets registered.
+// 2. Use our view controller so the local plugin gets registered. Capacitor 8 creates the root view
+//    controller in SceneDelegate.swift; older templates use the storyboard. Patch both.
+const sdPath = join(app, 'SceneDelegate.swift');
+if (existsSync(sdPath)) {
+  const sd = readFileSync(sdPath, 'utf8');
+  if (sd.includes('AppViewController()')) console.log('SceneDelegate already set');
+  else {
+    const out = sd.replace(/rootViewController = CAPBridgeViewController\(\)/, 'rootViewController = AppViewController()');
+    if (out === sd) console.warn('! Set `window?.rootViewController = AppViewController()` in SceneDelegate.swift by hand.');
+    else { writeFileSync(sdPath, out); console.log('SceneDelegate now uses AppViewController'); }
+  }
+}
 const sbPath = join(app, 'Base.lproj', 'Main.storyboard');
 let sb = readFileSync(sbPath, 'utf8');
 if (sb.includes('customClass="AppViewController"')) console.log('storyboard already set');
@@ -64,6 +79,9 @@ const keys = [
   ['ITSAppUsesNonExemptEncryption', '<false/>'],
 ];
 const added = [];
+// The AdMob app ID is replaced on every run, so running again with the release ID updates it.
+const gad = /(<key>GADApplicationIdentifier<\/key>\s*<string>)[^<]*(<\/string>)/;
+if (gad.test(plist)) plist = plist.replace(gad, `$1${admobAppId}$2`);
 for (const [key, value] of keys) {
   if (plist.includes(`<key>${key}</key>`)) continue;
   plist = plist.replace(/<\/dict>\s*<\/plist>\s*$/, `\t<key>${key}</key>\n\t${value}\n</dict>\n</plist>\n`);

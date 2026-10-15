@@ -61,15 +61,31 @@
     const base = freshState();
     if (!raw || typeof raw !== 'object') return base;
     const out = Object.assign(base, raw);
-    for (const k of ['pity', 'daily', 'weekly', 'ads', 'settings', 'stats', 'tutorial', 'levels', 'gifts', 'sweeps', 'tokens', 'endless']) out[k] = Object.assign(freshState()[k], raw[k]);
+    const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+    const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
+    for (const k of ['pity', 'daily', 'weekly', 'ads', 'settings', 'stats', 'tutorial', 'levels', 'gifts', 'sweeps', 'tokens', 'endless', 'boards']) out[k] = Object.assign(freshState()[k], obj(raw[k]));
+    out.bones = Math.max(0, num(out.bones, STARTING_BONES));
+    out.best = Math.max(0, num(out.best, 0));
+    if (!Array.isArray(out.endless.milestones)) out.endless.milestones = [];
+    for (const k of ['dig', 'epic']) out.tokens[k] = Math.max(0, num(out.tokens[k], 0));
+    for (const k of ['sinceEpic', 'sinceLegendary']) out.pity[k] = Math.max(0, num(out.pity[k], 0));
+    // Level records: { stars 0-3, best }. Anything else is dropped rather than crashing the map.
+    for (const id of Object.keys(out.levels)) {
+      const r = out.levels[id];
+      if (!r || typeof r !== 'object') { delete out.levels[id]; continue; }
+      out.levels[id] = { stars: Math.max(0, Math.min(3, Math.floor(num(r.stars, 0)))), best: Math.max(0, num(r.best, 0)) };
+    }
     // Saves from before the tutorial existed belong to players who already know the game.
     if (!raw.tutorial && raw.stats && raw.stats.games > 0) out.tutorial = { step: 0, done: true };
-    out.pups = Object.assign({}, raw.pups);
-    if (!out.pups[Pups.STARTER_ID]) out.pups[Pups.STARTER_ID] = { level: 1, dupes: 0 };
-    for (const id of Object.keys(out.pups)) {
-      if (!Pups.BY_ID[id]) { delete out.pups[id]; continue; }
-      out.pups[id].level = Math.min(out.pups[id].level || 1, Pups.MAX_LEVEL);
+    // Pup records are rebuilt field by field, so one bad record can't take the rest of the save with it.
+    out.pups = {};
+    for (const [id, r] of Object.entries(obj(raw.pups))) {
+      if (!Pups.BY_ID[id] || !r || typeof r !== 'object') continue;
+      const rec = { level: Math.max(1, Math.min(Math.floor(num(r.level, 1)), Pups.MAX_LEVEL)), dupes: Math.max(0, Math.floor(num(r.dupes, 0))) };
+      if (num(r.bond, 0) > 0) rec.bond = r.bond;
+      out.pups[id] = rec;
     }
+    if (!out.pups[Pups.STARTER_ID]) out.pups[Pups.STARTER_ID] = { level: 1, dupes: 0 };
     if (!Pups.BY_ID[out.buddy] || !out.pups[out.buddy]) out.buddy = Pups.STARTER_ID;
     return out;
   }
@@ -87,7 +103,9 @@
   function rollDaily(state, now) {
     const today = dayKey(now);
     if (state.daily.date === today) return 0;
-    const yesterday = dayKey(now - 86400000);
+    const y = new Date(now);
+    y.setDate(y.getDate() - 1); // calendar yesterday (now - 24h misses it on a 23-hour DST day)
+    const yesterday = dayKey(y.getTime());
     state.daily.streak = state.daily.date === yesterday ? state.daily.streak + 1 : 1;
     state.daily.date = today;
     state.daily.freePullsLeft = DAILY_FREE_PULLS;
@@ -97,13 +115,16 @@
     return bonus;
   }
 
+  // An unreadable save is copied to KEY + '.bak' before the game starts over, so it can be recovered.
   function load(storage) {
-    try {
-      const text = storage && storage.getItem(KEY);
-      return normalize(text ? JSON.parse(text) : null);
-    } catch (e) {
+    let text = null;
+    try { text = storage && storage.getItem(KEY); } catch (e) { return freshState(); }
+    let raw = null;
+    try { raw = text ? JSON.parse(text) : null; } catch (e) {
+      try { storage.setItem(KEY + '.bak', text); } catch (e2) { /* storage full */ }
       return freshState();
     }
+    return normalize(raw);
   }
 
   function save(storage, state) {

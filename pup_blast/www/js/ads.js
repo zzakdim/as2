@@ -10,7 +10,7 @@
 (function (root) {
   'use strict';
 
-  // Google's public test unit IDs. Replace with real IDs in capacitor/ad-units.json before release.
+  // Google's public test unit IDs. Replace with your real AdMob unit IDs before release.
   const UNITS = {
     interstitial: 'ca-app-pub-3940256099942544/4411468910',
     rewarded: 'ca-app-pub-3940256099942544/1712485313',
@@ -47,16 +47,32 @@
   function createAdMobProvider(AdMob) {
     let ready = false;
     let privacyRequired = false;
+    const prepInterstitial = () => AdMob.prepareInterstitial({ adId: UNITS.interstitial }).catch(() => {});
+    const prepRewarded = () => AdMob.prepareRewardVideoAd({ adId: UNITS.rewarded }).catch(() => {});
+    // Listener handles may come back as a promise or a plain object depending on the bridge.
+    const unlisten = (subs) => subs.forEach((s) => Promise.resolve(s).then((h) => h && h.remove()).catch(() => {}));
+    // Resolves when the full-screen ad is gone (dismissed or failed to show), with what happened.
+    function showAndWait(show, events, onReward) {
+      const subs = [];
+      return new Promise((resolve) => {
+        let earned = false;
+        if (events.reward) subs.push(AdMob.addListener(events.reward, () => { earned = true; if (onReward) onReward(); }));
+        subs.push(AdMob.addListener(events.dismissed, () => resolve({ shown: true, earned })));
+        subs.push(AdMob.addListener(events.failed, () => resolve({ shown: false, earned: false })));
+        show().catch(() => resolve({ shown: false, earned: false }));
+      }).finally(() => unlisten(subs));
+    }
     // Runs the consent step. Returns whether ads may be requested.
     async function consent() {
+      let info = null;
       try {
-        let info = await AdMob.requestConsentInfo();
-        if (info.isConsentFormAvailable && info.status === 'REQUIRED') info = await AdMob.showConsentForm();
-        privacyRequired = info.privacyOptionsRequirementStatus === 'REQUIRED';
-        return info.canRequestAds !== false;
-      } catch (e) {
-        return true; // UMP unreachable (offline): Google falls back to non-personalized ads
-      }
+        info = await AdMob.requestConsentInfo();
+        if (info.isConsentFormAvailable && info.status === 'REQUIRED') {
+          try { info = await AdMob.showConsentForm(); } catch (e) { /* form failed: keep the earlier answer */ }
+        }
+      } catch (e) { /* offline: no answer, so no ads this session (Google's rule: only request when allowed) */ }
+      privacyRequired = !!info && info.privacyOptionsRequirementStatus === 'REQUIRED';
+      return !!info && info.canRequestAds === true;
     }
     return {
       kind: 'admob',
@@ -70,21 +86,23 @@
         if (!canRequest) return; // the player declined in a region that needs consent: no ads this session
         await AdMob.initialize({ initializeForTesting: TESTING });
         ready = true;
-        AdMob.prepareInterstitial({ adId: UNITS.interstitial }).catch(() => {});
-        AdMob.prepareRewardVideoAd({ adId: UNITS.rewarded }).catch(() => {});
+        prepInterstitial();
+        prepRewarded();
       },
+      // Resolves after the ad closes. The next ad is loaded only then: loading while one is on screen
+      // would be thrown away by the plugin when the shown ad is dismissed.
       async interstitial() {
         if (!ready) return false;
-        try { await AdMob.showInterstitial(); return true; } catch (e) { return false; }
-        finally { AdMob.prepareInterstitial({ adId: UNITS.interstitial }).catch(() => {}); }
+        const r = await showAndWait(() => AdMob.showInterstitial(), { dismissed: 'interstitialAdDismissed', failed: 'interstitialAdFailedToShow' });
+        prepInterstitial();
+        return r.shown;
       },
+      // Resolves true only if the player watched to the reward, after the ad closes.
       async rewarded() {
         if (!ready) return false;
-        try {
-          const reward = await AdMob.showRewardVideoAd();
-          return !!reward;
-        } catch (e) { return false; }
-        finally { AdMob.prepareRewardVideoAd({ adId: UNITS.rewarded }).catch(() => {}); }
+        const r = await showAndWait(() => AdMob.showRewardVideoAd(), { reward: 'onRewardedVideoAdReward', dismissed: 'onRewardedVideoAdDismissed', failed: 'onRewardedVideoAdFailedToShow' });
+        prepRewarded();
+        return r.earned;
       },
       privacyOptionsRequired: () => privacyRequired,
       async showPrivacyOptions() {

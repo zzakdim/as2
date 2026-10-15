@@ -11,7 +11,8 @@ test('browser leaderboards keep the best score per board', async () => {
   await lb.submit('endless', 1200);
   await lb.submit('endless', 800);
   await lb.submit('stars', 7);
-  assert.deepStrictEqual(state.boards, { endless: 1200, stars: 7 });
+  assert.strictEqual(state.boards.endless, 1200);
+  assert.strictEqual(state.boards.stars, 7);
   await lb.show();
   assert.deepStrictEqual(shown.map((r) => r.score), [1200, 0, 7]);
 });

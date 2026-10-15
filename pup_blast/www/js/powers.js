@@ -12,6 +12,8 @@
   const clear = (game, indices) => Object.assign(Core.clearCells(game, indices), { lines: 0 });
   const filled = (game) => game.board.some((v, i) => Core.isBlock(game, i));
   const blocks = (game) => all((r, c) => Core.isBlock(game, idx(r, c)));
+  // For powers with a fixed area: usable only when that area holds something they can clear.
+  const hasIn = (area) => (game) => area().some((i) => Core.isBlock(game, i) || game.board[i] === Core.SQUIRREL_COLOR);
   const all = (fn) => { const out = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fn(r, c)) out.push(idx(r, c)); return out; };
 
   function square(r, c, radius) {
@@ -39,18 +41,23 @@
   }
 
   // Moves blocks along each line toward one side, keeping their order. Then clears full lines.
-  // Posts and holes stay put; blocks slide into the free slots around them.
+  // Posts, holes, puddles, squirrels and the crate stay put; blocks (with their treats, helpers and
+  // ice/mud armor) slide into the free slots around them.
+  const staysPut = (game, i) => Core.isFixed(game, i) || [Core.PUDDLE_COLOR, Core.SQUIRREL_COLOR, Core.CRATE_COLOR].includes(game.board[i]);
   function compact(game, vertical) {
     for (let a = 0; a < N; a++) {
       const cells = [], slots = [];
       for (let b = 0; b < N; b++) {
         const i = vertical ? idx(N - 1 - b, a) : idx(a, b);
-        if (Core.isFixed(game, i)) continue;
+        if (staysPut(game, i)) continue;
         slots.push(i);
-        if (game.board[i]) cells.push([game.board[i], game.treats[i]]);
-        game.board[i] = 0; game.treats[i] = 0;
+        if (game.board[i]) cells.push([game.board[i], game.treats[i], game.specials[i], game.armor[i]]);
+        game.board[i] = 0; game.treats[i] = 0; game.specials[i] = 0; game.armor[i] = 0;
       }
-      cells.forEach(([color, treat], b) => { game.board[slots[b]] = color; game.treats[slots[b]] = treat; });
+      cells.forEach(([color, treat, special, armor], b) => {
+        const i = slots[b];
+        game.board[i] = color; game.treats[i] = treat; game.specials[i] = special; game.armor[i] = armor;
+      });
     }
     return Core.settleLines(game);
   }
@@ -108,7 +115,7 @@
     pounce: { tier: 2, name: 'Pounce', desc: 'Clear a whole column you tap', target: 'col', can: filled, apply: (g, r, c) => clear(g, Core.lineIndices([], [c])) },
     howl: { tier: 2, name: 'Howl', desc: 'Clear the fullest row', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 1), [])) },
     spotted: { tier: 2, name: 'Spotted', desc: 'Clear 8 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, blocks(g)).slice(0, 8)) },
-    zigzag: { tier: 2, name: 'Zigzag', desc: 'Clear both diagonals', can: filled, apply: (g) => clear(g, all((r, c) => r === c || r + c === N - 1)) },
+    zigzag: { tier: 2, name: 'Zigzag', desc: 'Clear both diagonals', can: hasIn(() => all((r, c) => r === c || r + c === N - 1)), apply: (g) => clear(g, all((r, c) => r === c || r + c === N - 1)) },
     sniff: {
       tier: 2, name: 'Sniff Out', desc: 'Tap a block to clear every block of its color', target: 'block', can: filled,
       apply: (g, r, c) => { const color = g.board[idx(r, c)]; return clear(g, all((rr, cc) => g.board[idx(rr, cc)] === color)); },
@@ -128,7 +135,7 @@
         return none();
       },
     },
-    bassdrop: { tier: 3, name: 'Bass Drop', desc: 'Clear the middle 4×4', can: filled, apply: (g) => clear(g, all((r, c) => r >= 2 && r < 6 && c >= 2 && c < 6)) },
+    bassdrop: { tier: 3, name: 'Bass Drop', desc: 'Clear the middle 4×4', can: hasIn(() => all((r, c) => r >= 2 && r < 6 && c >= 2 && c < 6)), apply: (g) => clear(g, all((r, c) => r >= 2 && r < 6 && c >= 2 && c < 6)) },
     // ---- tier 4: legendary
     guardian: { tier: 4, name: 'Guardian', desc: 'Saves your run when you get stuck', passive: true, apply: (g) => Core.revive(g) },
     bigbang: { tier: 4, name: 'Big Bang', desc: 'Clear the entire board', can: filled, apply: (g) => clear(g, all(() => true)) },
@@ -136,8 +143,8 @@
     // ---- reserved for future pups (DLC / events). Built and tested, not on anyone yet.
     avalanche: { tier: 4, reserved: true, name: 'Avalanche', desc: 'Drop every block to the bottom, then clear full lines', can: filled, apply: (g) => compact(g, true) },
     herd: { tier: 4, reserved: true, name: 'Herd', desc: 'Push every block to the left, then clear full lines', can: filled, apply: (g) => compact(g, false) },
-    hopscotch: { tier: 4, reserved: true, name: 'Hopscotch', desc: 'Clear every other square, like a checkerboard', can: filled, apply: (g) => clear(g, all((r, c) => (r + c) % 2 === 0)) },
-    trim: { tier: 3, reserved: true, name: 'Trim', desc: 'Clear the outer edge of the board', can: filled, apply: (g) => clear(g, all((r, c) => r === 0 || c === 0 || r === N - 1 || c === N - 1)) },
+    hopscotch: { tier: 4, reserved: true, name: 'Hopscotch', desc: 'Clear every other square, like a checkerboard', can: hasIn(() => all((r, c) => (r + c) % 2 === 0)), apply: (g) => clear(g, all((r, c) => (r + c) % 2 === 0)) },
+    trim: { tier: 3, reserved: true, name: 'Trim', desc: 'Clear the outer edge of the board', can: hasIn(() => all((r, c) => r === 0 || c === 0 || r === N - 1 || c === N - 1)), apply: (g) => clear(g, all((r, c) => r === 0 || c === 0 || r === N - 1 || c === N - 1)) },
     dropthebeat: { tier: 3, reserved: true, name: 'Drop the Beat', desc: 'Clear the two fullest rows and columns', can: filled, apply: (g) => clear(g, Core.lineIndices(fullest(g, true, 2), fullest(g, false, 2))) },
   };
 

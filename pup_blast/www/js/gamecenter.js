@@ -40,6 +40,13 @@
   }
 
   // Browser stand-in: remembers your best per board (and this week's) in the save.
+  // Week key: the Monday the week started (matches Game Center's Monday reset closely enough for a stand-in).
+  function weekKey() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return d.toDateString();
+  }
   function createLocal(getState, openSheet) {
     const rec = () => {
       const s = getState();
@@ -52,12 +59,18 @@
       signedIn: () => true,
       async submit(board, score) {
         const r = rec();
-        r[board] = Math.max(r[board] || 0, Math.floor(score));
+        if (!(score > 0)) return false;
+        if (board === 'weekly') {
+          const week = weekKey();
+          if (!r.weekly || r.weekly.week !== week) r.weekly = { week, score: 0 };
+          r.weekly.score = Math.max(r.weekly.score, Math.floor(score));
+        } else r[board] = Math.max(r[board] || 0, Math.floor(score));
         return true;
       },
       async show() {
         const r = rec();
-        openSheet(Object.entries(BOARDS).map(([k, b]) => ({ name: b.name, score: r[k] || 0 })));
+        const score = (k) => (k === 'weekly' ? (r.weekly && r.weekly.week === weekKey() ? r.weekly.score : 0) : r[k] || 0);
+        openSheet(Object.entries(BOARDS).map(([k, b]) => ({ name: b.name, score: score(k) })));
         return true;
       },
     };

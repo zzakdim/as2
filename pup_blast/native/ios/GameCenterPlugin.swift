@@ -13,29 +13,49 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKGameCenterControll
         CAPPluginMethod(name: "showLeaderboard", returnType: CAPPluginReturnPromise),
     ]
 
+    // Touched only on the main thread.
     private var pendingSignIn: [CAPPluginCall] = []
     private var handlerSet = false
+    private var handlerFired = false
+
+    // Presents on whatever is on top, so a consent form or another sheet showing doesn't block it.
+    private func presentOnTop(_ viewController: UIViewController) {
+        var top = bridge?.viewController
+        while let presented = top?.presentedViewController { top = presented }
+        top?.present(viewController, animated: true)
+    }
 
     // Resolves { authenticated, name }. iOS shows its own sign-in sheet or welcome banner.
     @objc func signIn(_ call: CAPPluginCall) {
-        let player = GKLocalPlayer.local
-        if player.isAuthenticated {
-            call.resolve(["authenticated": true, "name": player.displayName])
-            return
-        }
-        pendingSignIn.append(call)
-        if handlerSet { return } // iOS calls the handler again when sign-in state changes
-        handlerSet = true
-        player.authenticateHandler = { [weak self] viewController, _ in
-            guard let self = self else { return }
-            if let viewController = viewController {
-                DispatchQueue.main.async { self.bridge?.viewController?.present(viewController, animated: true) }
+        DispatchQueue.main.async {
+            let player = GKLocalPlayer.local
+            if player.isAuthenticated {
+                call.resolve(["authenticated": true, "name": player.displayName])
                 return
             }
-            let result: [String: Any] = ["authenticated": player.isAuthenticated, "name": player.isAuthenticated ? player.displayName : ""]
-            let calls = self.pendingSignIn
-            self.pendingSignIn = []
-            calls.forEach { $0.resolve(result) }
+            // GameKit answers once per sign-in state change. If it already said "not signed in",
+            // asking again would wait forever, so answer straight away.
+            if self.handlerFired {
+                call.resolve(["authenticated": false, "name": ""])
+                return
+            }
+            self.pendingSignIn.append(call)
+            if self.handlerSet { return }
+            self.handlerSet = true
+            player.authenticateHandler = { [weak self] viewController, _ in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if let viewController = viewController {
+                        self.presentOnTop(viewController)
+                        return
+                    }
+                    self.handlerFired = true
+                    let result: [String: Any] = ["authenticated": player.isAuthenticated, "name": player.isAuthenticated ? player.displayName : ""]
+                    let calls = self.pendingSignIn
+                    self.pendingSignIn = []
+                    calls.forEach { $0.resolve(result) }
+                }
+            }
         }
     }
 
@@ -64,7 +84,7 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKGameCenterControll
                 viewController = GKGameCenterViewController(state: .leaderboards)
             }
             viewController.gameCenterDelegate = self
-            self.bridge?.viewController?.present(viewController, animated: true)
+            self.presentOnTop(viewController)
             call.resolve()
         }
     }
