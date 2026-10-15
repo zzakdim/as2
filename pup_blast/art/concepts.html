@@ -1,0 +1,332 @@
+<title>Pup Art Directions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
+<style>
+/* Layout: one reading column; each direction is a band with a game-colored art strip, then notes. */
+:root {
+  --bg: #f6f3fb; --fg: #231d3d; --muted: #645d80; --line: #ddd6ee; --card: #ffffff;
+  --accent: #d9577a;
+  --stage: #2c2763; --stage-ink: #fff7ec; --stage-muted: #b9b2e6;
+  --display: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+  --body: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #151230; --fg: #f1edff; --muted: #a9a2cc; --line: #2f2a57; --card: #1d1940; --accent: #ff8fab; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #151230; --fg: #f1edff; --muted: #a9a2cc; --line: #2f2a57; --card: #1d1940; --accent: #ff8fab; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); margin: 0; }
+main { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 64px; display: grid; gap: 40px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(36px, 7vw, 56px); line-height: 1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1.05; margin: 0; }
+.lede { color: var(--muted); max-width: 62ch; margin: 12px 0 0; }
+.dir { display: grid; gap: 14px; }
+.dir-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.key { font: 800 13px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.stage { background: var(--stage); border-radius: 22px; padding: 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 12px; align-items: center; }
+.pup { display: grid; justify-items: center; gap: 4px; color: var(--stage-ink); font: 700 15px var(--display); min-width: 0; }
+.pup svg, .pup canvas { width: 100%; max-width: 170px; height: auto; aspect-ratio: 1; display: block; }
+.pup small { color: var(--stage-muted); font: 600 12px var(--body); }
+.tiny { display: grid; gap: 8px; justify-items: center; padding-left: 12px; border-left: 1px solid rgba(255,255,255,.12); }
+.tiny svg, .tiny canvas { width: 44px; height: 44px; display: block; }
+.tiny span { color: var(--stage-muted); font: 600 11px var(--body); writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: .06em; }
+.tiny-row { display: grid; gap: 6px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 28px; margin: 0; }
+.notes div { min-width: 0; }
+.notes dt { font-weight: 800; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.notes dd { margin: 2px 0 0; }
+.refs { font-size: 14px; color: var(--muted); margin: 0; }
+.refs a { color: var(--accent); }
+.current .stage { opacity: .92; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+.verdict { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; }
+.verdict h2 { font-size: 24px; margin-bottom: 6px; }
+.verdict p { margin: 6px 0 0; max-width: 66ch; }
+@media (max-width: 560px) {
+  .stage { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tiny { grid-column: 1 / -1; border-left: 0; border-top: 1px solid rgba(255,255,255,.12); padding: 10px 0 0; grid-auto-flow: column; justify-content: center; }
+  .tiny-row { grid-auto-flow: column; }
+  .tiny span { writing-mode: horizontal-tb; transform: none; align-self: center; }
+}
+</style>
+
+<main>
+  <header>
+    <h1>Pup Art Directions</h1>
+    <p class="lede">The same three pups drawn four ways, on the game's own background. The small icons on the right are buddy-bar size (44px), where most players will actually see them.</p>
+  </header>
+
+  <section class="dir current">
+    <div class="dir-head"><span class="key">Now</span><h2>Current placeholder</h2></div>
+    <div class="stage" data-style="current"></div>
+    <p class="refs">Perfect circles, centered features and an even glow make it read as generic clip art. Everything below breaks at least one of those habits.</p>
+  </section>
+  <hr>
+
+  <section class="dir">
+    <div class="dir-head"><span class="key">Direction A</span><h2>Sticker sheet</h2></div>
+    <div class="stage" data-style="sticker"></div>
+    <dl class="notes">
+      <div><dt>The look</dt><dd>Die-cut stickers: thick ink outline, white border, a slight tilt. Small eyes set low and wide give each face a goofy, specific expression.</dd></div>
+      <div><dt>Why it feels made</dt><dd>The heavy line and off-center pose read as a hand-picked choice. It also holds up best at 44px.</dd></div>
+      <div><dt>To make 24+</dt><dd>Easy. Same head shape and new ears and markings, close to the current trait system.</dd></div>
+      <div><dt>Animation</dt><dd>Wobble, squash and peel-off reveals in the gacha all fit naturally.</dd></div>
+    </dl>
+    <p class="refs">Reference mood: LINE-style sticker packs, and the soft kawaii art of <a href="https://fanlore.org/wiki/Neko_Atsume" target="_blank" rel="noopener">Neko Atsume</a>.</p>
+  </section>
+
+  <section class="dir">
+    <div class="dir-head"><span class="key">Direction B</span><h2>Bean pups</h2></div>
+    <div class="stage" data-style="bean"></div>
+    <dl class="notes">
+      <div><dt>The look</dt><dd>Full-body sitting loaves with stubby paws and a tail. A colored, slightly wobbly line instead of black ink.</dd></div>
+      <div><dt>Why it feels made</dt><dd>The jittery line and whole-body poses feel drawn by hand. Breeds read by silhouette and tail, not only by color.</dd></div>
+      <div><dt>To make 24+</dt><dd>Medium. Every breed needs its own body shape, ears and tail.</dd></div>
+      <div><dt>Animation</dt><dd>Best of the four: tail wags, hops and sleeping loaves give the most life.</dd></div>
+    </dl>
+    <p class="refs">Reference mood: <a href="https://motherboard.vice.com/en/article/wnx8gb/japanese-cat-collecting-game-neko-atsume-has-been-cloned-for-dog-people" target="_blank" rel="noopener">Neko Atsume and its dog follower Boku to Wanko</a> (keep the feel, not the drawings).</p>
+  </section>
+
+  <section class="dir">
+    <div class="dir-head"><span class="key">Direction C</span><h2>Riso print</h2></div>
+    <div class="stage" data-style="riso"></div>
+    <dl class="notes">
+      <div><dt>The look</dt><dd>Two or three spot inks that overprint into new colors, with print grain and slightly off-register layers. The dogs are built from simple geometric shapes.</dd></div>
+      <div><dt>Why it feels made</dt><dd>The deliberate misprints and the limited ink palette are the opposite of a smooth gradient render. It's the most distinctive and the most "indie".</dd></div>
+      <div><dt>To make 24+</dt><dd>Easy once the shape kit exists. The palette stays fixed, so new pups are always on-brand.</dd></div>
+      <div><dt>Animation</dt><dd>Limited. It suits a stepped "printing" reveal more than bouncy motion.</dd></div>
+    </dl>
+    <p class="refs">Reference mood: <a href="https://hunterpaperco.com/products/sight-hound-a3-riso-print" target="_blank" rel="noopener">Naomi Wilkinson's sight hound riso print</a>, <a href="https://creativemarket.com/Typedreams.site/291421862-Animal-Risographs" target="_blank" rel="noopener">animal riso illustrations</a>.</p>
+  </section>
+
+  <section class="dir">
+    <div class="dir-head"><span class="key">Direction D</span><h2>Pixel pups</h2></div>
+    <div class="stage" data-style="pixel"></div>
+    <dl class="notes">
+      <div><dt>The look</dt><dd>16×16 sprites scaled up crisp, with a dark outline and a small palette per breed.</dd></div>
+      <div><dt>Why it feels made</dt><dd>Every pixel is a visible decision, so it never reads as generated. It pairs naturally with the blocky board.</dd></div>
+      <div><dt>To make 24+</dt><dd>Cheapest to commission. Pixel artists on itch.io sell and take commissions for exactly this.</dd></div>
+      <div><dt>Animation</dt><dd>Two-to-four-frame idles and barks are cheap and charming.</dd></div>
+    </dl>
+    <p class="refs">Reference mood: <a href="https://petalbyte.itch.io/pixel-animal-pack" target="_blank" rel="noopener">32×32 pixel animal pack</a>, <a href="https://itch.io/game-assets/newest/tag-dogs" target="_blank" rel="noopener">itch.io dog sprite assets</a>, <a href="https://smolcofe.itch.io" target="_blank" rel="noopener">SMOLCOFE's Hungry Puppy</a>, <a href="https://opengameart.org/content/dog-sprites" target="_blank" rel="noopener">CC0 dog sprites</a>.</p>
+  </section>
+
+  <div class="verdict">
+    <h2>My pick: A, with B's poses later</h2>
+    <p>Sticker sheet stays readable at buddy-bar size, fits the chunky candy board, and is the cheapest to grow to 24 pups and beyond. Bean pups would make the best gacha reveal, so once a style is locked, full-body art could be added just for the reveal and the Kennel.</p>
+    <p>Whichever you pick, these are direction sketches, not final assets. The final 24 should come from one illustrator so they stay consistent.</p>
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  const PUPS = [
+    { id: 'mochi', name: 'Mochi', breed: 'Shiba Inu' },
+    { id: 'peanut', name: 'Peanut', breed: 'Pug' },
+    { id: 'sprout', name: 'Sprout', breed: 'Dalmatian' },
+  ];
+  const CURRENT = {"mochi":"<svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"Mochi the Shiba Inu\"><path d=\"M20 44 L24 10 L44 30 Z\" fill=\"#d98a40\"/><path d=\"M80 44 L76 10 L56 30 Z\" fill=\"#d98a40\"/><path d=\"M25 36 L27 18 L38 30 Z\" fill=\"#ffc6d3\" opacity=\".8\"/><path d=\"M75 36 L73 18 L62 30 Z\" fill=\"#ffc6d3\" opacity=\".8\"/><ellipse cx=\"50\" cy=\"56\" rx=\"31\" ry=\"28\" fill=\"#e8a35c\"/><ellipse cx=\"35\" cy=\"68\" rx=\"13\" ry=\"11\" fill=\"#fff3e2\"/><ellipse cx=\"65\" cy=\"68\" rx=\"13\" ry=\"11\" fill=\"#fff3e2\"/><ellipse cx=\"38\" cy=\"41\" rx=\"3.6\" ry=\"2.4\" fill=\"#fff3e2\"/><ellipse cx=\"62\" cy=\"41\" rx=\"3.6\" ry=\"2.4\" fill=\"#fff3e2\"/><ellipse cx=\"50\" cy=\"68\" rx=\"14\" ry=\"10\" fill=\"#fff3e2\"/><circle cx=\"38\" cy=\"51\" r=\"4.4\" fill=\"#2a2230\"/><circle cx=\"62\" cy=\"51\" r=\"4.4\" fill=\"#2a2230\"/><circle cx=\"39.6\" cy=\"49.2\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"63.6\" cy=\"49.2\" r=\"1.6\" fill=\"#fff\"/><ellipse cx=\"31\" cy=\"62\" rx=\"5\" ry=\"3\" fill=\"#ff8fab\" opacity=\".45\"/><ellipse cx=\"69\" cy=\"62\" rx=\"5\" ry=\"3\" fill=\"#ff8fab\" opacity=\".45\"/><ellipse cx=\"50\" cy=\"63\" rx=\"5.2\" ry=\"3.6\" fill=\"#2a2230\"/><path d=\"M50 66 q-4 5 -8 2 M50 66 q4 5 8 2\" stroke=\"#2a2230\" stroke-width=\"1.8\" fill=\"none\" stroke-linecap=\"round\"/></svg>","peanut":"<svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"Peanut the Pug\"><circle cx=\"22\" cy=\"32\" r=\"11\" fill=\"#3d3030\"/><circle cx=\"78\" cy=\"32\" r=\"11\" fill=\"#3d3030\"/><ellipse cx=\"50\" cy=\"56\" rx=\"31\" ry=\"28\" fill=\"#e9cfa3\"/><ellipse cx=\"50\" cy=\"66\" rx=\"19\" ry=\"14\" fill=\"#4a3a38\"/><ellipse cx=\"38\" cy=\"50\" rx=\"8\" ry=\"7\" fill=\"#3d3030\" opacity=\".55\"/><ellipse cx=\"62\" cy=\"50\" rx=\"8\" ry=\"7\" fill=\"#3d3030\" opacity=\".55\"/><ellipse cx=\"50\" cy=\"68\" rx=\"14\" ry=\"10\" fill=\"#4a3a38\"/><circle cx=\"38\" cy=\"51\" r=\"4.4\" fill=\"#2a2230\"/><circle cx=\"62\" cy=\"51\" r=\"4.4\" fill=\"#2a2230\"/><circle cx=\"39.6\" cy=\"49.2\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"63.6\" cy=\"49.2\" r=\"1.6\" fill=\"#fff\"/><ellipse cx=\"31\" cy=\"62\" rx=\"5\" ry=\"3\" fill=\"#ff8fab\" opacity=\".45\"/><ellipse cx=\"69\" cy=\"62\" rx=\"5\" ry=\"3\" fill=\"#ff8fab\" opacity=\".45\"/><path d=\"M46 71 C46 79 54 79 54 71 Z\" fill=\"#ff7f9e\"/><ellipse cx=\"50\" cy=\"63\" rx=\"5.2\" ry=\"3.6\" fill=\"#2a2230\"/><path d=\"M50 66 q-4 5 -8 2 M50 66 q4 5 8 2\" stroke=\"#2a2230\" stroke-width=\"1.8\" fill=\"none\" stroke-linecap=\"round\"/></svg>","sprout":"<svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"Sprout the Dalmatian\"><ellipse cx=\"19\" cy=\"52\" rx=\"11\" ry=\"21\" fill=\"#2d2a33\" transform=\"rotate(18 19 52)\"/><ellipse cx=\"81\" cy=\"52\" rx=\"11\" ry=\"21\" fill=\"#2d2a33\" transform=\"rotate(-18 81 52)\"/><ellipse cx=\"50\" cy=\"56\" rx=\"31\" ry=\"28\" fill=\"#fbfbfb\"/><circle cx=\"31\" cy=\"44\" r=\"4\" fill=\"#2d2a33\"/><circle cx=\"70\" cy=\"40\" r=\"3\" fill=\"#2d2a33\"/><circle cx=\"74\" cy=\"62\" r=\"4.5\" fill=\"#2d2a33\"/><circle cx=\"27\" cy=\"64\" r=\"3\" fill=\"#2d2a33\"/><circle cx=\"55\" cy=\"33\" r=\"2.5\" fill=\"#2d2a33\"/><ellipse cx=\"50\" cy=\"68\" rx=\"14\" ry=\"10\" fill=\"#ffffff\"/><circle cx=\"38\" cy=\"51\" r=\"4.4\" fill=\"#2a2230\"/><circle cx=\"62\" cy=\"51\" r=\"4.4\" fill=\"#2a2230\"/><circle cx=\"39.6\" cy=\"49.2\" r=\"1.6\" fill=\"#fff\"/><circle cx=\"63.6\" cy=\"49.2\" r=\"1.6\" fill=\"#fff\"/><ellipse cx=\"31\" cy=\"62\" rx=\"5\" ry=\"3\" fill=\"#ff8fab\" opacity=\".45\"/><ellipse cx=\"69\" cy=\"62\" rx=\"5\" ry=\"3\" fill=\"#ff8fab\" opacity=\".45\"/><ellipse cx=\"50\" cy=\"63\" rx=\"5.2\" ry=\"3.6\" fill=\"#2a2230\"/><path d=\"M50 66 q-4 5 -8 2 M50 66 q4 5 8 2\" stroke=\"#2a2230\" stroke-width=\"1.8\" fill=\"none\" stroke-linecap=\"round\"/></svg>"};
+  const INK = '#2b2233';
+
+  // ---------- A: sticker
+  const sticker = {
+    mochi: { tilt: -6, back: `
+        <path d="M30 62 L26 20 Q27 15 32 18 L56 38 Z" fill="#e8913f"/><path d="M90 62 L94 20 Q93 15 88 18 L64 38 Z" fill="#e8913f"/>
+        <path d="M60 30 C90 30 102 52 102 72 C102 94 84 104 60 104 C36 104 18 94 18 72 C18 52 30 30 60 30Z" fill="#e8913f"/>`,
+      front: `
+        <path d="M33 54 L31 28 L48 42 Z" fill="#fff1dc"/><path d="M87 54 L89 28 L72 42 Z" fill="#fff1dc"/>
+        <path d="M24 80 C30 70 46 70 52 82 C56 92 48 102 38 100 C28 98 21 90 24 80Z" fill="#fff1dc"/>
+        <path d="M96 80 C90 70 74 70 68 82 C64 92 72 102 82 100 C92 98 99 90 96 80Z" fill="#fff1dc"/>
+        <ellipse cx="45" cy="58" rx="4" ry="2.6" fill="#fff1dc"/><ellipse cx="75" cy="58" rx="4" ry="2.6" fill="#fff1dc"/>`,
+      eyes: [44, 68], nose: 80 },
+    peanut: { tilt: 5, back: `
+        <path d="M22 44 Q20 32 34 34 L46 46 Q36 58 24 54Z" fill="#3a2e2e"/><path d="M98 44 Q100 32 86 34 L74 46 Q84 58 96 54Z" fill="#3a2e2e"/>
+        <path d="M60 32 C88 32 100 50 100 72 C100 94 84 104 60 104 C36 104 20 94 20 72 C20 50 32 32 60 32Z" fill="#e5c79a"/>`,
+      front: `
+        <path d="M34 80 C34 64 86 64 86 80 C86 96 74 102 60 102 C46 102 34 96 34 80Z" fill="#3a2e2e"/>
+        <path d="M48 46 q12 -6 24 0 M50 52 q10 -4 20 0" stroke="#b8946a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <ellipse cx="42" cy="70" rx="9" ry="8" fill="#3a2e2e" opacity=".55"/><ellipse cx="78" cy="70" rx="9" ry="8" fill="#3a2e2e" opacity=".55"/>`,
+      eyes: [42, 70], nose: 80, tongue: true, darkMuzzle: true },
+    sprout: { tilt: -3, back: `
+        <path d="M60 30 C88 30 100 50 100 72 C100 94 84 104 60 104 C36 104 20 94 20 72 C20 50 32 30 60 30Z" fill="#fbfaf7"/>`,
+      front: `
+        <circle cx="34" cy="62" r="4.5" fill="${INK}"/><circle cx="82" cy="58" r="3" fill="${INK}"/><circle cx="88" cy="80" r="5" fill="${INK}"/>
+        <circle cx="30" cy="86" r="3" fill="${INK}"/><circle cx="66" cy="42" r="3.5" fill="${INK}"/><circle cx="46" cy="40" r="2.2" fill="${INK}"/>
+        <path d="M28 44 C10 46 8 74 16 88 C22 96 32 86 32 74 C32 62 34 52 28 44Z" fill="${INK}"/>
+        <path d="M92 44 C110 46 112 74 104 88 C98 96 88 86 88 74 C88 62 86 52 92 44Z" fill="${INK}"/>`,
+      eyes: [46, 70], nose: 80 },
+  };
+  function stickerSvg(id) {
+    const d = sticker[id];
+    const muzzle = d.darkMuzzle ? '' : `<ellipse cx="60" cy="86" rx="15" ry="11" fill="${id === 'mochi' ? '#fff1dc' : '#ffffff'}"/>`;
+    const eye = d.darkMuzzle ? '#120c10' : INK;
+    return `<svg viewBox="0 0 120 120" role="img" aria-label="${id} sticker style">
+      <defs><g id="s-${id}">${d.back}${d.front}${muzzle}</g></defs>
+      <g transform="rotate(${d.tilt} 60 66)">
+        <use href="#s-${id}" stroke="#ffffff" stroke-width="13" stroke-linejoin="round" transform="translate(2 4)" opacity=".18"/>
+        <use href="#s-${id}" stroke="#ffffff" stroke-width="12" stroke-linejoin="round"/>
+        <use href="#s-${id}" stroke="${INK}" stroke-width="3.6" stroke-linejoin="round"/>
+        <ellipse cx="${60 - (60 - d.eyes[0])}" cy="${d.eyes[1]}" rx="3.4" ry="4.4" fill="${eye}"/>
+        <ellipse cx="${60 + (60 - d.eyes[0])}" cy="${d.eyes[1]}" rx="3.4" ry="4.4" fill="${eye}"/>
+        <path d="M54 ${d.nose} q6 -5 12 0 q-6 6 -12 0z" fill="${INK}"/>
+        ${d.tongue ? `<path d="M55 89 q5 10 10 0 z" fill="#ff7f9e" stroke="${INK}" stroke-width="2"/>` : ''}
+        <path d="M60 ${d.nose + 3} v4 M60 ${d.nose + 7} q-5 5 -9 1 M60 ${d.nose + 7} q5 5 9 1" stroke="${d.darkMuzzle ? '#120c10' : INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M32 ${d.eyes[1] + 9} l6 -2 M88 ${d.eyes[1] + 9} l-6 -2" stroke="#ff7f9e" stroke-width="2.6" stroke-linecap="round"/>
+      </g></svg>`;
+  }
+
+  // ---------- B: bean pups (full body, wobbly colored line)
+  const bean = {
+    mochi: { fur: '#e8913f', line: '#a24f17', belly: '#fff1dc', ears: 'pointy', tail: 'curl' },
+    peanut: { fur: '#e5c79a', line: '#7b5a36', belly: '#f3e3c7', ears: 'fold', tail: 'curl', mask: '#3a2e2e' },
+    sprout: { fur: '#fbfaf7', line: '#55506a', belly: '#ffffff', ears: 'flop', tail: 'long', spots: true },
+  };
+  function beanSvg(id) {
+    const b = bean[id];
+    const L = `stroke="${b.line}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"`;
+    const tail = b.tail === 'curl'
+      ? `<path d="M92 92 C108 90 108 70 96 72 C88 74 92 84 98 80" fill="none" ${L} stroke-width="6" stroke="${b.fur}"/><path d="M92 92 C108 90 108 70 96 72 C88 74 92 84 98 80" fill="none" ${L}/>`
+      : `<path d="M90 98 C104 98 110 86 108 74" fill="none" stroke="${b.line}" stroke-width="5" stroke-linecap="round"/>`;
+    const ears = b.ears === 'pointy'
+      ? `<path d="M34 34 L32 4 L56 24Z" fill="${b.fur}" ${L}/><path d="M86 34 L88 4 L64 24Z" fill="${b.fur}" ${L}/><path d="M37 26 L36 12 L48 22Z" fill="${b.belly}"/><path d="M83 26 L84 12 L72 22Z" fill="${b.belly}"/>`
+      : b.ears === 'fold'
+        ? `<path d="M34 34 Q32 24 44 28 L50 38 Q40 44 34 34Z" fill="${b.mask}" ${L}/><path d="M86 34 Q88 24 76 28 L70 38 Q80 44 86 34Z" fill="${b.mask}" ${L}/>`
+        : '';
+    const flop = b.ears === 'flop'
+      ? `<path d="M36 34 C22 36 22 60 28 66 C34 70 40 62 40 52Z" fill="#3b3550" ${L}/><path d="M84 34 C98 36 98 60 92 66 C86 70 80 62 80 52Z" fill="#3b3550" ${L}/>`
+      : '';
+    const spots = b.spots ? `<circle cx="44" cy="90" r="3.5" fill="#3b3550"/><circle cx="74" cy="100" r="4" fill="#3b3550"/><circle cx="80" cy="84" r="2.6" fill="#3b3550"/><circle cx="70" cy="34" r="3" fill="#3b3550"/><circle cx="46" cy="40" r="2" fill="#3b3550"/>` : '';
+    const mask = b.mask ? `<path d="M46 58 C46 48 74 48 74 58 C74 68 66 72 60 72 C54 72 46 68 46 58Z" fill="${b.mask}"/>` : '';
+    return `<svg viewBox="0 0 120 120" role="img" aria-label="${id} bean style">
+      <defs><filter id="wob-${id}"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="2" seed="${id.length * 7}"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter></defs>
+      <ellipse cx="60" cy="112" rx="34" ry="5" fill="#000" opacity=".22"/>
+      <g filter="url(#wob-${id})">
+        ${tail}
+        ${ears}
+        <path d="M30 104 C24 76 36 62 60 62 C84 62 96 76 90 104 Q60 112 30 104Z" fill="${b.fur}" ${L}/>
+        <path d="M46 104 C44 86 50 76 60 76 C70 76 76 86 74 104Z" fill="${b.belly}"/>
+        <path d="M60 18 C84 18 92 34 92 46 C92 62 78 70 60 70 C42 70 28 62 28 46 C28 34 36 18 60 18Z" fill="${b.fur}" ${L}/>
+        ${flop}${spots}${mask}
+        <ellipse cx="60" cy="56" rx="${b.mask ? 0 : 11}" ry="${b.mask ? 0 : 8}" fill="${b.belly}"/>
+        <ellipse cx="46" cy="48" rx="3" ry="3.6" fill="#1d1622"/><ellipse cx="74" cy="48" rx="3" ry="3.6" fill="#1d1622"/>
+        <circle cx="47" cy="46.6" r="1" fill="#fff"/><circle cx="75" cy="46.6" r="1" fill="#fff"/>
+        <ellipse cx="60" cy="54" rx="3.6" ry="2.6" fill="#1d1622"/>
+        <path d="M60 56 q-3 4 -6 1 M60 56 q3 4 6 1" stroke="${b.mask ? '#c9a77c' : '#1d1622'}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="44" cy="106" rx="8" ry="5" fill="${b.fur}" ${L}/><ellipse cx="76" cy="106" rx="8" ry="5" fill="${b.fur}" ${L}/>
+        <path d="M42 106 v3 M46 106 v3 M74 106 v3 M78 106 v3" stroke="${b.line}" stroke-width="1.4" stroke-linecap="round"/>
+      </g></svg>`;
+  }
+
+  // ---------- C: riso (overprinting spot inks, grain, misregistration)
+  const P = '#ff48b0', B = '#0078bf', Y = '#ffd400', PAPER = '#f4efe4';
+  function riso(id) {
+    const layers = {
+      mochi: [
+        [Y, 0, 0, `<circle cx="60" cy="68" r="34"/><path d="M30 54 L34 16 L58 40Z M90 54 L86 16 L62 40Z"/>`],
+        [P, 2, -1, `<g opacity=".55"><circle cx="60" cy="68" r="34"/><path d="M30 54 L34 16 L58 40Z M90 54 L86 16 L62 40Z"/></g>`],
+        [PAPER, 0, 0, `<path d="M28 78 Q44 70 60 84 Q76 70 92 78 Q88 102 60 102 Q32 102 28 78Z"/><path d="M38 44 L37 28 L48 38Z M82 44 L83 28 L72 38Z"/>`],
+        [B, -1, 1, `<circle cx="46" cy="64" r="3.8"/><circle cx="74" cy="64" r="3.8"/><path d="M53 80 h14 l-7 7Z"/><circle cx="45" cy="53" r="2.2"/><circle cx="75" cy="53" r="2.2"/>`],
+        [P, 1, 0, `<circle cx="36" cy="80" r="5" opacity=".7"/><circle cx="84" cy="80" r="5" opacity=".7"/>`],
+      ],
+      peanut: [
+        [Y, 0, 0, `<path d="M26 66 A34 32 0 1 1 94 66 A34 32 0 1 1 26 66Z"/>`],
+        [B, 1, 1, `<path d="M38 80 Q38 64 60 64 Q82 64 82 80 Q82 98 60 98 Q38 98 38 80Z"/><path d="M22 48 L40 38 L42 54Z M98 48 L80 38 L78 54Z"/>`],
+        [P, -2, 0, `<path d="M38 80 Q38 64 60 64 Q82 64 82 80 Q82 98 60 98 Q38 98 38 80Z" opacity=".55"/><path d="M56 88 q4 10 8 0Z"/>`],
+        [PAPER, 0, 0, `<circle cx="47" cy="65" r="5"/><circle cx="73" cy="65" r="5"/>`],
+        [B, 0, 0, `<circle cx="47" cy="66" r="3.4"/><circle cx="73" cy="66" r="3.4"/><path d="M48 46 q12 -6 24 0" fill="none" stroke="${B}" stroke-width="2.4"/>`],
+      ],
+      sprout: [
+        [Y, 0, 0, `<circle cx="60" cy="66" r="34" opacity=".28"/>`],
+        [B, 0, 0, `<path d="M28 46 C12 50 14 78 22 88 C30 94 36 80 34 66Z M92 46 C108 50 106 78 98 88 C90 94 84 80 86 66Z"/><circle cx="40" cy="48" r="4"/><circle cx="80" cy="44" r="3"/><circle cx="84" cy="84" r="5"/><circle cx="64" cy="38" r="3"/><circle cx="46" cy="64" r="3.4"/><circle cx="74" cy="64" r="3.4"/><path d="M53 78 h14 l-7 7Z"/>`],
+        [P, 2, 1, `<circle cx="36" cy="80" r="6" opacity=".6"/><circle cx="84" cy="76" r="6" opacity=".6"/><path d="M56 88 q4 9 8 0Z"/>`],
+        [Y, -1, 2, `<circle cx="84" cy="84" r="5" opacity=".9"/><circle cx="40" cy="48" r="4" opacity=".9"/>`],
+      ],
+    }[id];
+    const grainId = 'grain-' + id;
+    return `<svg viewBox="0 0 120 120" role="img" aria-label="${id} riso style">
+      <defs>
+        <filter id="${grainId}" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="${id.length}" result="n"/>
+          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.55 1.12" result="speck"/>
+          <feComposite in="SourceGraphic" in2="speck" operator="in"/>
+        </filter>
+      </defs>
+      <rect x="6" y="10" width="108" height="104" rx="10" fill="${PAPER}"/>
+      <g filter="url(#${grainId})">
+        ${layers.map(([ink, dx, dy, shapes]) => `<g fill="${ink}" transform="translate(${dx} ${dy})" style="mix-blend-mode:${ink === PAPER ? 'normal' : 'multiply'}">${shapes}</g>`).join('')}
+      </g></svg>`;
+  }
+
+  // ---------- D: pixel (left half of a 16-wide sprite, mirrored; extra pixels added after)
+  const PIX = {
+    mochi: {
+      pal: { k: '#2b2233', o: '#e8913f', d: '#c46d22', c: '#fff1dc', p: '#ff8fab', w: '#ffffff' },
+      half: [
+        '........', '..kk....', '.kodk...', '.kocdk...', '.koocdkkk', 'koooooooo', 'koooocooo', 'koookwooo',
+        'kooooooo', 'kocccccc', 'kcpccccc', '.kccccck', '.kccckcc', '..kccckk', '...kkkkk', '........',
+      ],
+    },
+    peanut: {
+      pal: { k: '#2b2233', f: '#e5c79a', d: '#c9a77c', m: '#3a2e2e', p: '#ff7f9e', w: '#ffffff' },
+      half: [
+        '........', '........', '..kkk...', '.kmmmkkk', '.kmmffff', 'kmkfffdf', 'kfffffff', 'kffkwfff',
+        'kffkkmmm', 'kffmmmmm', 'kfmmmmmk', 'kfmmmkmm', '.kmmmmpp', '..kmmmmp', '...kkkkk', '........',
+      ],
+    },
+    sprout: {
+      pal: { k: '#2b2233', w: '#fbfaf7', g: '#d9d6e3', b: '#2b2233', p: '#ff8fab', e: '#ffffff' },
+      half: [
+        '........', '...kkkkk', '..kwwwww', '.kbkwwww', 'kbbkwwww', 'kbbkwwww', 'kbbkwkww', 'kbbkwkww',
+        'kbbkwwww', '.kkkwwww', '..kpwwww', '..kwwwwk', '..kwwkww', '...kwwkk', '....kkkk', '........',
+      ],
+      extra: [[6, 2, 'b'], [10, 3, 'b'], [11, 4, 'b'], [11, 10, 'b'], [5, 13, 'b']],
+    },
+  };
+  function pixelCanvas(id, size) {
+    const d = PIX[id];
+    const cv = document.createElement('canvas');
+    cv.width = 16; cv.height = 16;
+    cv.setAttribute('role', 'img');
+    cv.setAttribute('aria-label', id + ' pixel style');
+    cv.style.imageRendering = 'pixelated';
+    const ctx = cv.getContext('2d');
+    const put = (x, y, ch) => { const col = d.pal[ch]; if (!col) return; ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); };
+    d.half.forEach((row, y) => {
+      const r = row.slice(0, 8).padEnd(8, '.');
+      [...r].forEach((ch, x) => { put(x, y, ch); put(15 - x, y, ch); });
+    });
+    (d.extra || []).forEach(([x, y, ch]) => put(x, y, ch));
+    return cv;
+  }
+
+  // ---------- assemble
+  const RENDER = { current: (id) => CURRENT[id], sticker: stickerSvg, bean: beanSvg, riso: riso };
+  document.querySelectorAll('.stage').forEach((stage) => {
+    const style = stage.dataset.style;
+    const tiny = document.createElement('div');
+    tiny.className = 'tiny';
+    const tinyRow = document.createElement('div');
+    tinyRow.className = 'tiny-row';
+    PUPS.forEach((p) => {
+      const cell = document.createElement('div');
+      cell.className = 'pup';
+      const art = document.createElement('div');
+      if (style === 'pixel') { art.appendChild(pixelCanvas(p.id)); tinyRow.appendChild(pixelCanvas(p.id)); }
+      else {
+        art.innerHTML = RENDER[style](p.id);
+        const t = document.createElement('div');
+        t.innerHTML = RENDER[style](p.id).replace(/id="([a-z]+-[a-z]+)"/g, 'id="t$1"').replace(/#([a-z]+-[a-z]+)/g, '#t$1');
+        tinyRow.appendChild(t.firstElementChild);
+      }
+      art.style.width = '100%';
+      art.style.display = 'grid';
+      art.style.justifyItems = 'center';
+      cell.appendChild(art.firstElementChild);
+      cell.insertAdjacentHTML('beforeend', `<span>${p.name}</span><small>${p.breed}</small>`);
+      stage.appendChild(cell);
+    });
+    tiny.appendChild(tinyRow);
+    tiny.insertAdjacentHTML('beforeend', '<span>at 44px</span>');
+    stage.appendChild(tiny);
+  });
+})();
+</script>

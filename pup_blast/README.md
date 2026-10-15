@@ -111,3 +111,11 @@ Then in Xcode:
 - Analytics: `window.PB_TRACK(event, params)` gets `run_start`, `run_end`, `gacha_pull`, `power_used`, and the ad request and grant events. Point it at Firebase or GameAnalytics.
 - Tune the economy against real data. A weak run of about 250 points earns about 23 bones, which is roughly 4 runs per pull. A typical run of 1,000 to 2,000 points gets a pull every run or two.
 - Collection goals: set bonuses (all corgis gives +5%) and a weekly limited-time banner pup.
+
+## Developer mode
+
+Settings → Developer mode shows an orange **DEV** button on every screen. It has tools for bones, free pulls, unlocking or maxing every pup, resetting pity, pulling a chosen rarity, skipping ads, unlimited power charges, and in-run helpers (refill charges, new pieces, clear the board, get stuck on purpose, +score). While it's on, the Kennel detail sheet also gets Level −/+ buttons. Set `ALLOW_DEV = false` in `www/js/main.js` for App Store builds.
+
+## Art direction
+
+`art/concepts.html` (built by `node art/build.mjs`) compares four style directions for the pups: sticker sheet, bean pups, riso print and pixel. The current portraits are placeholders until a direction is picked.
