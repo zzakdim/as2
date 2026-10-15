@@ -61,7 +61,7 @@ figcaption i { font-style: normal; font-size: 11px; letter-spacing: 1px; }
 
   <section>
     <div><span class="key">In the game</span><h2>Bean pups</h2>
-    <p class="sub">Full-body sitting pups with a hand-wobbled colored line. Each breed gets its own ears, snout, markings and tail, so none of them read as cats. Rares wear a bandana in the rare color.</p></div>
+    <p class="sub">Full-body sitting pups with a hand-wobbled colored line. Each breed gets its own ears, snout, markings and tail. Faces mix 10 eye styles (round, puppy, sparkly, happy, wink, almond, sleepy, pug, husky blue, lashes) with dog mouths: an open pant with the tongue out, a wide grin, a small smile, or a pug mouth. Rares wear a bandana in the rare color.</p></div>
     <div class="stage">${grid('bean')}</div>
   </section>
 
@@ -79,7 +79,7 @@ figcaption i { font-style: normal; font-size: 11px; letter-spacing: 1px; }
   </section>
 
   <dl class="notes">
-    <div><dt>What makes them dogs</dt><dd>A snout that bulges past the jaw with a big nose on top, ears by breed type (prick, bat, folded, floppy, fluffy), and a dog's tail: curled, plumed, otter or nub.</dd></div>
+    <div><dt>What makes them dogs</dt><dd>No cat-style ω mouths: dogs pant with their tongue out or grin wide. Big noses on a wide snout, prick ears that are broad at the base with rounded, fluffy tips, and a dog's tail: curled, plumed, otter or nub.</dd></div>
     <div><dt>Before final art</dt><dd>These are drawn by code from about 15 traits per breed. A single illustrator should redraw the final set from this sheet so the line and proportions match.</dd></div>
   </dl>
   <p class="refs">Mood references: <a href="https://fanlore.org/wiki/Neko_Atsume" target="_blank" rel="noopener">Neko Atsume</a> and <a href="https://motherboard.vice.com/en/article/wnx8gb/japanese-cat-collecting-game-neko-atsume-has-been-cloned-for-dog-people" target="_blank" rel="noopener">its dog follower Boku to Wanko</a> for the soft, collectible feel.</p>

@@ -15,23 +15,23 @@
   // ears: prick | big | huge | bat | tiny | tipped (stand up)   flop | drop | fold | poodle | hair (hang over the head)
   // muzzle: long | short | flat        tail: curl | plume | thin | otter | wag | nub | pompom
   const BREEDS = {
-    shiba: { name: 'Shiba Inu', fur: '#e1863a', light: '#fff4e2', ears: 'prick', muzzle: 'long', tail: 'curl', marks: ['urajiro', 'brows'] },
-    corgi: { name: 'Corgi', fur: '#ee9d4c', light: '#fffaf2', ears: 'big', muzzle: 'long', tail: 'nub', body: 'long', marks: ['blaze', 'chest'], tongue: true },
-    beagle: { name: 'Beagle', fur: '#c97f3c', dark: '#3b3036', light: '#ffffff', ears: 'flop', earColor: '#9a5a26', muzzle: 'long', tail: 'wag', marks: ['blaze', 'saddle', 'chest'] },
-    dachshund: { name: 'Dachshund', fur: '#8d4b28', light: '#c08455', ears: 'flop', earColor: '#6e3519', muzzle: 'long', tail: 'thin', body: 'long' },
-    pug: { name: 'Pug', fur: '#e7c896', dark: '#3a2e2e', light: '#f3e2c4', ears: 'fold', muzzle: 'flat', tail: 'curl', marks: ['wrinkles'], tongue: true },
-    lab: { name: 'Black Labrador', fur: '#34303b', light: '#6b6576', ears: 'drop', muzzle: 'long', tail: 'otter', tongue: true },
-    chihuahua: { name: 'Chihuahua', fur: '#e2b67c', light: '#f7e4c6', ears: 'huge', muzzle: 'short', tail: 'thin', size: 0.84, bigEyes: true },
-    pomeranian: { name: 'Pomeranian', fur: '#f2a24a', light: '#ffd9a3', ears: 'tiny', muzzle: 'short', tail: 'plume', size: 0.86, mane: true },
-    frenchie: { name: 'French Bulldog', fur: '#9b98aa', dark: '#5f5c6e', light: '#dcdae6', ears: 'bat', muzzle: 'flat', tail: 'nub', marks: ['blaze', 'chest'] },
-    golden: { name: 'Golden Retriever', fur: '#e2a64c', light: '#f5d08c', ears: 'drop', muzzle: 'long', tail: 'plume', marks: ['chest'], tongue: true },
-    dalmatian: { name: 'Dalmatian', fur: '#fbfaf7', dark: '#2f2a36', light: '#ffffff', ears: 'drop', earColor: '#2f2a36', muzzle: 'long', tail: 'thin', marks: ['spots'] },
-    husky: { name: 'Husky', fur: '#6d7790', light: '#ffffff', ears: 'prick', muzzle: 'long', tail: 'plume', marks: ['huskymask'], eye: '#3aa6f0' },
-    samoyed: { name: 'Samoyed', fur: '#ffffff', light: '#ffffff', ears: 'tiny', muzzle: 'long', tail: 'plume', mane: true, tongue: true },
-    collie: { name: 'Border Collie', fur: '#2c2832', light: '#ffffff', ears: 'drop', muzzle: 'long', tail: 'low', marks: ['blaze', 'collar', 'chest'] },
-    poodle: { name: 'Poodle', fur: '#7d4b33', light: '#946049', ears: 'poodle', muzzle: 'long', tail: 'pompom', marks: ['curls'] },
-    bernese: { name: 'Bernese', fur: '#2a2630', rust: '#c46a2f', light: '#ffffff', ears: 'drop', muzzle: 'long', tail: 'plume', size: 1.06, marks: ['blaze', 'tricolor', 'chest'] },
-    shihtzu: { name: 'Shih Tzu', fur: '#f4e6d2', dark: '#b07c4c', light: '#fffaf3', ears: 'hair', earColor: '#b07c4c', muzzle: 'short', tail: 'plume', marks: ['topknot'] },
+    shiba: { name: 'Shiba Inu', fur: '#e1863a', light: '#fff4e2', ears: 'prick', muzzle: 'long', tail: 'curl', marks: ['urajiro', 'brows'], eyes: 'almond', mouth: 'grin' },
+    corgi: { name: 'Corgi', fur: '#ee9d4c', light: '#fffaf2', ears: 'big', muzzle: 'long', tail: 'nub', body: 'long', marks: ['blaze', 'chest'], eyes: 'dot', mouth: 'pant' },
+    beagle: { name: 'Beagle', fur: '#c97f3c', dark: '#3b3036', light: '#ffffff', ears: 'flop', earColor: '#9a5a26', muzzle: 'long', tail: 'wag', marks: ['blaze', 'saddle', 'chest'], eyes: 'puppy', mouth: 'grin' },
+    dachshund: { name: 'Dachshund', fur: '#8d4b28', light: '#c08455', ears: 'flop', earColor: '#6e3519', muzzle: 'long', tail: 'thin', body: 'long', eyes: 'sleepy', mouth: 'small' },
+    pug: { name: 'Pug', fur: '#e7c896', dark: '#3a2e2e', light: '#f3e2c4', ears: 'fold', muzzle: 'flat', tail: 'curl', marks: ['wrinkles'], eyes: 'bug', mouth: 'pug' },
+    lab: { name: 'Black Labrador', fur: '#34303b', light: '#6b6576', ears: 'drop', muzzle: 'long', tail: 'otter', eyes: 'puppy', mouth: 'pant' },
+    chihuahua: { name: 'Chihuahua', fur: '#e2b67c', light: '#f7e4c6', ears: 'huge', muzzle: 'short', tail: 'thin', size: 0.84, eyes: 'sparkle', mouth: 'small' },
+    pomeranian: { name: 'Pomeranian', fur: '#f2a24a', light: '#ffd9a3', ears: 'tiny', muzzle: 'short', tail: 'plume', size: 0.86, mane: true, eyes: 'sparkle', mouth: 'pant' },
+    frenchie: { name: 'French Bulldog', fur: '#9b98aa', dark: '#5f5c6e', light: '#dcdae6', ears: 'bat', muzzle: 'flat', tail: 'nub', marks: ['blaze', 'chest'], eyes: 'dot', mouth: 'pug' },
+    golden: { name: 'Golden Retriever', fur: '#e2a64c', light: '#f5d08c', ears: 'drop', muzzle: 'long', tail: 'plume', marks: ['chest'], eyes: 'happy', mouth: 'pant' },
+    dalmatian: { name: 'Dalmatian', fur: '#fbfaf7', dark: '#2f2a36', light: '#ffffff', ears: 'drop', earColor: '#2f2a36', muzzle: 'long', tail: 'thin', marks: ['spots'], eyes: 'dot', mouth: 'grin' },
+    husky: { name: 'Husky', fur: '#6d7790', light: '#ffffff', ears: 'prick', muzzle: 'long', tail: 'plume', marks: ['huskymask'], eye: '#3aa6f0', eyes: 'husky', mouth: 'pant', ruff: true },
+    samoyed: { name: 'Samoyed', fur: '#ffffff', light: '#f3eff8', ears: 'prick', muzzle: 'long', tail: 'plume', mane: true, eyes: 'happy', mouth: 'pant' },
+    collie: { name: 'Border Collie', fur: '#2c2832', light: '#ffffff', ears: 'drop', muzzle: 'long', tail: 'low', marks: ['blaze', 'collar', 'chest'], eyes: 'dot', mouth: 'grin', brows: true },
+    poodle: { name: 'Poodle', fur: '#7d4b33', light: '#946049', ears: 'poodle', muzzle: 'long', tail: 'pompom', marks: ['curls'], eyes: 'sparkle', mouth: 'grin' },
+    bernese: { name: 'Bernese', fur: '#2a2630', rust: '#c46a2f', light: '#ffffff', ears: 'drop', muzzle: 'long', tail: 'plume', size: 1.06, marks: ['blaze', 'tricolor', 'chest'], eyes: 'puppy', mouth: 'pant' },
+    shihtzu: { name: 'Shih Tzu', fur: '#f4e6d2', dark: '#b07c4c', light: '#fffaf3', ears: 'hair', earColor: '#b07c4c', muzzle: 'short', tail: 'plume', marks: ['topknot'], eyes: 'sparkle', mouth: 'small' },
   };
 
   // ---------------------------------------------------------------- roster
@@ -57,14 +57,14 @@
     P('ziggy', 'Ziggy', 'bernese', 'rare', 'avalanche', { acc: 'bandana' }),
     P('scoop', 'Scoop', 'shihtzu', 'rare', 'pampered', { acc: 'bandana' }),
 
-    P('disco', 'Disco', 'pug', 'epic', 'hopscotch', { acc: 'shades' }),
-    P('captain', 'Captain Biscuit', 'corgi', 'epic', 'cannonball', { acc: 'captain' }),
-    P('duchess', 'Duchess', 'pomeranian', 'epic', 'doover', { acc: 'tiara', fur: '#fff3f7', light: '#ffffff' }),
+    P('disco', 'Disco', 'pug', 'epic', 'hopscotch', { acc: 'shades', mouth: 'pant' }),
+    P('captain', 'Captain Biscuit', 'corgi', 'epic', 'cannonball', { acc: 'captain', eyes: 'wink', mouth: 'grin' }),
+    P('duchess', 'Duchess', 'pomeranian', 'epic', 'doover', { acc: 'tiara', fur: '#fff3f7', light: '#ffffff', eyes: 'lashes', mouth: 'small' }),
     P('merlin', 'Merlin', 'shiba', 'epic', 'clairvoyance', { acc: 'wizard' }),
-    P('dj', 'DJ Woofles', 'husky', 'epic', 'dropthebeat', { acc: 'headphones' }),
+    P('dj', 'DJ Woofles', 'husky', 'epic', 'dropthebeat', { acc: 'headphones', eyes: 'happy' }),
 
     P('sunny', 'Sunny', 'golden', 'legendary', 'guardian', { acc: 'crown', fur: '#f2b443', light: '#ffe08f', aura: true }),
-    P('cosmo', 'Cosmo', 'samoyed', 'legendary', 'bigbang', { acc: 'halo', fur: '#efeaff', light: '#ffffff', aura: true, stars: true }),
+    P('cosmo', 'Cosmo', 'samoyed', 'legendary', 'bigbang', { acc: 'halo', fur: '#efeaff', light: '#ffffff', aura: true, stars: true, eyes: 'sparkle' }),
   ];
   ROSTER.forEach((p) => { p.breed = p.breedName; delete p.breedName; });
   const BY_ID = Object.fromEntries(ROSTER.map((p) => [p.id, p]));
@@ -103,7 +103,7 @@
     const c = l.earColor || l.fur;
     const pink = '#f6b6c4';
     switch (l.ears) {
-      case 'prick': return both(`<path d="M31 36 C27 25 28 12 32 5 C41 9 50 17 54 25 Z" fill="${c}" ${L}/><path d="M35 27 C33 21 33 15 35 11 C41 14 46 19 48 23 Z" fill="${inner}"/>`);
+      case 'prick': return both(`<path d="M27 42 C22 31 22 17 27 9 C30 5 35 5 39 9 C46 15 52 21 55 28 Z" fill="${c}" ${L}/><path d="M31 33 C28 26 28 18 31 13 C33 11 36 12 39 15 C43 19 46 23 47 26 L43 25 L44 29 L40 28 L39 32 L35 30 Z" fill="${inner}"/>`);
       case 'big': return both(`<path d="M30 38 C19 26 16 10 21 0 C34 4 46 15 51 26 Z" fill="${c}" ${L}/><path d="M32 30 C25 22 23 12 25 7 C33 10 40 17 44 25 Z" fill="${pink}"/>`);
       case 'huge': return both(`<path d="M32 40 C16 36 4 20 6 7 C21 8 40 17 50 29 Z" fill="${c}" ${L}/><path d="M33 33 C21 29 13 20 12 13 C23 14 36 20 43 28 Z" fill="${pink}"/>`);
       case 'bat': return both(`<path d="M34 32 C23 25 21 6 31 3 C42 0 51 12 51 25 Z" fill="${c}" ${L}/><path d="M36 26 C29 21 28 10 33 8 C40 7 46 15 46 23 Z" fill="${pink}"/>`);
@@ -137,7 +137,7 @@
     let s = '';
     if (m.includes('huskymask')) s += `<path d="M60 31 C51 35 45 40 33 46 C31 61 44 70 60 70 C76 70 89 61 87 46 C75 40 69 35 60 31 Z" fill="${l.light}"/><ellipse cx="46" cy="34" rx="4" ry="2.4" fill="${l.light}"/><ellipse cx="74" cy="34" rx="4" ry="2.4" fill="${l.light}"/>`;
     if (m.includes('blaze')) s += `<path d="M60 20 C56 28 54 38 52 50 L68 50 C66 38 64 28 60 20 Z" fill="${l.light}"/>`;
-    if (m.includes('urajiro')) s += `<ellipse cx="43" cy="58" rx="12" ry="9" fill="${l.light}"/><ellipse cx="77" cy="58" rx="12" ry="9" fill="${l.light}"/>`;
+    if (m.includes('urajiro')) s += `<path d="M33 52 C37 46 49 46 60 50 C71 46 83 46 87 52 C88 62 77 70 60 70 C43 70 32 62 33 52 Z" fill="${l.light}"/>`;
     if (m.includes('brows')) s += `<ellipse cx="46" cy="34.5" rx="3.6" ry="2.3" fill="${l.light}"/><ellipse cx="74" cy="34.5" rx="3.6" ry="2.3" fill="${l.light}"/>`;
     if (m.includes('tricolor')) s += `<ellipse cx="46" cy="35" rx="3.4" ry="2.2" fill="${l.rust}"/><ellipse cx="74" cy="35" rx="3.4" ry="2.2" fill="${l.rust}"/><ellipse cx="42" cy="58" rx="7" ry="6" fill="${l.rust}"/><ellipse cx="78" cy="58" rx="7" ry="6" fill="${l.rust}"/>`;
     if (m.includes('spots')) s += `<circle cx="38" cy="34" r="3.2" fill="${l.dark}"/><circle cx="70" cy="25" r="2.6" fill="${l.dark}"/><circle cx="84" cy="50" r="2.4" fill="${l.dark}"/><circle cx="52" cy="24" r="1.8" fill="${l.dark}"/>`;
@@ -158,35 +158,73 @@
     return '';
   }
 
+  // Eye styles give each pup its own personality.
+  function eyesSvg(l, ink) {
+    if (l.acc === 'shades') return '';
+    const style = l.eyes || 'dot';
+    const pair = (fn) => fn(45, 1) + fn(75, -1);
+    const shine = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>`;
+    const lid = (x) => `<path d="M${x - 6} 42.5 Q${x} 38 ${x + 6} 42.5" stroke="${ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    switch (style) {
+      case 'happy': return pair((x) => `<path d="M${x - 5} 45.5 Q${x} 38.5 ${x + 5} 45.5" stroke="${ink}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`);
+      case 'wink': return `<ellipse cx="45" cy="44" rx="3.6" ry="4.3" fill="${ink}"/>${shine(46.4, 42.3, 1.3)}` +
+        `<path d="M70 44.5 Q75 40 80 44.5" stroke="${ink}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
+      case 'almond': return pair((x, d) => `<ellipse cx="${x}" cy="44" rx="4.4" ry="3.3" transform="rotate(${-14 * d} ${x} 44)" fill="${ink}"/>${shine(x + 1.4, 42.8, 1.2)}`);
+      case 'puppy': return pair((x) => `<ellipse cx="${x}" cy="44" rx="4.6" ry="5.2" fill="${ink}"/>${shine(x + 1.6, 41.8, 1.8)}${shine(x - 1.6, 46.2, 0.9)}`);
+      case 'sparkle': return pair((x) => `<ellipse cx="${x}" cy="44" rx="5" ry="5.6" fill="${ink}"/><ellipse cx="${x}" cy="45.5" rx="3.4" ry="3" fill="#5a3f6e" opacity=".55"/>${shine(x + 1.7, 41.6, 2)}${shine(x - 1.8, 46.6, 1)}${shine(x + 2.2, 46, 0.6)}`);
+      case 'lashes': return pair((x, d) => `<ellipse cx="${x}" cy="44" rx="4.6" ry="5.2" fill="${ink}"/>${shine(x + 1.6, 41.8, 1.8)}${shine(x - 1.6, 46.2, 0.8)}` +
+        `<path d="M${x - 4.5 * d} 40.5 l${-3 * d} -2.4 M${x - 3 * d} 39.2 l${-1.8 * d} -3" stroke="${ink}" stroke-width="1.5" stroke-linecap="round"/>`);
+      case 'sleepy': return pair((x) => `<path d="M${x - 4.5} 43.5 Q${x} 49 ${x + 4.5} 43.5 Z" fill="${ink}"/><path d="M${x - 5} 43.5 H${x + 5}" stroke="${ink}" stroke-width="2.2" stroke-linecap="round"/>${shine(x + 1.4, 45.2, 0.9)}`);
+      case 'bug': return pair((x) => `<circle cx="${x}" cy="44" r="5.6" fill="#ffffff" stroke="${ink}" stroke-width="1.2"/><circle cx="${x}" cy="44.6" r="4.3" fill="${ink}"/>${shine(x + 1.5, 42.6, 1.5)}`);
+      case 'husky': return pair((x) => `<ellipse cx="${x}" cy="44" rx="4.3" ry="4.7" fill="${l.eye}" stroke="${ink}" stroke-width="1.6"/><circle cx="${x}" cy="44.4" r="2" fill="${ink}"/>${shine(x + 1.4, 42.6, 1.2)}`);
+      default: return pair((x) => `<ellipse cx="${x}" cy="44" rx="3.6" ry="4.3" fill="${ink}"/>${shine(x + 1.4, 42.3, 1.3)}`);
+    }
+  }
+
+  // Dog mouths: an open pant with a tongue, a wide grin, a small smile, or a pug's mouth.
+  function mouthSvg(l, ink, my) {
+    const style = l.mouth || 'grin';
+    const pink = '#ff7f9e', pinkLine = shade(pink, -0.35);
+    const philtrum = `<path d="M60 ${my - 1.5} v3" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`;
+    switch (style) {
+      case 'pant':
+        return philtrum + `<path d="M50 ${my + 1.5} Q60 ${my + 4} 70 ${my + 1.5} Q68 ${my + 11} 60 ${my + 11} Q52 ${my + 11} 50 ${my + 1.5} Z" fill="#5a2333" stroke="${ink}" stroke-width="1.8" stroke-linejoin="round"/>` +
+          `<path d="M54.5 ${my + 6} C54.5 ${my + 16} 65.5 ${my + 16} 65.5 ${my + 6} Q60 ${my + 4} 54.5 ${my + 6} Z" fill="${pink}" stroke="${pinkLine}" stroke-width="1.2"/>` +
+          `<path d="M60 ${my + 6.5} v5" stroke="${pinkLine}" stroke-width="1.1" stroke-linecap="round"/>`;
+      case 'small':
+        return philtrum + `<path d="M55 ${my + 2} Q60 ${my + 6} 65 ${my + 2}" stroke="${ink}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+      case 'pug': {
+        const c = shade(l.dark || '#555555', 0.5);
+        return `<path d="M60 ${my - 1.5} v2.5 M51 ${my + 3} Q60 ${my + 6} 69 ${my + 3}" stroke="${c}" stroke-width="2" fill="none" stroke-linecap="round"/>` +
+          `<path d="M57 ${my + 4.6} q3 6 6 0 z" fill="${pink}" stroke="${pinkLine}" stroke-width="1"/>`;
+      }
+      default: // grin: a wide smile with little jowl hooks at the corners
+        return philtrum + `<path d="M51 ${my + 1.5} Q60 ${my + 9} 69 ${my + 1.5}" stroke="${ink}" stroke-width="2.2" fill="none" stroke-linecap="round"/>` +
+          `<path d="M51 ${my + 1.5} q-1.2 -0.2 -1.8 -1.6 M69 ${my + 1.5} q1.2 -0.2 1.8 -1.6" stroke="${ink}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`;
+    }
+  }
+
   function faceSvg(l, ink) {
-    const eye = l.eye || '#1d1622';
-    const er = l.bigEyes ? 4.6 : 3.5;
-    const shades = l.acc === 'shades';
-    const eyes = shades ? '' :
-      `<ellipse cx="45" cy="44" rx="${er}" ry="${er + 0.7}" fill="${eye}"/><ellipse cx="75" cy="44" rx="${er}" ry="${er + 0.7}" fill="${eye}"/>` +
-      (l.eye ? `<circle cx="45" cy="44.6" r="${er * 0.45}" fill="#1d1622"/><circle cx="75" cy="44.6" r="${er * 0.45}" fill="#1d1622"/>` : '') +
-      `<circle cx="46.4" cy="42.4" r="1.3" fill="#fff"/><circle cx="76.4" cy="42.4" r="1.3" fill="#fff"/>`;
     let muzzle, noseY, nose;
     if (l.muzzle === 'flat') {
       const mask = l.dark || shade(l.fur, -0.4);
       muzzle = `<path d="M43 56 C43 47 77 47 77 56 C77 66 70 70 60 70 C50 70 43 66 43 56 Z" fill="${mask}"/>` +
         `<ellipse cx="45" cy="45" rx="7.5" ry="6.5" fill="${mask}" opacity=".45"/><ellipse cx="75" cy="45" rx="7.5" ry="6.5" fill="${mask}" opacity=".45"/>`;
-      noseY = 53; nose = `<ellipse cx="60" cy="${noseY}" rx="6" ry="4" fill="#15101a"/>`;
+      noseY = 52; nose = `<ellipse cx="60" cy="${noseY}" rx="6.4" ry="4.2" fill="#15101a"/>`;
     } else if (l.muzzle === 'short') {
-      muzzle = `<ellipse cx="60" cy="58" rx="12" ry="9" fill="${l.light}"/>`;
-      noseY = 53.5; nose = `<ellipse cx="60" cy="${noseY}" rx="4.8" ry="3.5" fill="#1d1622"/>`;
+      muzzle = `<ellipse cx="60" cy="58" rx="12.5" ry="9.5" fill="${l.light}"/>`;
+      noseY = 53; nose = `<ellipse cx="60" cy="${noseY}" rx="5" ry="3.6" fill="#1d1622"/>`;
     } else {
-      // Long muzzle: the snout bulges past the jaw line, which is what makes it read as a dog, not a cat.
-      muzzle = `<path d="M45 56 C45 47 75 47 75 56 C75 67 68 73 60 73 C52 73 45 67 45 56 Z" fill="${l.light}"/>`;
-      noseY = 52.5; nose = `<path d="M53.5 ${noseY - 2} C53.5 ${noseY - 5} 66.5 ${noseY - 5} 66.5 ${noseY - 2} C66.5 ${noseY + 2} 62 ${noseY + 4} 60 ${noseY + 4} C58 ${noseY + 4} 53.5 ${noseY + 2} 53.5 ${noseY - 2} Z" fill="#1d1622"/>`;
+      // Long snout: wide, sits low, carries a big nose. The nose and open mouth are what read as "dog".
+      const edge = isLight(l.fur) ? `stroke="${shade(l.light, -0.12)}" stroke-width="1.4"` : '';
+      muzzle = `<path d="M44 57 C44 47 76 47 76 57 C76 66 69 71 60 71 C51 71 44 66 44 57 Z" fill="${l.light}" ${edge}/>`;
+      noseY = 52;
+      nose = `<path d="M52.5 ${noseY - 2} C52.5 ${noseY - 5.5} 67.5 ${noseY - 5.5} 67.5 ${noseY - 2} C67.5 ${noseY + 2.5} 62.5 ${noseY + 4.5} 60 ${noseY + 4.5} C57.5 ${noseY + 4.5} 52.5 ${noseY + 2.5} 52.5 ${noseY - 2} Z" fill="#1d1622"/>`;
     }
-    const mouthC = l.muzzle === 'flat' ? shade(l.dark || '#555555', 0.45) : ink;
-    const my = noseY + 4.5;
-    const mouth = `<path d="M60 ${my - 1} v2.6 M60 ${my + 1.6} q-4.2 4.2 -8.4 0.6 M60 ${my + 1.6} q4.2 4.2 8.4 0.6" stroke="${mouthC}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-    const tongue = l.tongue ? `<path d="M56.2 ${my + 3.2} q3.8 9 7.6 0 z" fill="#ff7f9e" stroke="${shade('#ff7f9e', -0.35)}" stroke-width="1.2"/>` : '';
-    const shine = `<ellipse cx="58" cy="${noseY - 1.6}" rx="1.9" ry="1.1" fill="#fff" opacity=".55"/>`;
-    const blush = `<ellipse cx="36" cy="54" rx="4.4" ry="2.6" fill="#ff8fab" opacity=".45"/><ellipse cx="84" cy="54" rx="4.4" ry="2.6" fill="#ff8fab" opacity=".45"/>`;
-    return muzzle + eyes + blush + tongue + nose + shine + mouth;
+    const shine = `<ellipse cx="57.6" cy="${noseY - 1.8}" rx="2.2" ry="1.2" fill="#fff" opacity=".55"/>`;
+    const blush = `<ellipse cx="35" cy="53" rx="4.4" ry="2.6" fill="#ff8fab" opacity=".45"/><ellipse cx="85" cy="53" rx="4.4" ry="2.6" fill="#ff8fab" opacity=".45"/>`;
+    const brows = l.brows ? `<path d="M41 37.5 q4 -2.6 8 -0.6 M71 36.9 q4 -2 8 0.6" stroke="${isLight(l.fur) ? '#6a6582' : shade(l.fur, 0.55)}" stroke-width="2" fill="none" stroke-linecap="round"/>` : '';
+    return muzzle + eyesSvg(l, ink) + brows + blush + mouthSvg(l, ink, noseY + 5) + nose + shine;
   }
 
   function accSvg(l, rarityColor) {
@@ -287,6 +325,7 @@
           <path d="M42.5 105 v3 M47.5 105 v3 M72.5 105 v3 M77.5 105 v3" stroke="${line}" stroke-width="1.3" stroke-linecap="round"/>
         </g>
         <g transform="${headT}">
+          ${l.ruff ? `<path d="M34 64 L38 74 L44 68 L48 78 L54 70 L60 80 L66 70 L72 78 L76 68 L82 74 L86 64 Z" fill="${l.light}" ${L}/>` : ''}
           ${bandanaSvg(l, rc)}
           ${up ? earsSvg(l, L, inner) : ''}${maneSvg(l, L)}${topknotSvg(l, L)}
           <path d="${HEAD}" fill="${l.fur}" ${L}/>
