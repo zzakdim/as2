@@ -1,6 +1,12 @@
 // Ads: a pacing policy plus two providers.
 // - AdMob through @capacitor-community/admob when running inside the iOS app.
 // - A mock overlay in the browser, so the pacing can be felt during playtests.
+// Start-up order inside the app (Google's recommended flow):
+//   1. Consent: ask Google's UMP SDK whether this player needs the consent form (EU/UK and some
+//      US states) and show it if so. The form itself is designed in the AdMob console (Privacy & messaging).
+//   2. App Tracking Transparency: iOS's "allow tracking?" prompt, once.
+//   3. Start the ads SDK only if consent allows ads (canRequestAds).
+// Players can reopen the form later from Settings → Privacy choices when Google says it's required.
 (function (root) {
   'use strict';
 
@@ -36,17 +42,33 @@
     return cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.AdMob;
   }
 
+  const TESTING = UNITS.rewarded.startsWith('ca-app-pub-3940256099942544');
+
   function createAdMobProvider(AdMob) {
     let ready = false;
+    let privacyRequired = false;
+    // Runs the consent step. Returns whether ads may be requested.
+    async function consent() {
+      try {
+        let info = await AdMob.requestConsentInfo();
+        if (info.isConsentFormAvailable && info.status === 'REQUIRED') info = await AdMob.showConsentForm();
+        privacyRequired = info.privacyOptionsRequirementStatus === 'REQUIRED';
+        return info.canRequestAds !== false;
+      } catch (e) {
+        return true; // UMP unreachable (offline): Google falls back to non-personalized ads
+      }
+    }
     return {
       kind: 'admob',
       async init() {
+        const canRequest = await consent();
         try {
           // App Tracking Transparency prompt (iOS 14.5+). Ads still serve if declined, just non-personalized.
           const status = await AdMob.trackingAuthorizationStatus();
           if (status.status === 'notDetermined') await AdMob.requestTrackingAuthorization();
         } catch (e) { /* older plugin or simulator */ }
-        await AdMob.initialize({ initializeForTesting: UNITS.rewarded.startsWith('ca-app-pub-3940256099942544') });
+        if (!canRequest) return; // the player declined in a region that needs consent: no ads this session
+        await AdMob.initialize({ initializeForTesting: TESTING });
         ready = true;
         AdMob.prepareInterstitial({ adId: UNITS.interstitial }).catch(() => {});
         AdMob.prepareRewardVideoAd({ adId: UNITS.rewarded }).catch(() => {});
@@ -63,6 +85,10 @@
           return !!reward;
         } catch (e) { return false; }
         finally { AdMob.prepareRewardVideoAd({ adId: UNITS.rewarded }).catch(() => {}); }
+      },
+      privacyOptionsRequired: () => privacyRequired,
+      async showPrivacyOptions() {
+        try { await AdMob.showPrivacyOptionsForm(); } catch (e) { /* form unavailable */ }
       },
     };
   }
@@ -107,6 +133,8 @@
       async init() {},
       interstitial: () => show('interstitial', 3),
       rewarded: () => show('rewarded', 4),
+      privacyOptionsRequired: () => false,
+      async showPrivacyOptions() {},
     };
   }
 

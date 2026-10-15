@@ -54,6 +54,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- shared bits */
 .topbar, .game-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; }
+.topbar-left { display: flex; gap: 8px; }
 .screen-title { font-family: var(--display); font-weight: 800; font-size: 24px; margin: 0; flex: 1; text-align: center; }
 .icon-btn {
   width: 44px; height: 44px; border-radius: 14px; border: 0;
@@ -571,3 +572,11 @@ body:has(#modal:not([hidden]) .sheet.dev) .coach, body:has(#modal:not([hidden]))
 .bond-line { color: #ff8fb1; font-weight: 700; }
 .feed-note { margin: 0; font-size: 13px; }
 .btn .bone { width: 15px; height: 15px; vertical-align: -2px; }
+
+/* ---------- store + leaderboards */
+.mock-store { aspect-ratio: auto; gap: 14px; }
+.mock-store-title { margin: 0; font: 800 22px var(--display); }
+.mock-ad-actions { display: grid; gap: 8px; width: 100%; }
+.board-list { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; gap: 8px; }
+.board-list li { display: flex; justify-content: space-between; background: var(--well); border-radius: 12px; padding: 12px 14px; font-weight: 700; }
+.board-list b { font-variant-numeric: tabular-nums; }

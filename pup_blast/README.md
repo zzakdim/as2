@@ -78,7 +78,21 @@ All ad code is in `www/js/ads.js`. Inside the iOS app it uses AdMob through `@ca
 
 The design leans on rewarded ads. Players opt in to them, they pay the best eCPM, and the gacha gives every one of them a reason to exist. Interstitials are capped so they don't drive players away. Banners are left out because they earn little and take space from the board. If you want one, put it on the Kennel screen only.
 
-"Remove ads" ($2.99) turns off interstitials only, so rewarded ads keep working. The button is a stub until StoreKit is wired up (see Next steps).
+**Consent.** At launch the app asks Google's consent service (UMP) whether this player needs the consent form, shows it if so, then the iOS tracking prompt, and only then starts ads. The form is required in the EU, UK and some US states. You design it in the AdMob console under Privacy & messaging. Settings shows a **Privacy choices** button when Google says the player must be able to change their answer.
+
+**Remove Ads** ($2.99, non-consumable, `com.example.pupblast.removeads`) turns off interstitials only, so rewarded ads keep working. `www/js/store.js` buys and restores it through StoreKit 2 (`@capgo/native-purchases`). There's no server: Apple's receipt is checked at each launch. Settings has **Restore purchases**, which Apple requires. In a browser a stand-in sheet grants it.
+
+## Leaderboards
+
+`www/js/gamecenter.js` uses Game Center through our own small plugin, `native/ios/GameCenterPlugin.swift`. The trophy button on the home screen opens Apple's leaderboard screen.
+
+| Board | ID | Sent |
+|---|---|---|
+| Endless, all time | `com.example.pupblast.endless` | after every Endless run, and the saved best at launch |
+| Endless, this week | `com.example.pupblast.endless.weekly` (recurring, resets Mondays) | after every Endless run |
+| Total stars | `com.example.pupblast.stars` | after every level run, and at launch |
+
+In a browser it keeps your own best per board in the save and lists them.
 
 ## Run it
 
@@ -90,28 +104,45 @@ npm run build:preview    # dist/pup-blast.html, a single-file build for sharing 
 
 ## Ship it on iOS (needs a Mac with Xcode)
 
+**Accounts first:** an Apple Developer account and an AdMob account.
+
+1. **App Store Connect:**
+   - Create the app with your bundle ID, and set the same ID as `appId` in `capacitor.config.json`.
+   - Under Game Center, add the three leaderboards from the table above. The weekly one is a "recurring" leaderboard.
+   - Under In-App Purchases, add the non-consumable `…removeads`.
+   - If your bundle ID isn't `com.example.pupblast`, update the IDs in `www/js/gamecenter.js` and `www/js/store.js`.
+2. **AdMob console:**
+   - Add the app and create an interstitial unit and a rewarded unit. Put their IDs in `UNITS` in `www/js/ads.js`.
+   - Under Privacy & messaging, create the GDPR message and the US states message.
+   - Host `app-ads.txt` on your developer website.
+3. **Build:**
+
 ```bash
 npm install
 npx cap add ios
+npm run ios:setup -- --admob-app-id ca-app-pub-XXXX~YYYY   # leave the flag off to use Google's test app ID
 npx cap sync ios
 npx cap open ios
 ```
 
-Then in Xcode:
+`ios:setup` copies the Game Center plugin into the app and adds it to the Xcode project. It points `Main.storyboard` at `AppViewController` (which registers the plugin) and adds the Info.plist keys AdMob and the tracking prompt need.
 
-1. In `ios/App/App/Info.plist`, add:
-   - `GADApplicationIdentifier`: your AdMob app ID. While testing, use `ca-app-pub-3940256099942544~1458002511`.
-   - `NSUserTrackingUsageDescription`: for example "We use this to show you more relevant ads and keep Pup Blast free."
-   - `SKAdNetworkItems`: Google's list from the AdMob iOS docs.
-2. Replace the test unit IDs in `www/js/ads.js` (`UNITS`) with your real ones.
-3. Bundle the two fonts (Baloo 2 and Nunito, both under the OFL license) in `www/fonts` and swap the Google Fonts link, so the app works offline.
-4. Before launch, move saves from `localStorage` to `@capacitor/preferences`. iOS can clear WebView storage.
-5. Set the age rating to 12+ and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
+4. **In Xcode,** go to Signing & Capabilities: pick your team, then add **Game Center** and **In-App Purchase**.
+5. **Test on a real device:**
+   - Test ads.
+   - The consent form: use an EU VPN, or set `debugGeography` in `requestConsentInfo`.
+   - The Game Center sign-in banner.
+   - A sandbox purchase of Remove Ads, then Restore.
+6. **Before release:**
+   - Bundle the two fonts (Baloo 2 and Nunito, both OFL) in `www/fonts` so the app works offline.
+   - Move saves from `localStorage` to `@capacitor/preferences`, since iOS can clear WebView storage.
+   - Fill in the App Store privacy labels for ads, tracking, purchases and Game Center.
+   - Set the age rating to 12+ and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
 
 ## Next steps
 
-- StoreKit purchases: Remove Ads, a starter pack (bones plus a guaranteed Rare), and bone bundles.
-- Ad consent (UMP/GDPR) through the AdMob plugin's `requestConsentInfo` before `initialize`.
+- More purchases: a starter pack (bones plus a guaranteed Rare) and bone bundles.
+- Ad mediation once there's traffic: add bidding networks (AppLovin, Unity, Meta) as AdMob mediation adapters, then the full `SKAdNetworkItems` list.
 - Analytics: `window.PB_TRACK(event, params)` gets `run_start`, `run_end`, `gacha_pull`, `power_used`, and the ad request and grant events. Point it at Firebase or GameAnalytics.
 - Tune the economy against real data. A weak run of about 250 points earns about 23 bones, which is roughly 4 runs per pull. A typical run of 1,000 to 2,000 points gets a pull every run or two.
 - Collection goals: set bonuses (all corgis gives +5%) and a weekly limited-time banner pup.

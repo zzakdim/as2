@@ -52,6 +52,7 @@
       sweeps: {}, // world id -> true once every level has 3 stars
       tokens: { dig: 0, epic: 0 }, // digs earned on the map; epic = guaranteed Epic or better
       endless: { milestones: [] }, // Endless score milestones already paid
+      boards: {}, // browser stand-in for Game Center: best score per leaderboard
     };
   }
 

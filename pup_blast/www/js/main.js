@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, Levels } = window.PB;
+  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, Levels, Store, Leaderboards } = window.PB;
   const ECON = Gacha.ECONOMY;
   const { sfx, haptic } = Audio;
   const $ = (sel) => document.querySelector(sel);
@@ -35,6 +35,32 @@
     interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.interstitial()),
     rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.rewarded()),
   };
+  // Remove Ads purchase. StoreKit is the source of truth in the app; the saved flag covers offline starts.
+  const store = Store.createStore(document);
+  store.init().then((owned) => {
+    if (owned.removeAds !== null && owned.removeAds !== state.settings.noAds) { state.settings.noAds = owned.removeAds; save(); }
+  });
+
+  // Leaderboards: Game Center in the app, a local list in the browser.
+  const boards = Leaderboards.createLeaderboards(() => state, (rows) => {
+    openModal(`<p class="eyebrow">Leaderboards</p>
+      <ul class="board-list">${rows.map((r) => `<li><span>${r.name}</span><b>${r.score.toLocaleString()}</b></li>`).join('')}</ul>
+      <p class="fine">Your best scores. The iOS build ranks them against everyone through Game Center.</p>
+      <div class="stack"><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
+      .onclick = (e) => { if (e.target.closest('[data-act]')) closeModal(); };
+  });
+  // Sign in, then send what the save already holds (scores from before Game Center, or another device).
+  boards.init().then((ok) => {
+    if (!ok) return;
+    if (state.best > 0) boards.submit('endless', state.best);
+    if (totalStars() > 0) boards.submit('stars', totalStars());
+  });
+  const totalStars = () => Object.values(state.levels).reduce((a, r) => a + (r.stars || 0), 0);
+  function submitScores(lvl, score) {
+    if (lvl) boards.submit('stars', totalStars());
+    else { boards.submit('endless', score); boards.submit('weekly', score); }
+  }
+
   const rng = Core.mulberry32((Date.now() ^ (Math.random() * 1e9)) >>> 0);
 
   // Lightweight analytics hook. Wire to Firebase/GameAnalytics in the native build.
@@ -150,6 +176,7 @@
   $('#btn-gacha').addEventListener('click', () => { Audio.unlock(); show('gacha'); });
   $('#btn-kennel').addEventListener('click', () => { Audio.unlock(); show('kennel'); });
   $('#btn-settings').addEventListener('click', openSettings);
+  $('#btn-boards').addEventListener('click', () => { track('leaderboard_open', {}); boards.show(); });
   document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => show('home')));
 
   // ---------------------------------------------------------------- game
@@ -689,6 +716,7 @@
     const summary = lvl ? recordLevel(lvl, g.score) : null;
     const milestones = lvl ? [] : payMilestones(g.score);
     const bondNotes = gainBond(run.pup, g.score);
+    submitScores(lvl, g.score);
     if (summary) summary.rewards.push(...bondNotes);
     track('run_end', { score: g.score, bones, revived: run.revived, doubled: run.doubled, level: lvl ? lvl.id : 'endless', stars: summary ? summary.got : null });
     run = null;
@@ -1104,7 +1132,9 @@
         ${ALLOW_DEV ? `<label class="switch"><span>Developer mode</span><input id="set-dev" type="checkbox" ${s.dev ? 'checked' : ''}></label>` : ''}
       </div>
       <div class="stack">
-        <button type="button" class="btn alt" data-act="noads">${s.noAds ? 'Ads removed' : 'Remove ads · $2.99'}</button>
+        ${s.noAds ? '<p class="go-sub">Ads removed. Thank you! Optional reward ads stay available.</p>' : `<button type="button" class="btn alt" data-act="noads">Remove ads · ${store.price()}</button>`}
+        <div class="pull-row"><button type="button" class="btn ghost small" data-act="restore">Restore purchases</button>
+        ${adProvider.privacyOptionsRequired() || dev() ? '<button type="button" class="btn ghost small" data-act="privacy">Privacy choices</button>' : ''}</div>
         <button type="button" class="btn ghost" data-act="reset">Reset progress</button>
         <button type="button" class="btn ghost" data-act="close">Done</button>
       </div>
@@ -1118,7 +1148,24 @@
       if (!a) return;
       const act = a.dataset.act;
       if (act === 'close') closeModal();
-      if (act === 'noads') toast('The purchase connects through StoreKit in the iOS build.');
+      if (act === 'noads') {
+        track('iap_request', { product: 'removeAds' });
+        store.buyRemoveAds().then((ok) => {
+          if (!ok) return;
+          s.noAds = true; save(); track('iap_purchase', { product: 'removeAds' });
+          sfx.coin(); closeModal(); toast('Ads removed. Thank you!');
+        });
+      }
+      if (act === 'restore') {
+        store.restore().then((r) => {
+          if (r.removeAds) { s.noAds = true; save(); closeModal(); toast('Purchases restored: ads removed'); }
+          else toast(r.removeAds === null ? 'Restore connects to the App Store in the iOS build' : 'No purchases to restore');
+        });
+      }
+      if (act === 'privacy') {
+        if (adProvider.kind === 'mock') toast("Google's privacy choices form opens here in the iOS build");
+        else adProvider.showPrivacyOptions();
+      }
       if (act === 'reset') {
         if (a.dataset.armed) {
           state = State.freshState(); State.rollDaily(state, Date.now()); save(); closeModal(); show('home'); toast('Progress reset');
