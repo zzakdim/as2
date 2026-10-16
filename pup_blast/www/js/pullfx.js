@@ -142,8 +142,8 @@
       const o = ctx.owned(p);
       const need = ctx.copiesToNext(p, result.leveledUp ? o.level - 1 : o.level);
       const line = result.leveledUp
-        ? `Level ${o.level}! ${pw.name} ×${ctx.charges(p, o.level)} per run`
-        : o.level >= ctx.maxLevel ? 'Max level' : `Copy ${o.dupes} of ${need} for level ${o.level + 1}`;
+        ? `Level ${o.level}! ${pw.name} ${ctx.charges(p, o.level)}× per game`
+        : o.level >= ctx.maxLevel ? 'Max level' : `${need - o.dupes} more to level ${o.level + 1}`;
       // The copy bar fills from where it was to where it is now; a level-up fills it all the way.
       const from = result.leveledUp ? (need - 1) / need : Math.max(0, o.dupes - 1) / (need || 1);
       const to = result.leveledUp || o.level >= ctx.maxLevel ? 1 : o.dupes / need;

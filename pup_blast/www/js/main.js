@@ -147,10 +147,6 @@
   }
 
   function powerOf(pup) { return Powers.POWERS[pup.power]; }
-  function perkText(pup, level) {
-    const n = Pups.chargesFor(pup, level);
-    return `${powerOf(pup).name} ×${n} · ${powerOf(pup).desc}`;
-  }
   // Bond: per-pup, grows with play and bone feeding, +3% score per level above 1.
   const bondOf = (id) => Pups.bondLevel((state.pups[id] || {}).bond);
   const pct = (b) => `+${Math.round(b * 100)}%`;
@@ -158,7 +154,7 @@
     const b = bondOf(id);
     return b > 1 ? `Bond ${b} · ${pct(Pups.bondBonus(b))} score` : 'Bond 1';
   }
-  function chargeWord(n, pup) { return pup.power === 'guardian' ? (n === 1 ? 'save' : 'saves') : (n === 1 ? 'charge' : 'charges'); }
+  function chargeWord(n, pup) { return pup.power === 'guardian' ? (n === 1 ? 'save' : 'saves') : (n === 1 ? 'use' : 'uses'); }
   function pips(level) {
     let out = '';
     for (let k = 1; k <= Pups.MAX_LEVEL; k++) out += `<i class="${k <= level ? 'on' : ''}"></i>`;
@@ -176,7 +172,8 @@
     const lvl = state.pups[pup.id].level;
     $('#home-buddy').innerHTML = Pups.renderPup(pup);
     $('#home-buddy').className = 'buddy-stage r-' + pup.rarity;
-    $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> · Lv ${lvl} ${stars(pup.rarity)}<br><span>${perkText(pup, lvl)}</span><br><span class="bond-line">♥ ${bondText(pup.id)}</span>`;
+    const n = Pups.chargesFor(pup, lvl);
+    $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> ${stars(pup.rarity)}<br><span><b class="perk">${powerOf(pup).name}</b> · ${n} ${chargeWord(n, pup)} per game</span><br><span class="bond-line">♥ ${bondText(pup.id)}</span>`;
     $('#home-best').textContent = state.best.toLocaleString();
     const nextLvl = nextLevel();
     $('#play-sub').textContent = nextLvl ? `${Levels.WORLDS.find((w) => w.id === nextLvl.world).name} ${nextLvl.n} · ${nextLvl.name}` : 'All levels cleared';
@@ -688,13 +685,13 @@
          <p class="go-sub">${got ? (got < 3 ? `${(t[got] - g.score).toLocaleString()} more for ${'★'.repeat(got + 1)}` : 'Perfect run!') : `${(t[0] - g.score).toLocaleString()} short of ${t[0].toLocaleString()}`}</p>`
       : `<p class="eyebrow">${isBest ? 'New best score' : 'Out of room'}</p>
          <p class="go-score">${g.score.toLocaleString()}</p>
-         <p class="go-sub">${g.linesCleared} lines · ${g.treatsCollected} treats${nextMilestone ? ` · next milestone ${nextMilestone[0].toLocaleString()} (+${nextMilestone[1]} bones)` : ''}</p>`;
+         ${nextMilestone ? `<p class="go-sub">Reach ${nextMilestone[0].toLocaleString()} for a ${nextMilestone[1]}-bone prize</p>` : ''}`;
     const sheet = openModal(`
       ${head}
-      <p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>
+      ${bones > 0 ? `<p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>` : ''}
       <div class="stack">
         ${run.revived ? '' : '<button type="button" class="btn ad" data-act="revive"><span class="ad-chip">AD</span>Keep playing</button>'}
-        ${run.doubled ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
+        ${run.doubled || bones <= 0 ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
         ${lvl ? '<button type="button" class="btn" data-act="collect">Collect</button>'
     : `<button type="button" class="btn" data-act="again">Collect &amp; play again</button>
         <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>`}
@@ -819,7 +816,7 @@
     show('map');
     const nxt = Levels.next(lvl);
     const tutorial = !state.tutorial.done && state.tutorial.step === TUT.POSTRUN;
-    const lines = [`+${bones.toLocaleString()} bones from the run`, ...sum.rewards];
+    const lines = [...(bones > 0 ? [`+${bones.toLocaleString()} bones`] : []), ...sum.rewards];
     if (sum.sweep) lines.push(`Every level at 3 stars! A crown for this world and a free Epic ${verb().toLowerCase()}`);
     const sheet = openModal(`
       <p class="eyebrow">Level ${lvl.n} · ${lvl.name}</p>
@@ -991,9 +988,9 @@
     renderBones();
     const tok = $('#btn-pull-token'), epic = $('#btn-pull-epic');
     tok.hidden = state.tokens.dig <= 0;
-    tok.querySelector('.label').textContent = `Map ${verb().toLowerCase()} ×${state.tokens.dig} · free`;
+    tok.querySelector('.label').textContent = `Free ${verb().toLowerCase()} ×${state.tokens.dig}`;
     epic.hidden = state.tokens.epic <= 0;
-    epic.querySelector('.label').textContent = `Epic ${verb().toLowerCase()} ×${state.tokens.epic} · Epic or better`;
+    epic.querySelector('.label').textContent = `Epic ${verb().toLowerCase()} ×${state.tokens.epic}`;
     const weekly = $('#btn-pull-week');
     const wLeft = state.weekly.pullsLeft;
     weekly.disabled = wLeft <= 0;
@@ -1125,14 +1122,14 @@
     const max = b >= Pups.BOND.MAX;
     const lo = Pups.BOND.XP[b - 1], hi = max ? lo : Pups.BOND.XP[b];
     const fill = max ? 100 : Math.round((100 * ((o.bond || 0) - lo)) / (hi - lo));
-    const note = max ? 'Max bond' : `${Pups.bondToNext(o.bond)} XP to Bond ${b + 1} (${pct(Pups.bondBonus(b + 1))} score)`;
+    const note = max ? 'Max bond' : `${Pups.bondToNext(o.bond)} more to Bond ${b + 1} (${pct(Pups.bondBonus(b + 1))} score)`;
     return `<div><dt>Bond ${b}</dt><dd><span class="bond-bar"><i style="width:${fill}%"></i></span><small>${b > 1 ? `${pct(Pups.bondBonus(b))} score · ` : ''}${note}</small></dd></div>`;
   }
   function feedButtons(o) {
     const need = Pups.bondToNext(o.bond);
     if (!need) return '';
     const snack = Math.min(FEED_SNACK, need) * Pups.BOND.BONES_PER_XP, full = need * Pups.BOND.BONES_PER_XP;
-    return `<p class="go-sub feed-note">Bond grows as you play with this pup. Treats speed it up.</p><div class="pull-row">
+    return `<p class="go-sub feed-note">Bond grows as you play together. Treats help.</p><div class="pull-row">
       <button type="button" class="btn ghost small" data-act="feed" ${state.bones < snack ? 'disabled' : ''}>Snack · ${snack} ${BONE_SVG}</button>
       ${full > snack ? `<button type="button" class="btn ghost small" data-act="feednext" ${state.bones < full ? 'disabled' : ''}>Bond ${Pups.bondLevel(o.bond) + 1} · ${full.toLocaleString()} ${BONE_SVG}</button>` : ''}
     </div>`;
@@ -1174,13 +1171,14 @@
     }
     const isBuddy = state.buddy === pup.id;
     const n = Pups.chargesFor(pup, o.level);
-    const need = o.level >= Pups.MAX_LEVEL ? 'Max level' : `${o.dupes}/${Pups.copiesToNext(o.level, pup.rarity)} copies to Lv ${o.level + 1} (${n + 1} ${chargeWord(n + 1, pup)})`;
+    const left = Pups.copiesToNext(o.level, pup.rarity) - o.dupes;
+    const need = o.level >= Pups.MAX_LEVEL ? 'Max level' : `Find ${pup.name} ${left} more ${left === 1 ? 'time' : 'times'} for level ${o.level + 1} (${n + 1} ${chargeWord(n + 1, pup)})`;
     openModal(`<p class="eyebrow">${pup.breed}</p>
       <div class="detail-art r-${pup.rarity}">${Pups.renderPup(pup)}</div>
       <p class="detail-name">${pup.name} ${stars(pup.rarity)}</p>
       <dl class="detail-stats">
         <div><dt>${powerOf(pup).name}</dt><dd><small>${powerOf(pup).desc}</small></dd></div>
-        <div><dt>Per run</dt><dd>${n} ${chargeWord(n, pup)}</dd></div>
+        <div><dt>Per game</dt><dd>${n} ${chargeWord(n, pup)}</dd></div>
         <div><dt>Level ${o.level}</dt><dd>${pips(o.level)}<small>${need}</small></dd></div>
         ${bondRow(pup, o)}
       </dl>
