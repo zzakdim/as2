@@ -10,11 +10,15 @@
 (function (root) {
   'use strict';
 
-  // Google's public test unit IDs. Replace with your real AdMob unit IDs before release.
+  // Pup Blast's AdMob ad units (app ID ca-app-pub-6694593592282571~7797930009, set in Info.plist).
   const UNITS = {
+    interstitial: 'ca-app-pub-6694593592282571/5178496362',
+    rewarded: 'ca-app-pub-6694593592282571/3547604517',
+  };
+  // Google's public sample units. Used while developer mode is on, so testers never see (or tap) real ads.
+  const TEST_UNITS = {
     interstitial: 'ca-app-pub-3940256099942544/4411468910',
     rewarded: 'ca-app-pub-3940256099942544/1712485313',
-    banner: 'ca-app-pub-3940256099942544/2934735716',
   };
 
   const POLICY = {
@@ -42,13 +46,12 @@
     return cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.AdMob;
   }
 
-  const TESTING = UNITS.rewarded.startsWith('ca-app-pub-3940256099942544');
-
-  function createAdMobProvider(AdMob) {
+  function createAdMobProvider(AdMob, testAds) {
     let ready = false;
     let privacyRequired = false;
-    const prepInterstitial = () => AdMob.prepareInterstitial({ adId: UNITS.interstitial }).catch(() => {});
-    const prepRewarded = () => AdMob.prepareRewardVideoAd({ adId: UNITS.rewarded }).catch(() => {});
+    let units = UNITS;
+    const prepInterstitial = () => AdMob.prepareInterstitial({ adId: units.interstitial }).catch(() => {});
+    const prepRewarded = () => AdMob.prepareRewardVideoAd({ adId: units.rewarded }).catch(() => {});
     // Listener handles may come back as a promise or a plain object depending on the bridge.
     const unlisten = (subs) => subs.forEach((s) => Promise.resolve(s).then((h) => h && h.remove()).catch(() => {}));
     // Resolves when the full-screen ad is gone (dismissed or failed to show), with what happened.
@@ -84,7 +87,9 @@
           if (status.status === 'notDetermined') await AdMob.requestTrackingAuthorization();
         } catch (e) { /* older plugin or simulator */ }
         if (!canRequest) return; // the player declined in a region that needs consent: no ads this session
-        await AdMob.initialize({ initializeForTesting: TESTING });
+        const testing = !!(testAds && testAds());
+        units = testing ? TEST_UNITS : UNITS;
+        await AdMob.initialize({ initializeForTesting: testing });
         ready = true;
         prepInterstitial();
         prepRewarded();
@@ -156,12 +161,13 @@
     };
   }
 
-  function createProvider(doc) {
+  // testAds: called once at start-up; true means Google's sample ads instead of real ones.
+  function createProvider(doc, testAds) {
     const plugin = admobPlugin();
-    return plugin ? createAdMobProvider(plugin) : createMockProvider(doc);
+    return plugin ? createAdMobProvider(plugin, testAds) : createMockProvider(doc);
   }
 
-  const Ads = { UNITS, POLICY, canShowInterstitial, noteInterstitialShown, createProvider };
+  const Ads = { UNITS, TEST_UNITS, POLICY, canShowInterstitial, noteInterstitialShown, createProvider };
 
   root.PB = root.PB || {};
   root.PB.Ads = Ads;

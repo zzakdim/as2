@@ -9,6 +9,14 @@ Everything App Store Connect asks for, ready to paste. Fill in the **[brackets]*
 | `privacy-policy.md` | A public web page (Google Sites, Notion, or your own site). Paste its URL in App Store Connect and in `LINKS.privacy` in `www/js/main.js`. |
 | `support.md` | Another public page; its URL goes in App Store Connect and `LINKS.support`. |
 
+## Before you submit a build
+
+- [ ] `www/js/main.js`: set `ALLOW_DEV = false`. While it's true, every new player starts in developer mode, which shows **Google's test ads (you earn nothing)** and unlocks cheats.
+- [ ] `www/js/main.js`: fill in `LINKS.privacy` and `LINKS.support`.
+- [ ] Then `npx cap sync ios` and archive in Xcode.
+
+AdMob is already wired: app ID `ca-app-pub-6694593592282571~7797930009` (Info.plist), rewarded and interstitial units in `www/js/ads.js`.
+
 ---
 
 ## App information

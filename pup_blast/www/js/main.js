@@ -52,7 +52,7 @@
   // Tester builds start with dev mode on, so a wiped save (new device, cleared browser data) never hides the tools.
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
 
-  const adProvider = Ads.createProvider(document);
+  const adProvider = Ads.createProvider(document, dev); // test ads while developer mode is on
   const adsReady = adProvider.init().catch(() => {}); // consent form first; Game Center waits for it
   const ads = {
     interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.interstitial()),

@@ -1,5 +1,5 @@
 // One-time iOS wiring after `npx cap add ios` (run on the Mac, from the project root):
-//   node scripts/ios-setup.mjs [--admob-app-id ca-app-pub-XXXX~YYYY]
+//   node scripts/ios-setup.mjs [--admob-app-id ca-app-pub-XXXX~YYYY]  (defaults to Pup Blast's real AdMob app ID)
 // It copies the Game Center plugin into the app, points Main.storyboard at AppViewController,
 // and adds the Info.plist keys AdMob and App Tracking Transparency need. Safe to run twice.
 // What it can't do (Xcode project settings) is printed at the end.
@@ -9,7 +9,8 @@ import { join } from 'node:path';
 
 const TEST_APP_ID = 'ca-app-pub-3940256099942544~1458002511'; // Google's sample app ID
 const argIdx = process.argv.indexOf('--admob-app-id');
-const admobAppId = argIdx > 0 ? process.argv[argIdx + 1] : TEST_APP_ID;
+const PUP_BLAST_APP_ID = 'ca-app-pub-6694593592282571~7797930009';
+const admobAppId = argIdx > 0 ? process.argv[argIdx + 1] : PUP_BLAST_APP_ID;
 if (!/^ca-app-pub-\d+~\d+$/.test(admobAppId || '')) {
   console.error(`--admob-app-id needs an AdMob app ID like ca-app-pub-1234567890123456~1234567890 (got "${admobAppId}")`);
   process.exit(1);
