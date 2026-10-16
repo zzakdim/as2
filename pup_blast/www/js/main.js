@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, Levels, Store, Leaderboards } = window.PB;
+  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, PowerFX, Levels, Store, Leaderboards } = window.PB;
   const ECON = Gacha.ECONOMY;
   const { sfx, haptic } = Audio;
   const $ = (sel) => document.querySelector(sel);
@@ -474,12 +474,33 @@
   // ---- placing and clearing
   const PRAISE = ['Good pup!', 'Pawsome!', 'Woof-tastic!', 'Fur-midable!', 'Howl yeah!'];
 
-  function popCells(cleared) {
+  // Pops cleared cells. `fx` (from PowerFX) staggers them: each waits fx.lead + fx.delays[i] ms.
+  function popCells(cleared, fx) {
+    const thisRun = run;
     for (const { i, color, treat } of cleared) {
       cellEls[i].className = `cell b c${color} pop`;
       cellEls[i].innerHTML = treat ? BONE_SVG : '';
+      cellEls[i].style.animationDelay = fx ? `${fx.lead + (fx.delays[i] || 0)}ms` : '';
     }
-    setTimeout(() => { if (run) renderBoard(); }, 340);
+    setTimeout(() => {
+      for (const { i } of cleared) cellEls[i].style.animationDelay = '';
+      if (run && run === thisRun) renderBoard();
+    }, 340 + (fx ? fx.done : 0));
+  }
+
+  // Runs a buddy power's animation. Returns the pop schedule for the cells it cleared.
+  function powerFx(id, cleared, r, c) {
+    const pup = run.pup;
+    run.fxSeen = run.fxSeen || {};
+    const fx = PowerFX.play({
+      id, rarity: pup.rarity, color: Pups.RARITY[pup.rarity].color,
+      pupSvg: Pups.renderPup(pup, { plain: true }), powerName: powerOf(pup).name,
+      maxed: run.level >= Pups.MAX_LEVEL, firstUse: !run.fxSeen[id],
+      r, c, size: Core.SIZE, cells: cellEls, fx: $('#fx'), wrap: $('.board-wrap'), tray: $('#tray'), buddy: $('#game-buddy'),
+      burst: PullFX.burst, sfx, haptic,
+    }, cleared || []);
+    run.fxSeen[id] = true;
+    return fx;
   }
 
   function floatText(text, cls, atIndex) {
@@ -580,16 +601,18 @@
     const id = run.pup.power;
     const res = Powers.use(id, run.game, r, c);
     sfx.woof(); haptic('HEAVY');
-    floatText(`${powerOf(run.pup).name}!`, 'praise');
+    const treated = (res.treated || []).map((i) => ({ i }));
+    const fx = powerFx(id, res.cleared && res.cleared.length ? res.cleared : treated, r, c);
+    setTimeout(() => floatText(`${powerOf(run.pup).name}!`, 'praise'), Math.min(fx.lead, 400));
     if (id === 'doover') renderBoard();
     else if (res.cleared && res.cleared.length) {
       renderBoard();
-      popCells(res.cleared);
+      popCells(res.cleared, fx);
       res.cleared.filter((x) => x.treat).forEach((x) => floatText(`+${Core.BONES_PER_TREAT}`, 'treat', x.i));
       if (res.lines) setTimeout(() => sfx.clear(res.lines, 0), 120);
     } else renderBoard();
-    if (res.treated) res.treated.forEach((i) => { cellEls[i].classList.add('sparkle'); });
-    usedPower();
+    if (res.treated) res.treated.forEach((i) => setTimeout(() => cellEls[i].classList.add('sparkle'), fx.lead + (fx.delays[i] || 0)));
+    usedPower(fx.done);
   }
 
   $('#btn-power').addEventListener('click', () => {
@@ -629,7 +652,8 @@
     renderBuddyBar();
   });
 
-  function usedPower() {
+  // `fxMs`: how long the power's animation runs, so a still-stuck board waits for it before ending.
+  function usedPower(fxMs) {
     if (!(dev() && state.settings.devInfinite)) run.charges--;
     run.over = false;
     run.stuckWithPower = false;
@@ -638,7 +662,11 @@
     checkStars();
     track('power_used', { power: run.pup.power, level: run.level });
     if (run.tut) { tutorialAfterPower(); return; }
-    if (Core.isGameOver(run.game)) handleStuck();
+    if (!Core.isGameOver(run.game)) return;
+    if (!fxMs) { handleStuck(); return; }
+    const thisRun = run;
+    run.over = true; // no placing while we wait (there's no room anyway)
+    setTimeout(() => { if (run !== thisRun) return; run.over = false; if (Core.isGameOver(run.game)) handleStuck(); }, fxMs + 400);
   }
 
   function handleStuck() {
@@ -651,6 +679,7 @@
         Powers.use(run.pup.power, run.game);
         run.over = false;
         sfx.woof(); haptic('HEAVY');
+        powerFx(run.pup.power, []);
         floatText(`${run.pup.name} saved you!`, 'praise');
         renderBoard(); renderTray(); renderBuddyBar();
       }, 500);
