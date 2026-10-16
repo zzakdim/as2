@@ -45,13 +45,16 @@ test('observed rates are close to the published odds', () => {
   assert.ok(counts.legendary / N >= 0.02);
 });
 
-test('pity guarantees Epic+ every 10 pulls and Legendary every 60', () => {
+test('pity guarantees Epic+ every PITY_EPIC pulls and Legendary every PITY_LEGENDARY', () => {
   const state = State.freshState();
   const alwaysCommon = () => 0.999; // rolls the lowest bucket every time
   const results = [];
-  for (let i = 0; i < 60; i++) results.push(Gacha.pull(state, alwaysCommon).rarity);
-  for (let i = 9; i < 60; i += 10) assert.ok(['epic', 'legendary'].includes(results[i]), `pull ${i + 1}`);
-  assert.strictEqual(results[59], 'legendary');
+  const E = Gacha.PITY_EPIC, L = Gacha.PITY_LEGENDARY;
+  for (let i = 0; i < L; i++) results.push(Gacha.pull(state, alwaysCommon).rarity);
+  for (let i = E - 1; i < L; i += E) assert.ok(['epic', 'legendary'].includes(results[i]), `pull ${i + 1}`);
+  assert.ok(results.slice(0, E - 1).every((r) => r === 'common'), 'nothing early: pity is a safety net, not a schedule');
+  assert.strictEqual(results[L - 1], 'legendary');
+  assert.ok(E >= 25 && L >= 80, 'kept stingy on purpose');
 });
 
 test('duplicates refund bones and level up', () => {

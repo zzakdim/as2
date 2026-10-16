@@ -1007,7 +1007,7 @@
     $('#bone-pulls').hidden = !ECON.BONE_PULLS;
     $('#btn-pull-1').disabled = state.bones < Gacha.COST_1;
     $('#btn-pull-10').disabled = state.bones < Gacha.COST_10;
-    $('#pity').textContent = `Epic or better guaranteed within ${Gacha.PITY_EPIC - state.pity.sinceEpic} pulls`;
+    $('#pity').textContent = digMode() ? 'Every dig finds a pup. Rarer pups glow brighter!' : 'Every capsule holds a pup!';
   }
 
   async function doPull(count, source) {
@@ -1239,7 +1239,7 @@
         <button type="button" class="btn ghost" data-act="close">Done</button>
       </div>
       ${LINKS.privacy || LINKS.support ? `<div class="pull-row">${LINKS.privacy ? `<a class="btn ghost small" href="${LINKS.privacy}" target="_blank" rel="noopener">Privacy policy</a>` : ''}${LINKS.support ? `<a class="btn ghost small" href="${LINKS.support}" target="_blank" rel="noopener">Support</a>` : ''}</div>` : ''}
-      <p class="fine">${gachaName()} odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better every ${Gacha.PITY_EPIC} pulls; Legendary every ${Gacha.PITY_LEGENDARY}.</p>`);
+      <p class="fine">${gachaName()} odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better at least once every ${Gacha.PITY_EPIC} ${verb().toLowerCase()}s; Legendary at least once every ${Gacha.PITY_LEGENDARY}.</p>`);
     sheet.querySelector('#set-sound').onchange = (e) => { s.sound = e.target.checked; Audio.setSound(s.sound); save(); };
     sheet.querySelector('#set-haptics').onchange = (e) => { s.haptics = e.target.checked; Audio.setHaptics(s.haptics); save(); };
     const devBox = sheet.querySelector('#set-dev');

@@ -7,8 +7,11 @@
   const COST_1 = 100;
   const COST_10 = 900;
   const RATES = { common: 0.62, rare: 0.27, epic: 0.09, legendary: 0.02 };
-  const PITY_EPIC = 10; // every 10th pull without an Epic+ is Epic+
-  const PITY_LEGENDARY = 60; // every 60th pull without a Legendary is Legendary
+  // Pity is a quiet safety net, not a schedule: Epic+ comes naturally about 1 dig in 9, so a 30-dig
+  // drought is rare (~3%); Legendary is 1 in 50, so 90 digs without one happens ~16% of the time.
+  // The game doesn't show a countdown; the guarantee is listed only with the odds in Settings.
+  const PITY_EPIC = 30; // the 30th dig in a row without an Epic+ is Epic+
+  const PITY_LEGENDARY = 90; // the 90th dig in a row without a Legendary is Legendary
   const ORDER = ['common', 'rare', 'epic', 'legendary'];
 
   // How players get pulls. The weekly pull is the headline; the others keep the gacha fed
