@@ -53,10 +53,18 @@
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
 
   const adProvider = Ads.createProvider(document, dev); // test ads while developer mode is on
-  const adsReady = adProvider.init().catch(() => {}); // consent form first; Game Center waits for it
+  // The ad consent form and Apple's tracking prompt wait until the tutorial is done, so a new player
+  // meets the game first and the popups only arrive once they're hooked. No ad is ever requested before.
+  let adsStarted = null;
+  let startedAds = () => {};
+  const adsReady = new Promise((go) => { startedAds = go; });
+  const startAds = () => {
+    if (!adsStarted) { adsStarted = adProvider.init().catch(() => {}); adsStarted.then(startedAds); }
+    return adsStarted;
+  };
   const ads = {
-    interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.interstitial()),
-    rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : adProvider.rewarded()),
+    interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.interstitial())),
+    rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.rewarded())),
   };
   // Remove Ads purchase. StoreKit is the source of truth in the app; the saved flag covers offline starts.
   const store = Store.createStore(document);
@@ -72,7 +80,8 @@
       <div class="stack"><button type="button" class="btn ghost" data-act="close">Close</button></div>`)
       .onclick = (e) => { if (e.target.closest('[data-act]')) closeModal(); };
   });
-  // Sign in, then send what the save already holds (scores from before Game Center, or another device).
+  if (state.tutorial.done) startAds();
+  // Sign in (after the ad popups, so they never stack), then send what the save already holds (scores from before Game Center, or another device).
   adsReady.then(() => boards.init()).then((ok) => {
     if (!ok) return;
     if (state.best > 0) boards.submit('endless', state.best);
@@ -1342,7 +1351,7 @@
   });
 
   function setStep(n) { state.tutorial.step = n; save(); track('tutorial_step', { step: n }); }
-  function finishTutorial() { state.tutorial.done = true; save(); coachHide(); track('tutorial_done', {}); }
+  function finishTutorial() { state.tutorial.done = true; save(); coachHide(); track('tutorial_done', {}); setTimeout(startAds, 800); }
 
   function startTutorial() {
     const step = state.tutorial.step;
