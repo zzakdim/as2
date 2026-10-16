@@ -29,15 +29,8 @@
 html, body { height: 100%; }
 body {
   margin: 0;
-  /* Night Yard: a starry sky over rolling backyard hills. */
-  background:
-    radial-gradient(1.5px 1.5px at 12% 8%, #ffffff88 50%, transparent 51%), radial-gradient(1.5px 1.5px at 78% 14%, #ffffff99 50%, transparent 51%),
-    radial-gradient(1px 1px at 40% 4%, #ffffff77 50%, transparent 51%), radial-gradient(1.5px 1.5px at 90% 30%, #ffffff66 50%, transparent 51%),
-    radial-gradient(1px 1px at 22% 26%, #ffffff66 50%, transparent 51%), radial-gradient(2px 2px at 62% 22%, #ffffff88 50%, transparent 51%),
-    radial-gradient(1px 1px at 52% 34%, #ffffff55 50%, transparent 51%), radial-gradient(1.5px 1.5px at 6% 40%, #ffffff55 50%, transparent 51%),
-    radial-gradient(140% 55% at 50% 108%, #1e5a3a 0 46%, transparent 46.4%),
-    radial-gradient(120% 50% at 10% 112%, #24704a 0 48%, transparent 48.4%),
-    linear-gradient(#141036, #2b2470 70%, #3b2f80) fixed, var(--night);
+  /* Night Yard: a starry sky over the backyard (scene drawn in backdrops.js). */
+  background: var(--scene-yard, none) center bottom / cover no-repeat, var(--night);
   color: var(--ink);
   font-family: var(--body);
   font-size: 15px;
@@ -461,18 +454,18 @@ a.btn { text-decoration: none; text-align: center; }
 .soon-card { background: var(--panel); border-radius: 20px; padding: 24px; text-align: center; color: var(--muted); }
 
 /* World themes: a quiet backdrop per world, drawn behind the screen. Low-contrast on purpose. */
-[data-world] { --wbg: #1e1633; --wpat: none; --wnode: #ff8fab; --wnode-d: #d9577a; --wtrail: #ffffff; }
-[data-world="w1"] { --wbg: linear-gradient(#2a1d42, #1d1534); --wpat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M24 8 l6 16 -6 16 -6 -16 Z' fill='%23fff' fill-opacity='.035'/%3E%3Crect x='0' width='2' height='48' fill='%23fff' fill-opacity='.03'/%3E%3C/svg%3E"); --wnode: #ff8fab; --wnode-d: #d9577a; }
-[data-world="w2"] { --wbg: linear-gradient(#173a2a, #10251b); --wpat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M10 40 l3 -9 3 9 3 -7 2 7 M40 18 l3 -9 3 9 3 -7 2 7' stroke='%23fff' stroke-opacity='.06' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); --wnode: #5fd98a; --wnode-d: #2e9a59; }
-[data-world="w3"] { --wbg: linear-gradient(#123450, #0d2538 70%, #2a2b33); --wpat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='40'%3E%3Cpath d='M0 20 q10 -8 20 0 t20 0 t20 0 t20 0' stroke='%23fff' stroke-opacity='.05' stroke-width='2' fill='none'/%3E%3C/svg%3E"); --wnode: #ffd88a; --wnode-d: #c99a4a; }
-[data-world="w4"] { --wbg: linear-gradient(#1c2b4e, #131d36); --wpat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70'%3E%3Ccircle cx='12' cy='14' r='2' fill='%23fff' fill-opacity='.12'/%3E%3Ccircle cx='48' cy='30' r='1.5' fill='%23fff' fill-opacity='.1'/%3E%3Ccircle cx='28' cy='56' r='2.4' fill='%23fff' fill-opacity='.08'/%3E%3C/svg%3E"); --wnode: #9fd6ff; --wnode-d: #4f8fc4; }
-[data-world="w5"] { --wbg: linear-gradient(#3a2119, #24140f); --wpat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cpath d='M20 20 l3 6 6 -2 -3 5 5 3 -6 2 1 6 -6 -4 -6 4 1 -6 -6 -2 5 -3 -3 -5 6 2 Z' fill='%23ffb347' fill-opacity='.06' transform='rotate(20 20 26)'/%3E%3Cpath d='M66 62 l3 6 6 -2 -3 5 5 3 -6 2 1 6 -6 -4 -6 4 1 -6 -6 -2 5 -3 -3 -5 6 2 Z' fill='%23ff8a5c' fill-opacity='.05'/%3E%3C/svg%3E"); --wnode: #ffa94d; --wnode-d: #c9702a; }
-.map[data-world]::before, .game[data-world]::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--wpat), var(--wbg); }
+[data-world] { --wbg: none; --wpat: none; --wnode: #ff8fab; --wnode-d: #d9577a; --wtrail: #ffffff; }
+[data-world="w1"] { --wbg: var(--scene-w1); --wpat: none; --wnode: #ff8fab; --wnode-d: #d9577a; }
+[data-world="w2"] { --wbg: var(--scene-w2); --wpat: none; --wnode: #5fd98a; --wnode-d: #2e9a59; }
+[data-world="w3"] { --wbg: var(--scene-w3); --wpat: none; --wnode: #ffd88a; --wnode-d: #c99a4a; }
+[data-world="w4"] { --wbg: var(--scene-w4); --wpat: none; --wnode: #9fd6ff; --wnode-d: #4f8fc4; }
+[data-world="w5"] { --wbg: var(--scene-w5); --wpat: none; --wnode: #ffa94d; --wnode-d: #c9702a; }
+.map[data-world]::before, .game[data-world]::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--wbg) center bottom / cover no-repeat, #16133a; }
 
 /* ---------- world list */
 .world-list { display: flex; flex-direction: column; gap: 14px; padding: 4px 2px 24px; }
 .world-card { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; border: 0; cursor: pointer; text-align: left; color: var(--ink);
-  border-radius: 22px; padding: 14px 16px 14px 12px; background: var(--wpat), var(--wbg); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .08), 0 5px 0 #0c0a22; }
+  border-radius: 22px; padding: 14px 16px 14px 12px; background: linear-gradient(90deg, rgba(12, 9, 30, .62), rgba(12, 9, 30, .25)), var(--wbg) center 88% / cover no-repeat, #221d52; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .08), 0 5px 0 #0c0a22; }
 .world-card .wc-art { flex: none; width: 88px; aspect-ratio: 4 / 3; border-radius: 14px; background: rgba(255, 255, 255, .06); display: grid; place-items: center; }
 .world-card .wc-art svg { width: 86%; height: auto; display: block; }
 .wc-info { flex: 1; min-width: 0; display: grid; gap: 2px; }
@@ -799,7 +792,7 @@ body:has(#modal:not([hidden]) .sheet.dev) .coach, body:has(#modal:not([hidden]))
 .cell.cell-in { animation: cellIn .38s cubic-bezier(.3, 1.5, .5, 1) both; }
 @keyframes cellIn { from { transform: scale(.2); opacity: 0; } to { transform: none; opacity: 1; } }
 .wipe { position: fixed; inset: 0; z-index: 75; display: grid; place-items: center; cursor: pointer;
-  background: var(--wpat, none), var(--wbg, var(--night)); clip-path: circle(0% at 50% 55%); animation: wipeIn .22s ease-in forwards; }
+  background: var(--wbg, none) center bottom / cover no-repeat, var(--night); clip-path: circle(0% at 50% 55%); animation: wipeIn .22s ease-in forwards; }
 .wipe.out { animation: wipeOut .3s ease-out forwards; }
 @keyframes wipeIn { from { clip-path: circle(0% at 50% 55%); } to { clip-path: circle(80% at 50% 55%); } }
 @keyframes wipeOut { from { clip-path: circle(80% at 50% 55%); } to { clip-path: circle(0% at 50% 55%); } }
