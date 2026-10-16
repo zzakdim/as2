@@ -1,9 +1,9 @@
 /* Layout: one phone-width column, chunky candy blocks on a twilight dog-park board.
    Committed single look (dusk indigo), so the palette is defined once. */
 :root {
-  --night: #1f1b45;      /* page */
-  --panel: #2c2763;      /* cards, sheets */
-  --well: #383179;       /* empty board cell */
+  --night: #16133a;      /* page */
+  --panel: #262058;      /* cards, sheets */
+  --well: #2f2970;       /* empty board cell */
   --grid: #27225a;       /* board frame */
   --ink: #fff7ec;        /* text */
   --muted: #b9b2e6;      /* secondary text */
@@ -29,7 +29,15 @@
 html, body { height: 100%; }
 body {
   margin: 0;
-  background: radial-gradient(120% 70% at 50% 0%, #332c78 0%, var(--night) 60%) fixed, var(--night);
+  /* Night Yard: a starry sky over rolling backyard hills. */
+  background:
+    radial-gradient(1.5px 1.5px at 12% 8%, #ffffff88 50%, transparent 51%), radial-gradient(1.5px 1.5px at 78% 14%, #ffffff99 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 4%, #ffffff77 50%, transparent 51%), radial-gradient(1.5px 1.5px at 90% 30%, #ffffff66 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 26%, #ffffff66 50%, transparent 51%), radial-gradient(2px 2px at 62% 22%, #ffffff88 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 34%, #ffffff55 50%, transparent 51%), radial-gradient(1.5px 1.5px at 6% 40%, #ffffff55 50%, transparent 51%),
+    radial-gradient(140% 55% at 50% 108%, #1e5a3a 0 46%, transparent 46.4%),
+    radial-gradient(120% 50% at 10% 112%, #24704a 0 48%, transparent 48.4%),
+    linear-gradient(#141036, #2b2470 70%, #3b2f80) fixed, var(--night);
   color: var(--ink);
   font-family: var(--body);
   font-size: 15px;
@@ -73,8 +81,9 @@ button { font: inherit; color: inherit; }
 a.btn { text-decoration: none; text-align: center; }
 .btn {
   --b: var(--accent); --bd: var(--accent-deep);
-  border: 0; border-radius: 18px; cursor: pointer;
-  background: var(--b); color: #2a1630;
+  border: 0; border-radius: 20px; cursor: pointer;
+  background: linear-gradient(#ffffff38, #ffffff08) top / 100% 50% no-repeat, var(--b); color: #2a1630;
+  text-shadow: 0 1px 0 #ffffff66;
   font-family: var(--display); font-weight: 800; font-size: 19px; letter-spacing: .01em;
   padding: 12px 18px; min-height: 52px;
   box-shadow: 0 5px 0 var(--bd);
@@ -83,10 +92,10 @@ a.btn { text-decoration: none; text-align: center; }
 }
 .btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--bd); }
 .btn:disabled { filter: grayscale(.8) brightness(.7); cursor: default; }
-.btn.alt { --b: var(--c5); --bd: #2a8fc2; }
+.btn.alt { --b: #3a3285; --bd: #17123d; color: var(--ink); text-shadow: none; }
 .btn.ad { --b: var(--legend); --bd: #c99a12; }
 .btn.weekly { --b: var(--c4); --bd: #2e9a59; font-size: 22px; min-height: 64px; }
-.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--well); }
+.btn.ghost { background: #00000033; color: var(--ink); box-shadow: inset 0 0 0 2px #ffffff22; text-shadow: none; }
 .btn.ghost:active { transform: none; }
 .btn.danger { color: var(--c1); box-shadow: inset 0 0 0 2px var(--c1); }
 .btn.big { font-size: 30px; min-height: 72px; border-radius: 24px; box-shadow: 0 7px 0 var(--bd); width: 100%; }
@@ -108,13 +117,16 @@ a.btn { text-decoration: none; text-align: center; }
 
 /* ---------- home */
 .home { justify-content: space-between; overflow-y: auto; }
+.home { position: relative; }
+.home::before { content: ""; position: absolute; left: 4%; top: 64px; width: 54px; height: 54px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 40% 40%, #fff8dc, #f3e2a6 70%); box-shadow: 0 0 30px #fff3c455, 0 0 80px #fff3c422; }
 .home-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: center; }
 .logo { margin: 0; font-family: var(--display); font-weight: 800; line-height: .82; text-align: center; transform: rotate(-4deg); }
 .logo-pup { display: block; font-size: 64px; color: var(--bone); text-shadow: 0 5px 0 #b4794a; }
 .logo-blast { display: block; font-size: 76px; color: var(--accent); text-shadow: 0 6px 0 var(--accent-deep), 0 0 30px rgba(255, 143, 171, .4); }
 .buddy-stage {
   width: min(56vw, 210px); aspect-ratio: 1; max-width: 100%; border: 0; border-radius: 50%; cursor: pointer; padding: 10px;
-  background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--rc) 35%, transparent), transparent 68%);
+  background: radial-gradient(50% 12% at 50% 92%, #00000066, transparent), radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--rc) 30%, transparent), transparent 68%);
   animation: bob 2.6s ease-in-out infinite;
 }
 .buddy-stage svg { width: 100%; height: 100%; display: block; }
@@ -126,7 +138,11 @@ a.btn { text-decoration: none; text-align: center; }
 .best { margin: 0; text-align: center; color: var(--muted); }
 .best b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .home-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.btn.tile { --b: var(--panel); --bd: #1a1640; color: var(--ink); flex-direction: column; gap: 2px; min-height: 76px; position: relative; }
+.btn.tile { --b: #2c2566; --bd: #120f30; color: var(--ink); text-shadow: none; flex-direction: column; gap: 2px; min-height: 96px; padding-top: 44px; position: relative;
+  background: linear-gradient(#ffffff14, #ffffff00) top / 100% 50% no-repeat, var(--b); }
+.btn.tile::before { content: ""; position: absolute; top: 10px; left: 50%; width: 32px; height: 32px; margin-left: -16px; background: center / contain no-repeat; }
+#btn-gacha::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14 4l6 6-3 1-4-4z' fill='%238a5a36'/%3E%3Cpath d='M15 7L6 16' stroke='%23c98a52' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M3 15c2-2 5-1 6 0s2 4 0 6c-2 1-5 0-6-1s-1-3 0-5z' fill='%23b9c3cf' stroke='%23525c68' stroke-width='1.4'/%3E%3C/svg%3E"); }
+#btn-kennel::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11 12 3l9 8v10H3z' fill='%23e8925a' stroke='%235a2e14' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M9 21v-6a3 3 0 0 1 6 0v6z' fill='%233a1f10'/%3E%3C/svg%3E"); }
 .badge {
   position: absolute; top: -8px; right: -6px; background: var(--legend); color: #2a1630;
   font-size: 12px; font-family: var(--body); font-weight: 800; border-radius: 999px; padding: 3px 9px;
@@ -258,7 +274,10 @@ a.btn { text-decoration: none; text-align: center; }
 .detail-stats small { color: var(--muted); font-size: 12px; display: block; }
 .settings { width: 100%; display: grid; gap: 8px; }
 .switch { display: flex; justify-content: space-between; align-items: center; background: var(--well); border-radius: 12px; padding: 12px 14px; font-weight: 700; }
-.switch input { width: 22px; height: 22px; accent-color: var(--accent); }
+.switch input { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 50px; height: 30px; margin: 0; border-radius: 999px; background: #1a1640; cursor: pointer; transition: background .2s; }
+.switch input::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--muted); box-shadow: 0 2px 4px #0006; transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), background .2s; }
+.switch input:checked { background: var(--c4); }
+.switch input:checked::after { transform: translateX(20px); background: #fff; }
 
 /* ---------- pull sequence */
 .machine .crank { transform-box: view-box; transform-origin: 142px 196px; }
@@ -667,3 +686,7 @@ body:has(#modal:not([hidden]) .sheet.dev) .coach, body:has(#modal:not([hidden]))
 .mini-board i.m-i { background: #6fbfec; box-shadow: inset 0 0 0 1.5px #2a6fa8; }
 .mini-board i.m-m { background: #6b4528; }
 .mini-board i.m-s { background: #d88a47; border-radius: 50%; }
+
+/* ---------- Night Yard button order: pink = main action, green = free, gold = ad, dark = spend bones. */
+#bone-pulls .btn { --b: #3a3285; --bd: #17123d; color: var(--ink); text-shadow: none; }
+.board { box-shadow: 0 0 0 6px #ffffff10, 0 18px 40px #00000066; }
