@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, PowerFX, Levels, Store, Leaderboards } = window.PB;
+  const { Core, Pups, Powers, Gacha, State, Ads, Audio, PullFX, PowerFX, Levels, Store, Leaderboards, Analytics } = window.PB;
   const ECON = Gacha.ECONOMY;
   const { sfx, haptic } = Audio;
   const $ = (sel) => document.querySelector(sel);
@@ -52,6 +52,20 @@
   // Tester builds start with dev mode on, so a wiped save (new device, cleared browser data) never hides the tools.
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
 
+  // Anonymous play statistics (TelemetryDeck). Browser previews and developer mode count as test data.
+  const APP_VERSION = '1.0';
+  const native = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+  const analytics = Analytics.create({
+    version: APP_VERSION,
+    testMode: () => !native || dev(),
+    // Sent with every signal, so any event can be split by how far along the player is.
+    context: () => ({
+      levelsCleared: Object.values(state.levels).filter((r) => r.stars > 0).length,
+      stars: totalStars(), pups: Object.keys(state.pups).length, games: state.stats.games, noAds: !!state.settings.noAds,
+    }),
+  });
+  window.PB_TRACK = analytics.track;
+
   const adProvider = Ads.createProvider(document, dev); // test ads while developer mode is on
   // The ad consent form and Apple's tracking prompt wait until the tutorial is done, so a new player
   // meets the game first and the popups only arrive once they're hooked. No ad is ever requested before.
@@ -97,6 +111,7 @@
 
   // Lightweight analytics hook. Wire to Firebase/GameAnalytics in the native build.
   function track(event, params) { if (window.PB_TRACK) window.PB_TRACK(event, params || {}); }
+  track('app_open', { firstBoot });
 
   // ---------------------------------------------------------------- screens
   const screens = ['home', 'game', 'gacha', 'kennel', 'map'];
@@ -249,6 +264,7 @@
     $('#best-line').hidden = !!lvl;
     $('#squirrel').hidden = !(lvl && lvl.tease === 'squirrel');
     renderBoard(); renderTray(); renderBuddyBar(); renderScore();
+    run.startedAt = Date.now();
     track('run_start', { buddy: pup.id, level: lvl ? lvl.id : 'endless' });
   }
 
@@ -787,7 +803,7 @@
       else { state.bones += lvl.reward.amount; rewards.push(`+${lvl.reward.amount} bones for clearing it`); }
     }
     if (firstClear) {
-      Levels.WORLDS.filter((w) => w.unlockAfter === lvl.id).forEach((w) => rewards.push(`New world open: the ${w.name}!`));
+      Levels.WORLDS.filter((w) => w.unlockAfter === lvl.id).forEach((w) => { rewards.push(`New world open: the ${w.name}!`); track('world_open', { world: w.id }); });
     }
     const world = Levels.WORLDS.find((w) => w.id === lvl.world);
     let sweep = false;
@@ -825,7 +841,8 @@
     const bondNotes = gainBond(run.pup, g.score);
     submitScores(lvl, g.score);
     if (summary) summary.rewards.push(...bondNotes);
-    track('run_end', { score: g.score, bones, revived: run.revived, doubled: run.doubled, level: lvl ? lvl.id : 'endless', stars: summary ? summary.got : null });
+    track('run_end', { score: g.score, bones, revived: run.revived, doubled: run.doubled, level: lvl ? lvl.id : 'endless', stars: summary ? summary.got : null,
+      newStars: summary ? Math.max(0, summary.got - (summary.prevStars || 0)) : null, seconds: Math.round((Date.now() - (run.startedAt || Date.now())) / 1000), buddy: run.pup.id, powersLeft: run.charges });
     run = null;
     closeModal();
     save();

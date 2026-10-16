@@ -112,7 +112,7 @@ Answer Apple's questionnaire truthfully. For this game:
 
 ## App Privacy ("nutrition label")
 
-The game itself has no servers and collects nothing; save data stays on the device. The data in the label comes from **Google AdMob**. Check Google's current list before answering: search "AdMob data disclosure Apple App Store", Google's help page lists exactly what to declare. At the time of writing it is:
+The game has no servers; save data stays on the device. The label covers **Google AdMob** (below) plus the game's own anonymous gameplay statistics through **TelemetryDeck** (Usage data → Product interaction, for Analytics, not linked, not tracking, which the AdMob row already includes). Check Google's current list before answering: search "AdMob data disclosure Apple App Store", Google's help page lists exactly what to declare. At the time of writing it is:
 
 | Data type | Used for | Linked to user | Used for tracking |
 |---|---|---|---|

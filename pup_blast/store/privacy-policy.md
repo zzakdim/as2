@@ -7,6 +7,7 @@ Pup Blast ("the game") is made by an independent developer ("we", "us"). This po
 ## The short version
 
 - You don't need an account, and we don't run any servers. **We don't collect your personal information.**
+- The game sends **anonymous gameplay statistics** (like which levels players finish) through TelemetryDeck, so we can make the game better. They can't be linked to you.
 - Your game progress is saved **on your device**.
 - The game shows ads through **Google AdMob**, which collects some device information to show and measure ads, as described below.
 - Leaderboards use **Apple Game Center**, and the Remove Ads purchase uses **Apple's App Store**. Apple handles those under its own privacy policy.
@@ -14,6 +15,12 @@ Pup Blast ("the game") is made by an independent developer ("we", "us"). This po
 ## Information stored on your device
 
 Your progress (levels, stars, pups, bones and settings) is stored on your device so you can keep playing. It never leaves your device and is not sent to us. Deleting the app deletes this data.
+
+## Anonymous gameplay statistics (TelemetryDeck)
+
+To find out which levels are too hard and which features players use, the game sends anonymous statistics to TelemetryDeck, a privacy-focused analytics service based in Germany. For example: "a level was finished with 2 stars", "a dig found a Rare pup", "an ad for a bonus dig was watched", along with the app version and how many days ago the game was installed.
+
+The game creates a random ID when it's first opened and scrambles (hashes) it before sending, so the statistics can't be connected to your name, your device's advertising ID, or any other app. TelemetryDeck does not store IP addresses, and the statistics are not used for advertising or shared with anyone. TelemetryDeck's privacy policy: https://telemetrydeck.com/privacy/
 
 ## Advertising (Google AdMob)
 
