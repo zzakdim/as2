@@ -12,7 +12,7 @@ Everything App Store Connect asks for, ready to paste. Fill in the **[brackets]*
 ## Before you submit a build
 
 - [ ] `www/js/main.js`: set `ALLOW_DEV = false`. While it's true, every new player starts in developer mode, which shows **Google's test ads (you earn nothing)** and unlocks cheats.
-- [ ] Check https://zzakdim.github.io/privacy.html and /support.html open (site/ uploaded to the zzakdim.github.io repo).
+- [ ] Check https://zzakdim.github.io/pupblast/privacy.html and support.html open (site/ goes in the zzakdim.github.io repo under pupblast/, app-ads.txt at its root).
 - [ ] Then `npx cap sync ios` and archive in Xcode.
 
 AdMob is already wired: app ID `ca-app-pub-6694593592282571~7797930009` (Info.plist), rewarded and interstitial units in `www/js/ads.js`.
@@ -75,7 +75,7 @@ Grab a pup, drop some blocks, and see how far your pack can go!
 blocks,cube,brick,tile,line,clear,dog,puppy,pet,cute,collect,gacha,brain,relax,offline,classic
 ```
 
-- **Support URL:** `https://zzakdim.github.io/support.html`
+- **Support URL:** `https://zzakdim.github.io/pupblast/support.html`
 - **Marketing URL:** leave blank
 - **Version:** `1.0`
 

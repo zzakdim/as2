@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'site');
+// The site lives at zzakdim.github.io/pupblast/ (the root belongs to another app); app-ads.txt goes at the root.
 
 const SITE = {
   // AdMob publisher ID (the number in every ad unit ID). Used for app-ads.txt.
