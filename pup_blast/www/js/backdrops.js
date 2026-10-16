@@ -7,7 +7,32 @@
   const W = 390, H = 844;
   // Deterministic scatter, so the stars don't jump between launches.
   function rng(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
-  const svg = (defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice"><defs>${defs}</defs>${body}</svg>`;
+  // Every scene shares these: a hand-drawn wobble on edges, blur that grows with distance,
+  // a faint paper grain and a soft vignette, so the shapes read as painted, not cut out.
+  const COMMON = `
+    <filter id="far" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="9"/><feGaussianBlur stdDeviation="2.6"/></filter>
+    <filter id="mid" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="8"/><feDisplacementMap in="SourceGraphic" scale="6"/><feGaussianBlur stdDeviation="1.3"/></filter>
+    <filter id="near" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="2" seed="2"/><feDisplacementMap in="SourceGraphic" scale="4"/><feGaussianBlur stdDeviation=".7"/></filter>
+    <filter id="haze" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .07 0"/></filter>
+    <radialGradient id="vig" cx="50%" cy="45%" r="75%"><stop offset=".55" stop-color="#05030f" stop-opacity="0"/><stop offset="1" stop-color="#05030f" stop-opacity=".55"/></radialGradient>`;
+  const svg = (defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice"><defs>${COMMON}${defs}</defs>${body}<rect width="${W}" height="${H}" filter="url(#grain)"/><rect width="${W}" height="${H}" fill="url(#vig)"/></svg>`;
+  const L = (depth, content) => `<g filter="url(#${depth})">${content}</g>`;
+  // A rolling hill line across the screen, smooth with small irregular bumps.
+  function hill(seed, y, amp, freq) {
+    const r = rng(seed);
+    const pts = [];
+    for (let x = -30; x <= W + 30; x += 26) pts.push([x, y + Math.sin(x * freq + seed) * amp + (r() - 0.5) * amp * 0.5]);
+    let d = `M${pts[0][0]} ${pts[0][1].toFixed(1)}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+      d += ` Q${pts[i][0]} ${pts[i][1].toFixed(1)} ${mx} ${my.toFixed(1)}`;
+    }
+    return `${d} L${W + 30} ${H + 10} L-30 ${H + 10} Z`;
+  }
+  // A hill fill: a lit rim at the top fading into its body and darker toward the bottom.
+  const hillGrad = (id, rim, base, deep) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${rim}"/><stop offset=".06" stop-color="${base}"/><stop offset="1" stop-color="${deep}"/></linearGradient>`;
+  const moon = (x, y, r, c) => `<circle cx="${x}" cy="${y}" r="${r * 4}" fill="${c}" opacity=".06" filter="url(#haze)"/><circle cx="${x}" cy="${y}" r="${r * 2}" fill="${c}" opacity=".1" filter="url(#haze)"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".8" filter="url(#near)"/>`;
   const sky = (id, stops) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">${stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('')}</linearGradient>`;
   const glow = (id, c, a) => `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity="${a}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
   function stars(seed, n, maxY, color, alpha) {
@@ -32,89 +57,90 @@
 
   // Menus: the night backyard.
   const yard = svg(
-    sky('s', [[0, '#141036'], [0.6, '#2a2370'], [1, '#3a2f80']]) + glow('g', '#fff3c4', 0.18),
-    `<rect width="${W}" height="${H}" fill="url(#s)"/>${stars(7, 70, 520, '#ffffff', 0.8)}
-     ${sparkle(64, 130, 6, '#fff6c2', 0.5)}${sparkle(320, 220, 5, '#fff6c2', 0.4)}${sparkle(250, 70, 4, '#ffffff', 0.4)}
-     <g fill="#5a4fae" opacity=".1"><circle cx="270" cy="300" r="34"/><circle cx="305" cy="288" r="44"/><circle cx="345" cy="302" r="30"/><rect x="250" y="300" width="120" height="30" rx="15"/></g>
-     <g fill="#5a4fae" opacity=".07"><circle cx="60" cy="380" r="24"/><circle cx="90" cy="370" r="32"/><circle cx="122" cy="384" r="22"/><rect x="44" y="384" width="96" height="22" rx="11"/></g>
-     <path d="M0 640 Q90 590 190 625 T390 600 V844 H0 Z" fill="#232a5e"/>
-     ${blobTree(52, 640, 120, '#1e2552')}${blobTree(345, 615, 150, '#1e2552')}${pine(300, 625, 90, '#1c234d')}
-     ${fence(660, '#202457', 26)}
-     <path d="M0 720 Q120 680 240 712 T390 700 V844 H0 Z" fill="#1d5a3a"/>
-     <path d="M0 770 Q150 740 270 768 T390 760 V844 H0 Z" fill="#247049"/>
-     ${[[40, 735], [130, 748], [210, 730], [330, 742]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="#fff3a0" opacity=".55"/><circle cx="${x}" cy="${y}" r="7" fill="url(#g)"/>`).join('')}`);
+    sky('s', [[0, '#120f33'], [0.55, '#272068'], [1, '#3a2f80']]) + glow('g', '#fff3c4', 0.2) +
+    hillGrad('h1', '#36407a', '#262d63', '#1f2655') + hillGrad('h2', '#3c8a5c', '#225e3e', '#1a4a31') + hillGrad('h3', '#47a06a', '#2a7049', '#205a3a'),
+    `<rect width="${W}" height="${H}" fill="url(#s)"/>
+     ${L('far', stars(7, 60, 520, '#ffffff', 0.7))}${stars(8, 24, 480, '#ffffff', 0.9)}
+     ${sparkle(64, 130, 6, '#fff6c2', 0.45)}${sparkle(320, 220, 5, '#fff6c2', 0.35)}
+     ${L('far', `<g fill="#6a5fc0" opacity=".12"><ellipse cx="300" cy="300" rx="80" ry="22"/><ellipse cx="320" cy="288" rx="44" ry="20"/><ellipse cx="90" cy="380" rx="60" ry="16"/><ellipse cx="104" cy="370" rx="30" ry="14"/></g>`)}
+     ${L('far', `<path d="${hill(3, 620, 18, 0.012)}" fill="url(#h1)"/>${blobTree(52, 630, 120, '#1d2350')}${blobTree(345, 612, 150, '#1d2350')}${pine(296, 622, 90, '#1b214a')}`)}
+     ${L('mid', fence(662, '#232a5e', 26))}
+     ${L('mid', `<path d="${hill(5, 712, 14, 0.016)}" fill="url(#h2)"/>`)}
+     ${L('near', `<path d="${hill(9, 768, 10, 0.02)}" fill="url(#h3)"/>`)}
+     ${[[40, 735], [130, 748], [210, 730], [330, 742], [280, 790]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="10" fill="url(#g)"/><circle cx="${x}" cy="${y}" r="1.8" fill="#fff3a0" opacity=".6"/>`).join('')}`);
 
   const rw = rng(3);
   const winStars = Array.from({ length: 12 }, () => `<circle cx="${(4 + rw() * 92).toFixed(1)}" cy="${(4 + rw() * 132).toFixed(1)}" r="${(0.6 + rw()).toFixed(2)}" fill="#fff" opacity="${(0.3 + rw() * 0.5).toFixed(2)}"/>`).join('');
 
   // World 1: the living room at night. Wallpaper, a moonlit window, a lamp, wood floor and a rug.
   const w1 = svg(
-    sky('s', [[0, '#2a1d44'], [1, '#1f1636']]) + glow('lamp', '#ffd38a', 0.22) + glow('win', '#bcd3ff', 0.16) +
-    `<pattern id="wp" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="none"/><rect x="0" width="2" height="40" fill="#fff" opacity=".03"/><path d="M20 10 l5 10 -5 10 -5 -10 Z" fill="#fff" opacity=".035"/></pattern>`,
-    `<rect width="${W}" height="${H}" fill="url(#s)"/><rect width="${W}" height="640" fill="url(#wp)"/>
-     <rect x="0" y="600" width="${W}" height="12" fill="#3a2a55"/>
-     <g transform="translate(250 150)"><rect x="-6" y="-6" width="112" height="152" rx="8" fill="#3a2a58"/><rect width="100" height="140" rx="4" fill="#1a2350"/>${winStars}<circle cx="70" cy="34" r="13" fill="#fff3c4" opacity=".75"/><rect x="48" width="4" height="140" fill="#3a2a58"/><rect y="68" width="100" height="4" fill="#3a2a58"/><path d="M-14 -10 Q10 60 -4 150 H-18 V-10 Z" fill="#5a2d4f" opacity=".7"/><path d="M114 -10 Q90 60 104 150 H118 V-10 Z" fill="#5a2d4f" opacity=".7"/></g>
-     <ellipse cx="300" cy="240" rx="150" ry="140" fill="url(#win)"/>
-     <rect x="40" y="200" width="70" height="56" rx="4" fill="#3a2a58"/><rect x="46" y="206" width="58" height="44" rx="2" fill="#2c3a5e"/><path d="M50 246 L66 228 L78 240 L88 230 L100 246 Z" fill="#3d5a52" opacity=".8"/>
-     <g transform="translate(70 600)"><ellipse cx="0" cy="-150" rx="110" ry="110" fill="url(#lamp)"/><path d="M-26 -190 H26 L18 -150 H-18 Z" fill="#c98a52" opacity=".7"/><rect x="-2" y="-150" width="4" height="146" fill="#3a2a55"/><ellipse cx="0" cy="-4" rx="18" ry="5" fill="#3a2a55"/></g>
-     <rect x="0" y="612" width="${W}" height="${H - 612}" fill="#3a2433"/>
-     ${Array.from({ length: 9 }, (_, i) => `<rect x="0" y="${630 + i * 26}" width="${W}" height="1.5" fill="#000" opacity=".18"/>`).join('')}
-     ${Array.from({ length: 18 }, (_, i) => `<rect x="${(i * 61) % W}" y="${612 + Math.floor(i / 2) * 26}" width="1.5" height="26" fill="#000" opacity=".15"/>`).join('')}
-     <ellipse cx="200" cy="740" rx="170" ry="48" fill="#5a2d4f" opacity=".55"/><ellipse cx="200" cy="740" rx="140" ry="36" fill="none" stroke="#e86f8f" stroke-opacity=".18" stroke-width="3"/>`);
+    sky('s', [[0, '#2a1d44'], [0.7, '#241939'], [1, '#1f1636']]) + glow('lamp', '#ffd38a', 0.26) + glow('win', '#bcd3ff', 0.16) +
+    sky('floor', [[0, '#42283a'], [1, '#2e1c29']]) +
+    `<pattern id="wp" width="40" height="40" patternUnits="userSpaceOnUse"><rect x="0" width="2" height="40" fill="#fff" opacity=".035"/><path d="M20 10 l5 10 -5 10 -5 -10 Z" fill="#fff" opacity=".04"/></pattern>`,
+    `<rect width="${W}" height="${H}" fill="url(#s)"/>${L('far', `<rect width="${W}" height="640" fill="url(#wp)"/>`)}
+     <ellipse cx="300" cy="230" rx="170" ry="160" fill="url(#win)"/>
+     ${L('mid', `<g transform="translate(250 150)"><rect x="-6" y="-6" width="112" height="152" rx="8" fill="#3a2a58"/><rect width="100" height="140" rx="4" fill="#1d2654"/>${winStars}<circle cx="70" cy="34" r="12" fill="#fff3c4" opacity=".7"/><rect x="48" width="4" height="140" fill="#3a2a58"/><rect y="68" width="100" height="4" fill="#3a2a58"/><path d="M-16 -12 Q12 60 -4 152 H-20 V-12 Z" fill="#5a2d4f" opacity=".75"/><path d="M116 -12 Q88 60 104 152 H120 V-12 Z" fill="#5a2d4f" opacity=".75"/></g>`)}
+     ${L('mid', `<rect x="40" y="200" width="70" height="56" rx="4" fill="#3a2a58"/><rect x="46" y="206" width="58" height="44" rx="2" fill="#2c3a5e"/><path d="M50 246 L66 228 L78 240 L88 230 L100 246 Z" fill="#3d5a52" opacity=".8"/>`)}
+     <ellipse cx="70" cy="450" rx="140" ry="150" fill="url(#lamp)"/>
+     ${L('mid', `<g transform="translate(70 604)"><path d="M-26 -194 Q0 -200 26 -194 L18 -152 Q0 -148 -18 -152 Z" fill="#d79a5e" opacity=".75"/><rect x="-2" y="-152" width="4" height="146" fill="#3a2a55"/><ellipse cx="0" cy="-4" rx="18" ry="5" fill="#3a2a55"/></g>`)}
+     ${L('mid', `<path d="M0 600 Q195 594 390 600 V614 H0 Z" fill="#3a2a55"/>`)}
+     ${L('near', `<path d="M-10 612 Q195 606 400 612 V854 H-10 Z" fill="url(#floor)"/>
+       ${Array.from({ length: 9 }, (_, i) => `<path d="M-10 ${632 + i * 26} Q195 ${628 + i * 26} 400 ${632 + i * 26}" stroke="#000" stroke-opacity=".16" stroke-width="1.5" fill="none"/>`).join('')}
+       ${Array.from({ length: 18 }, (_, i) => `<rect x="${(i * 61) % W}" y="${612 + Math.floor(i / 2) * 26}" width="1.5" height="26" fill="#000" opacity=".12"/>`).join('')}
+       <ellipse cx="200" cy="742" rx="172" ry="50" fill="#5a2d4f" opacity=".55"/><ellipse cx="200" cy="742" rx="140" ry="37" fill="none" stroke="#e86f8f" stroke-opacity=".16" stroke-width="3"/>`)}`);
 
   // World 2: the dog park at night. A tree line, a lamp post, rolling grass and a path.
   const w2 = svg(
-    sky('s', [[0, '#14243a'], [0.55, '#1b3a3a'], [1, '#183326']]) + glow('lamp', '#ffe7a0', 0.22) + glow('mg', '#f4ecd0', 0.16),
-    `<rect width="${W}" height="${H}" fill="url(#s)"/>${stars(11, 50, 380, '#fff', 0.6)}
-     <circle cx="80" cy="120" r="70" fill="url(#mg)"/><circle cx="80" cy="120" r="22" fill="#f4ecd0" opacity=".55"/>
-     <path d="M0 470 Q60 430 120 455 T240 445 T390 455 V844 H0 Z" fill="#162e2a"/>
-     ${[20, 70, 120, 180, 240, 300, 360].map((x, i) => blobTree(x, 470 + (i % 2) * 6, 70 + (i % 3) * 18, '#13282a')).join('')}
-     <path d="M0 560 Q110 520 220 548 T390 535 V844 H0 Z" fill="#1a3f2c"/>
-     <g transform="translate(320 560)"><ellipse cx="0" cy="-150" rx="90" ry="110" fill="url(#lamp)"/><rect x="-3" y="-160" width="6" height="160" fill="#22302e"/><rect x="-12" y="-176" width="24" height="18" rx="4" fill="#2c3a36"/><rect x="-8" y="-172" width="16" height="10" rx="2" fill="#ffe7a0" opacity=".6"/></g>
-     <path d="M0 650 Q120 615 250 640 T390 630 V844 H0 Z" fill="#1f4a32"/>
-     <path d="M150 844 Q170 760 230 700 Q260 670 300 660 L320 664 Q280 690 262 720 Q220 780 230 844 Z" fill="#3a3a2e" opacity=".55"/>
-     <g fill="#2d6a46" opacity=".55">${[[30, 700], [90, 760], [330, 720], [370, 800], [60, 820]].map(([x, y]) => `<path d="M${x} ${y} l3 -10 3 10 3 -8 2 8 Z"/>`).join('')}</g>
-     <g transform="translate(40 640)" opacity=".7"><rect x="0" y="0" width="70" height="7" rx="2" fill="#4a3a2a"/><rect x="6" y="7" width="5" height="20" fill="#3a2d22"/><rect x="59" y="7" width="5" height="20" fill="#3a2d22"/></g>`);
+    sky('s', [[0, '#14243a'], [0.55, '#1b3a3a'], [1, '#183326']]) + glow('lamp', '#ffe7a0', 0.24) +
+    hillGrad('h1', '#25463f', '#172f2b', '#13282a') + hillGrad('h2', '#2f6a4a', '#1c4330', '#183a2a') + hillGrad('h3', '#3a8058', '#22513a', '#1c4430'),
+    `<rect width="${W}" height="${H}" fill="url(#s)"/>${L('far', stars(11, 50, 380, '#fff', 0.6))}
+     ${moon(80, 120, 22, '#f4ecd0')}
+     ${L('far', `<path d="${hill(2, 462, 14, 0.02)}" fill="url(#h1)"/>${[20, 70, 120, 180, 240, 300, 360].map((x, i) => blobTree(x, 470 + (i % 2) * 6, 70 + (i % 3) * 18, '#122624')).join('')}`)}
+     ${L('mid', `<path d="${hill(6, 545, 14, 0.015)}" fill="url(#h2)"/>`)}
+     <ellipse cx="320" cy="410" rx="100" ry="120" fill="url(#lamp)"/>
+     ${L('mid', `<g transform="translate(320 560)"><rect x="-3" y="-160" width="6" height="160" fill="#22302e"/><rect x="-12" y="-176" width="24" height="18" rx="4" fill="#2c3a36"/><rect x="-8" y="-172" width="16" height="10" rx="2" fill="#ffe7a0" opacity=".7"/></g>`)}
+     ${L('near', `<path d="${hill(4, 640, 12, 0.018)}" fill="url(#h3)"/>
+       <path d="M150 854 Q170 760 230 700 Q260 670 300 660 L320 664 Q280 690 262 720 Q220 780 236 854 Z" fill="#4a4636" opacity=".45"/>
+       <g fill="#4a9a68" opacity=".4">${[[30, 700], [90, 760], [330, 720], [370, 800], [60, 820], [120, 690]].map(([x, y]) => `<path d="M${x} ${y} l3 -10 3 10 3 -8 2 8 Z"/>`).join('')}</g>
+       <g transform="translate(40 652)" opacity=".7"><rect x="0" y="0" width="70" height="7" rx="2" fill="#4a3a2a"/><rect x="6" y="7" width="5" height="20" fill="#3a2d22"/><rect x="59" y="7" width="5" height="20" fill="#3a2d22"/></g>`)}`);
 
   // World 3: the beach at dusk. Moon over the sea with its reflection, waves, sand and a palm.
   const w3 = svg(
-    sky('s', [[0, '#1b2350'], [0.45, '#3a3a6a'], [0.6, '#5a4a6e']]) + glow('mg', '#ffe9c2', 0.18) + sky('sea', [[0, '#1d3f63'], [1, '#14304d']]) + sky('sand', [[0, '#5b4b48'], [1, '#433836']]),
-    `<rect width="${W}" height="${H}" fill="url(#s)"/>${stars(5, 40, 330, '#fff', 0.6)}
-     <circle cx="250" cy="250" r="110" fill="url(#mg)"/><circle cx="250" cy="250" r="34" fill="#ffe9c2" opacity=".75"/>
-     <rect x="0" y="420" width="${W}" height="260" fill="url(#sea)"/>
-     ${Array.from({ length: 10 }, (_, i) => `<rect x="${250 - 36 + (i % 3) * 8 - i * 1.5}" y="${430 + i * 22}" width="${60 - i * 4}" height="3" rx="1.5" fill="#ffe9c2" opacity="${(0.35 - i * 0.03).toFixed(2)}"/>`).join('')}
-     ${Array.from({ length: 6 }, (_, i) => `<path d="M0 ${470 + i * 36} q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" stroke="#fff" stroke-opacity=".05" stroke-width="2" fill="none"/>`).join('')}
-     <path d="M0 640 Q100 625 200 640 T390 632 V844 H0 Z" fill="#cfe3f0" opacity=".12"/>
-     <path d="M0 655 Q110 640 220 655 T390 648 V844 H0 Z" fill="url(#sand)"/>
-     <g transform="translate(40 700)"><path d="M0 0 Q-8 -90 14 -170" stroke="#2e2638" stroke-width="9" fill="none" stroke-linecap="round"/><g fill="#2a2a3a"><path d="M14 -170 Q50 -190 80 -160 Q48 -172 14 -168 Z"/><path d="M14 -170 Q-20 -200 -50 -170 Q-18 -178 14 -168 Z"/><path d="M14 -170 Q40 -150 54 -110 Q34 -150 14 -166 Z"/><path d="M14 -170 Q-10 -140 -20 -110 Q-4 -150 14 -166 Z"/><path d="M14 -170 Q20 -210 4 -230 Q24 -206 16 -170 Z"/></g></g>
-     ${[[300, 740], [200, 790], [350, 810]].map(([x, y]) => `<path d="M${x} ${y} l3 -4 3 4 -3 4 Z" fill="#ffd0a0" opacity=".25"/>`).join('')}`);
+    sky('s', [[0, '#1b2350'], [0.42, '#3a3a6a'], [0.52, '#5a4a6e']]) + sky('sea', [[0, '#264a6e'], [0.15, '#1d3f63'], [1, '#14304d']]) + hillGrad('sand', '#7a6656', '#594844', '#423634'),
+    `<rect width="${W}" height="${H}" fill="url(#s)"/>${L('far', stars(5, 40, 330, '#fff', 0.6))}
+     ${moon(250, 250, 32, '#ffe9c2')}
+     ${L('mid', `<rect x="-10" y="420" width="${W + 20}" height="270" fill="url(#sea)"/>
+       ${Array.from({ length: 6 }, (_, i) => `<path d="M-10 ${470 + i * 36} q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" stroke="#fff" stroke-opacity=".05" stroke-width="2" fill="none"/>`).join('')}`)}
+     <g filter="url(#haze)" opacity=".9">${Array.from({ length: 10 }, (_, i) => `<ellipse cx="${250 + (i % 3) * 6 - 6}" cy="${432 + i * 22}" rx="${30 - i * 2}" ry="2" fill="#ffe9c2" opacity="${(0.4 - i * 0.03).toFixed(2)}"/>`).join('')}</g>
+     ${L('mid', `<path d="${hill(12, 640, 6, 0.02)}" fill="#cfe3f0" opacity=".12"/>`)}
+     ${L('near', `<path d="${hill(14, 656, 7, 0.018)}" fill="url(#sand)"/>
+       <g transform="translate(40 706)"><path d="M0 0 Q-8 -90 14 -170" stroke="#2e2638" stroke-width="9" fill="none" stroke-linecap="round"/><g fill="#2a2a3a"><path d="M14 -170 Q50 -190 80 -160 Q48 -172 14 -168 Z"/><path d="M14 -170 Q-20 -200 -50 -170 Q-18 -178 14 -168 Z"/><path d="M14 -170 Q40 -150 54 -110 Q34 -150 14 -166 Z"/><path d="M14 -170 Q-10 -140 -20 -110 Q-4 -150 14 -166 Z"/><path d="M14 -170 Q20 -210 4 -230 Q24 -206 16 -170 Z"/></g></g>
+       ${[[300, 740], [200, 790], [350, 810]].map(([x, y]) => `<path d="M${x} ${y} l3 -4 3 4 -3 4 Z" fill="#ffd0a0" opacity=".25"/>`).join('')}`)}`);
 
   // World 4: snowy hill at night. Layered snow hills, pines, and a quiet snowfall.
   const w4 = svg(
-    sky('s', [[0, '#121c3a'], [0.6, '#22325e'], [1, '#2a3d6a']]) + glow('mg', '#f2f6ff', 0.16),
-    `<rect width="${W}" height="${H}" fill="url(#s)"/>${stars(13, 40, 360, '#fff', 0.6)}
-     <circle cx="310" cy="130" r="80" fill="url(#mg)"/><circle cx="310" cy="130" r="26" fill="#f2f6ff" opacity=".6"/>
-     <path d="M0 480 Q90 400 180 450 T390 420 V844 H0 Z" fill="#2c3d66"/>
-     ${[[40, 470, 60], [80, 458, 76], [250, 452, 64], [340, 430, 84], [370, 440, 60]].map(([x, y, h]) => pine(x, y, h, '#22305a')).join('')}
-     <path d="M0 580 Q120 520 240 560 T390 540 V844 H0 Z" fill="#33456f"/>
-     ${[[150, 560, 70], [190, 566, 56], [300, 548, 90]].map(([x, y, h]) => pine(x, y, h, '#2a3a66')).join('')}
-     <path d="M0 680 Q130 630 260 668 T390 655 V844 H0 Z" fill="#c9d7ee" opacity=".14"/>
-     <path d="M0 720 Q150 690 280 712 T390 705 V844 H0 Z" fill="#dfe8f6" opacity=".12"/>
-     ${stars(21, 60, 840, '#ffffff', 0.35)}`);
+    sky('s', [[0, '#121c3a'], [0.6, '#22325e'], [1, '#2a3d6a']]) +
+    hillGrad('h1', '#4a5f8e', '#2c3d66', '#283a60') + hillGrad('h2', '#5a6f9e', '#33456f', '#2c3d66') + hillGrad('h3', '#a9bbd8', '#6a7fa8', '#4f6390'),
+    `<rect width="${W}" height="${H}" fill="url(#s)"/>${L('far', stars(13, 40, 360, '#fff', 0.6))}
+     ${moon(310, 130, 26, '#f2f6ff')}
+     ${L('far', `<path d="${hill(21, 450, 26, 0.012)}" fill="url(#h1)"/>${[[40, 470, 60], [80, 458, 76], [250, 452, 64], [340, 430, 84], [370, 440, 60]].map(([x, y, h]) => pine(x, y, h, '#22305a')).join('')}`)}
+     ${L('mid', `<path d="${hill(23, 556, 20, 0.014)}" fill="url(#h2)"/>${[[150, 560, 70], [190, 566, 56], [300, 548, 90]].map(([x, y, h]) => pine(x, y, h, '#283868')).join('')}`)}
+     ${L('near', `<path d="${hill(25, 676, 14, 0.016)}" fill="url(#h3)" opacity=".42"/>`)}
+     ${L('mid', stars(21, 60, 840, '#ffffff', 0.4))}`);
 
   // World 5: the autumn backyard at dusk. A big tree, a fence, and leaves on the ground and in the air.
   const leaf = (x, y, s, rot, c, a) => `<path transform="translate(${x} ${y}) rotate(${rot}) scale(${s})" d="M0 -8 l2 4 4 -1 -2 3 3 2 -4 1 1 4 -4 -2 -4 2 1 -4 -4 -1 3 -2 -2 -3 4 1 Z" fill="${c}" opacity="${a}"/>`;
   const r5 = rng(9);
   const w5 = svg(
-    sky('s', [[0, '#2a1830'], [0.5, '#4a2632'], [1, '#3a2018']]) + glow('sun', '#ffb36b', 0.22),
-    `<rect width="${W}" height="${H}" fill="url(#s)"/>${stars(17, 24, 260, '#fff', 0.45)}
-     <circle cx="120" cy="380" r="140" fill="url(#sun)"/>
-     <path d="M0 520 Q100 490 200 510 T390 500 V844 H0 Z" fill="#33201f"/>
-     <g transform="translate(300 560)"><path d="M-10 0 Q-6 -120 -30 -200 M-8 -100 Q30 -150 70 -170 M-14 -150 Q-60 -190 -90 -200" stroke="#2a1614" stroke-width="16" fill="none" stroke-linecap="round"/><circle cx="-30" cy="-230" r="70" fill="#5a2a1e" opacity=".85"/><circle cx="40" cy="-200" r="60" fill="#6a321e" opacity=".8"/><circle cx="-90" cy="-200" r="50" fill="#5a2a1e" opacity=".8"/></g>
-     ${fence(540, '#2c1a17', 28)}
-     <path d="M0 620 Q120 600 240 618 T390 610 V844 H0 Z" fill="#3e2418"/>
-     ${Array.from({ length: 26 }, () => leaf((r5() * W).toFixed(0), (640 + r5() * 200).toFixed(0), (0.8 + r5()).toFixed(2), (r5() * 360).toFixed(0), ['#c9702a', '#a8452a', '#d9a03a'][Math.floor(r5() * 3)], (0.25 + r5() * 0.25).toFixed(2))).join('')}
-     ${Array.from({ length: 10 }, () => leaf((r5() * W).toFixed(0), (60 + r5() * 480).toFixed(0), (0.7 + r5() * 0.6).toFixed(2), (r5() * 360).toFixed(0), '#e8743a', (0.15 + r5() * 0.15).toFixed(2))).join('')}`);
+    sky('s', [[0, '#2a1830'], [0.5, '#4a2632'], [1, '#3a2018']]) + glow('sun', '#ffb36b', 0.26) +
+    hillGrad('h1', '#4a2c28', '#33201f', '#2c1c1b') + hillGrad('h2', '#5a3420', '#3e2418', '#331d14'),
+    `<rect width="${W}" height="${H}" fill="url(#s)"/>${L('far', stars(17, 24, 260, '#fff', 0.45))}
+     <circle cx="120" cy="380" r="170" fill="url(#sun)"/>
+     ${L('far', `<path d="${hill(31, 508, 14, 0.014)}" fill="url(#h1)"/>`)}
+     ${L('mid', `<g transform="translate(300 560)"><path d="M-10 0 Q-6 -120 -30 -200 M-8 -100 Q30 -150 70 -170 M-14 -150 Q-60 -190 -90 -200" stroke="#2a1614" stroke-width="16" fill="none" stroke-linecap="round"/><circle cx="-30" cy="-230" r="70" fill="#5a2a1e" opacity=".85"/><circle cx="40" cy="-200" r="60" fill="#6a321e" opacity=".8"/><circle cx="-90" cy="-200" r="50" fill="#5a2a1e" opacity=".8"/><circle cx="10" cy="-260" r="40" fill="#7a3a20" opacity=".6"/></g>${fence(540, '#2c1a17', 28)}`)}
+     ${L('near', `<path d="${hill(33, 616, 8, 0.02)}" fill="url(#h2)"/>
+       ${Array.from({ length: 26 }, () => leaf((r5() * W).toFixed(0), (640 + r5() * 200).toFixed(0), (0.8 + r5()).toFixed(2), (r5() * 360).toFixed(0), ['#c9702a', '#a8452a', '#d9a03a'][Math.floor(r5() * 3)], (0.25 + r5() * 0.25).toFixed(2))).join('')}`)}
+     ${L('mid', Array.from({ length: 10 }, () => leaf((r5() * W).toFixed(0), (60 + r5() * 480).toFixed(0), (0.7 + r5() * 0.6).toFixed(2), (r5() * 360).toFixed(0), '#e8743a', (0.15 + r5() * 0.15).toFixed(2))).join(''))}`);
 
   const SCENES = { yard, w1, w2, w3, w4, w5 };
   const toUrl = (s) => `url("data:image/svg+xml,${encodeURIComponent(s)}")`;

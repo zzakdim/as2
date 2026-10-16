@@ -112,7 +112,7 @@ a.btn { text-decoration: none; text-align: center; }
 .home { justify-content: space-between; overflow-y: auto; }
 .home { position: relative; }
 .home::before { content: ""; position: absolute; left: 4%; top: 64px; width: 54px; height: 54px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle at 40% 40%, #fff8dc, #f3e2a6 70%); box-shadow: 0 0 30px #fff3c455, 0 0 80px #fff3c422; }
+  background: radial-gradient(circle at 42% 40%, #fff8dc, #f3e2a6 62%, #f3e2a600 72%); box-shadow: 0 0 40px 6px #fff3c430, 0 0 110px 30px #fff3c414; filter: blur(.6px); opacity: .9; }
 .home-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: center; }
 .logo { margin: 0; font-family: var(--display); font-weight: 800; line-height: .82; text-align: center; transform: rotate(-4deg); }
 .logo-pup { display: block; font-size: 64px; color: var(--bone); text-shadow: 0 5px 0 #b4794a; }
@@ -821,6 +821,6 @@ body:has(#modal:not([hidden]) .sheet.dev) .coach, body:has(#modal:not([hidden]))
 .machine.backyard::before { content: ""; position: absolute; inset: 0; pointer-events: none;
   background:
     radial-gradient(70px 70px at 80% 14%, #fff3c41c, transparent 70%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='80'%3E%3Cpath d='M8 80 V14 L17 4 L26 14 V80 Z' fill='%23272061'/%3E%3Crect x='0' y='30' width='44' height='7' fill='%23221c56'/%3E%3Crect x='0' y='58' width='44' height='7' fill='%23221c56'/%3E%3C/svg%3E") 0 calc(50% + 10px) / 44px 80px repeat-x; }
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='80'%3E%3Cpath d='M8 80 V14 L17 4 L26 14 V80 Z' fill='%23272061'/%3E%3Crect x='0' y='30' width='44' height='7' fill='%23221c56'/%3E%3Crect x='0' y='58' width='44' height='7' fill='%23221c56'/%3E%3C/svg%3E") 0 calc(50% + 10px) / 44px 80px repeat-x; filter: blur(1.2px); opacity: .85; }
 .machine.backyard .yard { position: relative; }
 @media (prefers-reduced-motion: reduce) { .screen.enter, .cell.cell-in, .res-buddy { animation: none !important; } }
