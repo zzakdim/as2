@@ -115,8 +115,11 @@
 
   // ---------------------------------------------------------------- screens
   const screens = ['home', 'game', 'gacha', 'kennel', 'worlds', 'map'];
+  const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function show(name) {
     screens.forEach((s) => { $('#screen-' + s).hidden = s !== name; });
+    const el = $('#screen-' + name);
+    el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
     if (name === 'home') renderHome();
     if (name === 'gacha') renderGacha();
     if (name === 'kennel') renderKennel();
@@ -238,6 +241,36 @@
 
   let run = null;
 
+  // ---- transitions: a circle wipe in a world's colors. Resolves once the screen is covered,
+  // so the caller can swap what's underneath; it then holds `holdMs` and opens again.
+  function wipe(world, html, holdMs) {
+    if (reducedMotion()) return Promise.resolve();
+    const el = document.createElement('div');
+    el.className = 'wipe';
+    if (world) el.dataset.world = world;
+    el.innerHTML = `<div class="wipe-card">${html}</div>`;
+    let skip = null;
+    el.addEventListener('click', () => skip && skip());
+    document.body.appendChild(el);
+    return new Promise((covered) => {
+      setTimeout(covered, 220);
+      const open = () => { if (!el.isConnected || el.classList.contains('out')) return; el.classList.add('out'); setTimeout(() => el.remove(), 320); };
+      skip = open;
+      setTimeout(open, 220 + holdMs);
+    });
+  }
+  // The board fills in as a wave from the top-left corner, and the pieces deal in after.
+  function boardEnter(delay) {
+    if (reducedMotion()) return;
+    const N = Math.round(Math.sqrt(cellEls.length));
+    cellEls.forEach((c, i) => {
+      c.style.animationDelay = `${delay + (Math.floor(i / N) + (i % N)) * 22}ms`;
+      c.classList.add('cell-in');
+    });
+    setTimeout(() => cellEls.forEach((c) => { c.classList.remove('cell-in'); c.style.animationDelay = ''; }), delay + N * 44 + 420);
+    setTimeout(() => { const t = $('#tray'); t.classList.remove('pfx-deal'); void t.offsetWidth; t.classList.add('pfx-deal'); }, delay + N * 22);
+  }
+
   // opts.level: play a map level; opts.pup: force a buddy (tutorial). No level = Endless.
   function startRun(opts) {
     const o = opts || {};
@@ -260,11 +293,29 @@
       starsShown: 0, giftResult: null,
     };
     if (lvl) mapWorld = lvl.world;
-    show('game');
-    $('#level-bar').hidden = !lvl;
-    $('#best-line').hidden = !!lvl;
-    $('#squirrel').hidden = !(lvl && lvl.tease === 'squirrel');
-    renderBoard(); renderTray(); renderBuddyBar(); renderScore();
+    const thisRun = run;
+    const enter = (delay) => {
+      if (run !== thisRun) return;
+      const gs = $('#screen-game');
+      if (lvl) gs.dataset.world = lvl.world; else delete gs.dataset.world;
+      show('game');
+      $('#level-bar').hidden = !lvl;
+      $('#best-line').hidden = !!lvl;
+      $('#squirrel').hidden = !(lvl && lvl.tease === 'squirrel');
+      renderBoard(); renderTray(); renderBuddyBar(); renderScore();
+      boardEnter(delay);
+    };
+    // A level opens on a title card: world, name, star targets and your buddy.
+    if (lvl && state.tutorial.done && !reducedMotion()) {
+      const t = Levels.starsFor(lvl);
+      const wk = Levels.WORLDS.findIndex((w) => w.id === lvl.world) + 1;
+      const crate = lvl.gift && !state.gifts[lvl.id];
+      const HOLD = 760;
+      wipe(lvl.world, `<span class="wipe-buddy">${Pups.renderPup(pup, { plain: true })}</span>
+        <small>World ${wk} · Level ${lvl.n}</small><b>${lvl.name}</b>
+        <span class="wipe-stars">${t.map((v, k) => `<i><em>${'★'.repeat(k + 1)}</em>${v.toLocaleString()}</i>`).join('')}</span>
+        ${crate ? `<span class="wipe-note">Free ${Pups.BY_ID[lvl.gift].name} from the crate!</span>` : ''}`, HOLD).then(() => enter(HOLD));
+    } else enter(0);
     run.startedAt = Date.now();
     track('run_start', { buddy: pup.id, level: lvl ? lvl.id : 'endless' });
   }
@@ -734,13 +785,14 @@
     const got = lvl ? Levels.starsForScore(lvl, g.score) : 0;
     const t = lvl ? Levels.starsFor(lvl) : null;
     const nextMilestone = !lvl && MILESTONES.find(([m]) => !state.endless.milestones.includes(m) && g.score < m);
-    const head = lvl
+    const mood = `<div class="res-buddy ${lvl ? (got ? 'happy' : 'sad') : (isBest ? 'happy' : 'sad')}" aria-hidden="true">${Pups.renderPup(run.pup, { plain: true })}</div>`;
+    const head = mood + (lvl
       ? `<p class="eyebrow">Level ${lvl.n} · ${got ? 'Cleared' : 'Out of room'}</p>${starRow(got)}
          <p class="go-score">${g.score.toLocaleString()}</p>
          <p class="go-sub">${got ? (got < 3 ? `${(t[got] - g.score).toLocaleString()} more for ${'★'.repeat(got + 1)}` : 'Perfect run!') : `${(t[0] - g.score).toLocaleString()} short of ${t[0].toLocaleString()}`}</p>`
       : `<p class="eyebrow">${isBest ? 'New best score' : 'Out of room'}</p>
          <p class="go-score">${g.score.toLocaleString()}</p>
-         ${nextMilestone ? `<p class="go-sub">Reach ${nextMilestone[0].toLocaleString()} for a ${nextMilestone[1]}-bone prize</p>` : ''}`;
+         ${nextMilestone ? `<p class="go-sub">Reach ${nextMilestone[0].toLocaleString()} for a ${nextMilestone[1]}-bone prize</p>` : ''}`);
     const sheet = openModal(`
       ${head}
       ${bones > 0 ? `<p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>` : ''}
@@ -875,6 +927,7 @@
     const lines = [...(bones > 0 ? [`+${bones.toLocaleString()} bones`] : []), ...sum.rewards];
     if (sum.sweep) lines.push(`Every level at 3 stars! A crown for this world and a free Epic ${verb().toLowerCase()}`);
     const sheet = openModal(`
+      <div class="res-buddy ${sum.got ? 'happy' : 'sad'}" aria-hidden="true">${Pups.renderPup(Pups.BY_ID[state.buddy], { plain: true })}</div>
       <p class="eyebrow">Level ${lvl.n} · ${lvl.name}</p>
       ${starRow(sum.got)}
       <p class="go-score">${score.toLocaleString()}</p>
@@ -1003,7 +1056,8 @@
       return;
     }
     mapWorld = w.id;
-    show('map');
+    const k = Levels.WORLDS.indexOf(w) + 1;
+    wipe(w.id, `<span class="wipe-art">${WORLD_ART[w.id] || ''}</span><small>World ${k}</small><b>${w.name}</b>`, 320).then(() => show('map'));
   });
 
   // ---- one world's levels: a winding trail from the bottom up, with paw prints between stops.
