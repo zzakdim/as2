@@ -5,7 +5,7 @@
 //   rare:   + particles in the pup's color
 //   epic:   + the board shakes and flashes
 //   legendary: + a short cutscene (dim, buddy banner) before the blast; shorter on repeat uses
-// A pup at max level also leaps across the screen first.
+// A pup at max level gets a comic-panel cut-in instead: a slanted band, its portrait and its own line.
 (function (root) {
   'use strict';
 
@@ -146,16 +146,32 @@
     after(ms + 250, () => el.remove());
   }
 
-  function leap(ctx) {
+  // Each pup's line for its max-level cut-in.
+  const LINES = {
+    mochi: 'Fetch mode: ON!', biscuit: 'Sit... GOOD!', pudding: 'Sniff sniff... found it!', noodle: 'Long boy, long stick!',
+    peanut: 'Nap time is power time.', waffles: 'Round and round!', pickles: 'Tiny but mighty!', toffee: 'Only the fluffiest!',
+    bean: 'Shake it off!', muffin: 'Treats for everyone!', sprout: 'Spot on!', clover: 'AWOOOO!',
+    marshmallow: 'Dig dig dig!', domino: 'Pounce!', cocoa: 'Zig, then zag!', ziggy: 'Wag wag wag!',
+    scoop: 'Nothing gets past this nose!', disco: 'Zoom zoom zoom!', captain: 'Fire the cannon!', duchess: 'Let us try that again.',
+    merlin: 'I foresee... a clear board.', dj: 'Drop the bass!', sunny: "Don't worry, I've got you!", cosmo: 'To the stars!',
+  };
+
+  // Max level: a comic-panel cut-in (after Persona 5's all-out attacks). ms: full first use, short after.
+  function comicPanel(ctx, ms) {
     const el = document.createElement('div');
-    el.className = 'pfx-leap';
+    el.className = 'pfx-comic';
     el.style.setProperty('--c', ctx.color);
-    el.innerHTML = `<div class="pfx-leap-y"><div class="pfx-leap-pup">${ctx.pupSvg}</div></div>`;
+    el.style.setProperty('--ms', ms + 'ms');
+    const line = LINES[ctx.pupId] || `${ctx.pupName} powers up!`;
+    el.innerHTML = `<div class="pfx-comic-band"><div class="pfx-comic-lines"></div></div>
+      <div class="pfx-comic-inner"><div class="pfx-comic-pup">${ctx.pupArt}</div>
+      <div class="pfx-comic-title"><b>${ctx.powerName}!</b><small>${ctx.pupName}: “${line}”</small></div></div>`;
     document.body.appendChild(el);
-    after(1000, () => el.remove());
+    after(ms * 0.16, () => restart(ctx.wrap, 'pfx-shake')); // the band hits
+    after(ms + 100, () => el.remove());
   }
 
-  // ctx: { id, rarity, color, pupSvg, powerName, maxed, firstUse, r, c, size,
+  // ctx: { id, rarity, color, pupSvg, pupArt, pupId, pupName, powerName, maxed, firstUse, r, c, size,
   //        cells, fx, wrap, tray, buddy, burst, flash, sfx, haptic }
   // cleared: [{ i, ... }] from the power. Returns { delays, lead, done } for popping the cells.
   function play(ctx, cleared) {
@@ -165,14 +181,17 @@
     if (reduced()) { if (fam === 'tray') trayFx(ctx, 0); return { delays: {}, lead: 0, done: 0 }; }
 
     let lead = 0;
-    if (ctx.rank >= 3) {
+    if (ctx.maxed) {
+      const ms = ctx.firstUse ? 1150 : 560;
+      comicPanel(ctx, ms);
+      lead = ms - 120;
+      if (ctx.sfx && ctx.sfx.rattle) ctx.sfx.rattle();
+    } else if (ctx.rank >= 3) {
       const ms = ctx.firstUse ? 820 : 380;
       cutscene(ctx, ms);
       lead = ms;
       if (ctx.sfx && ctx.sfx.rattle) ctx.sfx.rattle();
     }
-    // Max level: the buddy leaps across first (after the cutscene, so it's never on screen twice).
-    if (ctx.maxed) { after(Math.max(0, lead - 150), () => leap(ctx)); lead += 380; }
     let delays = {};
     if (fam === 'area') delays = areaFx(ctx, cleared, lead);
     else if (fam === 'line') delays = lineFx(ctx, cleared, lead);
@@ -193,5 +212,5 @@
   }
 
   root.PB = root.PB || {};
-  root.PB.PowerFX = { play, FAMILY };
+  root.PB.PowerFX = { play, FAMILY, LINES };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

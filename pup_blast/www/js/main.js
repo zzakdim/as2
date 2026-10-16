@@ -494,7 +494,7 @@
     run.fxSeen = run.fxSeen || {};
     const fx = PowerFX.play({
       id, rarity: pup.rarity, color: Pups.RARITY[pup.rarity].color,
-      pupSvg: Pups.renderPup(pup, { plain: true }), powerName: powerOf(pup).name,
+      pupSvg: Pups.renderPup(pup, { plain: true }), pupArt: Pups.renderPup(pup), pupId: pup.id, pupName: pup.name, powerName: powerOf(pup).name,
       maxed: run.level >= Pups.MAX_LEVEL, firstUse: !run.fxSeen[id],
       r, c, size: Core.SIZE, cells: cellEls, fx: $('#fx'), wrap: $('.board-wrap'), tray: $('#tray'), buddy: $('#game-buddy'),
       burst: PullFX.burst, sfx, haptic,
