@@ -74,9 +74,9 @@ const SHOTS = [
   }
   async function openLevel(world, id) {
     await game.click('#btn-play'); await game.waitForTimeout(300);
-    await game.click(`[data-world="${world}"]`); await game.waitForTimeout(250);
+    await game.click(`.world-card[data-world="${world}"]`); await game.waitForTimeout(900);
     await game.click(`[data-level="${id}"]`, { force: true }); await game.waitForTimeout(250);
-    await game.click('[data-act="play"]'); await game.waitForTimeout(500);
+    await game.click('[data-act="play"]'); await game.waitForTimeout(1900); // title card, then the board
   }
   const raw = {};
   const snap = async (name) => { raw[name] = path.join(OUT, `raw-${name}.png`); await game.waitForTimeout(1400); await game.screenshot({ path: raw[name] }); };
@@ -95,8 +95,8 @@ const SHOTS = [
   await game.waitForTimeout(3200); await snap('2-dig');
   // 3. Kennel.
   await boot(); await game.click('#btn-kennel'); await game.waitForTimeout(500); await snap('3-kennel');
-  // 4. Map.
-  await boot(); await game.click('#btn-play'); await game.waitForTimeout(500); await game.evaluate(() => { document.querySelector('#map-path').scrollTop = 0; document.querySelector('#map-path').closest('.screen').scrollTop = 0; }); await snap('4-map');
+  // 4. The worlds.
+  await boot(); await game.click('#btn-play'); await game.waitForTimeout(500); await snap('4-map');
   // 5. Autumn Backyard with the Leaf Blower and a squirrel.
   await boot(); await openLevel('w5', 'w5-20'); await play(3); await snap('5-worlds');
 
