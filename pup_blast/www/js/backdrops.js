@@ -55,6 +55,57 @@
     return out;
   }
 
+
+  // A palm in silhouette: a tapered, leaning trunk with ring marks, a crown of drooping fronds made
+  // of many small leaflets, and a couple of coconuts. (x, y) is the base; lean > 0 leans right.
+  function palm(x, y, h, lean, dark, rim) {
+    const P = (t) => { // point and tangent along the trunk curve (quadratic)
+      const c = [x - lean * 0.35, y - h * 0.55], e = [x + lean, y - h];
+      const px = (1 - t) * (1 - t) * x + 2 * (1 - t) * t * c[0] + t * t * e[0];
+      const py = (1 - t) * (1 - t) * y + 2 * (1 - t) * t * c[1] + t * t * e[1];
+      const dx = 2 * (1 - t) * (c[0] - x) + 2 * t * (e[0] - c[0]), dy = 2 * (1 - t) * (c[1] - y) + 2 * t * (e[1] - c[1]);
+      const len = Math.hypot(dx, dy);
+      return { px, py, nx: -dy / len, ny: dx / len };
+    };
+    const left = [], right = [];
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16, { px, py, nx, ny } = P(t), w = 8 - t * 4.2;
+      left.push(`${(px + nx * w).toFixed(1)} ${(py + ny * w).toFixed(1)}`);
+      right.unshift(`${(px - nx * w).toFixed(1)} ${(py - ny * w).toFixed(1)}`);
+    }
+    let out = `<path d="M${left.join(' L')} L${right.join(' L')} Z" fill="${dark}"/>`;
+    for (let i = 1; i < 14; i++) { // trunk rings
+      const t = i / 14, { px, py, nx, ny } = P(t), w = 8 - t * 4.2;
+      out += `<path d="M${(px + nx * w).toFixed(1)} ${(py + ny * w).toFixed(1)} Q${(px + 1.5).toFixed(1)} ${(py + 2.5).toFixed(1)} ${(px - nx * w).toFixed(1)} ${(py - ny * w).toFixed(1)}" stroke="${rim}" stroke-opacity=".08" stroke-width="1" fill="none"/>`;
+    }
+    out += `<path d="M${left.slice(6).join(' L')}" stroke="${rim}" stroke-opacity=".1" stroke-width="1.2" fill="none"/>`;
+    const top = P(1);
+    const tx = top.px, ty = top.py;
+    // Fronds: angle (deg from up, clockwise), length, droop.
+    const fronds = [[-104, 80, 46], [-70, 88, 40], [-34, 62, 22], [8, 58, 18], [44, 90, 40], [84, 84, 50], [128, 56, 30], [-140, 54, 30]];
+    for (const [a, len, droop] of fronds) {
+      const rad = (a * Math.PI) / 180;
+      const ex = tx + Math.sin(rad) * len, ey = ty - Math.cos(rad) * len * 0.55 + droop;
+      const cx = tx + Math.sin(rad) * len * 0.55, cy = ty - Math.cos(rad) * len * 0.6 - 10;
+      // Spine, then leaflets hanging off it.
+      out += `<path d="M${tx} ${ty} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="${dark}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+      for (let k = 1; k <= 11; k++) {
+        const t = k / 12;
+        const sx = (1 - t) * (1 - t) * tx + 2 * (1 - t) * t * cx + t * t * ex;
+        const sy = (1 - t) * (1 - t) * ty + 2 * (1 - t) * t * cy + t * t * ey;
+        const leafLen = 20 * Math.sin(Math.PI * Math.min(1, t * 1.1)) + 4;
+        const out1 = Math.sin(rad) >= 0 ? 1 : -1; // leaflets sweep outward and hang down
+        for (const dir of [-0.6, 1]) {
+          const lx = sx + dir * out1 * leafLen * 0.45, ly = sy + leafLen;
+          out += `<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} Q${(sx + dir * out1 * leafLen * 0.5).toFixed(1)} ${(sy + leafLen * 0.25).toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)}" stroke="${dark}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`;
+        }
+      }
+      out += `<path d="M${tx} ${ty} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="${rim}" stroke-opacity=".1" stroke-width="1" fill="none"/>`;
+    }
+    out += `<circle cx="${tx - 4}" cy="${ty + 6}" r="4.5" fill="${dark}"/><circle cx="${tx + 4}" cy="${ty + 7}" r="4" fill="${dark}"/><circle cx="${tx}" cy="${ty + 10}" r="3.6" fill="${dark}"/>`;
+    return out;
+  }
+
   // Menus: the night backyard.
   const yard = svg(
     sky('s', [[0, '#120f33'], [0.55, '#272068'], [1, '#3a2f80']]) + glow('g', '#fff3c4', 0.2) +
@@ -114,7 +165,7 @@
      <g filter="url(#haze)" opacity=".9">${Array.from({ length: 10 }, (_, i) => `<ellipse cx="${250 + (i % 3) * 6 - 6}" cy="${432 + i * 22}" rx="${30 - i * 2}" ry="2" fill="#ffe9c2" opacity="${(0.4 - i * 0.03).toFixed(2)}"/>`).join('')}</g>
      ${L('mid', `<path d="${hill(12, 640, 6, 0.02)}" fill="#cfe3f0" opacity=".12"/>`)}
      ${L('near', `<path d="${hill(14, 656, 7, 0.018)}" fill="url(#sand)"/>
-       <g transform="translate(40 706)"><path d="M0 0 Q-8 -90 14 -170" stroke="#2e2638" stroke-width="9" fill="none" stroke-linecap="round"/><g fill="#2a2a3a"><path d="M14 -170 Q50 -190 80 -160 Q48 -172 14 -168 Z"/><path d="M14 -170 Q-20 -200 -50 -170 Q-18 -178 14 -168 Z"/><path d="M14 -170 Q40 -150 54 -110 Q34 -150 14 -166 Z"/><path d="M14 -170 Q-10 -140 -20 -110 Q-4 -150 14 -166 Z"/><path d="M14 -170 Q20 -210 4 -230 Q24 -206 16 -170 Z"/></g></g>
+       ${palm(48, 712, 200, 26, '#26223a', '#ffe9c2')}
        ${[[300, 740], [200, 790], [350, 810]].map(([x, y]) => `<path d="M${x} ${y} l3 -4 3 4 -3 4 Z" fill="#ffd0a0" opacity=".25"/>`).join('')}`)}`);
 
   // World 4: snowy hill at night. Layered snow hills, pines, and a quiet snowfall.

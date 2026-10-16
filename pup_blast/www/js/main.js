@@ -994,13 +994,56 @@
     'Squirrels come back': 'A chased squirrel returns after 6 moves',
   };
 
-  // Small scene for each world's card.
+  // Small painted scene for each world's card. Each has its own sky, soft shading and a light source.
+  const lg = (id, stops, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">${stops.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}"${a != null ? ` stop-opacity="${a}"` : ''}/>`).join('')}</linearGradient>`;
+  const rg = (id, c, a, cx = '50%', cy = '50%') => `<radialGradient id="${id}" cx="${cx}" cy="${cy}"><stop offset="0" stop-color="${c}" stop-opacity="${a}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+  const tile = (id, defs, body) => `<svg viewBox="0 0 80 60"><defs><clipPath id="${id}c"><rect width="80" height="60" rx="10"/></clipPath>${defs}</defs><g clip-path="url(#${id}c)">${body}</g></svg>`;
   const WORLD_ART = {
-    w1: `<svg viewBox="0 0 80 60"><rect x="6" y="44" width="68" height="6" rx="3" fill="#7a4a6a"/><path d="M12 44 V30 a6 6 0 0 1 12 0 V34 H56 V30 a6 6 0 0 1 12 0 V44 Z" fill="#e86f8f"/><rect x="20" y="24" width="40" height="14" rx="6" fill="#f08aa6"/><rect x="14" y="44" width="4" height="8" rx="2" fill="#5a3450"/><rect x="62" y="44" width="4" height="8" rx="2" fill="#5a3450"/><circle cx="34" cy="31" r="4" fill="#ffd84d"/></svg>`,
-    w2: `<svg viewBox="0 0 80 60"><path d="M0 50 Q40 40 80 50 V60 H0 Z" fill="#3f9a55"/><rect x="50" y="22" width="5" height="28" rx="2" fill="#7a4a24"/><circle cx="52" cy="18" r="14" fill="#5fbf72"/><circle cx="44" cy="24" r="9" fill="#4fae63"/><g fill="#d7a46a"><rect x="6" y="36" width="4" height="16" rx="1"/><rect x="18" y="36" width="4" height="16" rx="1"/><rect x="30" y="36" width="4" height="16" rx="1"/><rect x="4" y="40" width="34" height="3" rx="1"/><rect x="4" y="46" width="34" height="3" rx="1"/></g></svg>`,
-    w3: `<svg viewBox="0 0 80 60"><path d="M0 46 Q20 40 40 46 T80 46 V60 H0 Z" fill="#e6c98f"/><path d="M0 40 Q10 36 20 40 T40 40 T60 40 T80 40 V46 Q60 42 40 46 T0 46 Z" fill="#4fc0f5"/><rect x="51" y="14" width="3" height="32" fill="#f3e2c0"/><path d="M36 18 Q52 0 70 18 Z" fill="#ff8fab"/><path d="M44 18 Q52 6 60 18 Z" fill="#fff4f7"/><circle cx="18" cy="14" r="7" fill="#ffd04a"/></svg>`,
-    w4: `<svg viewBox="0 0 80 60"><path d="M0 52 Q30 26 60 44 Q70 38 80 42 V60 H0 Z" fill="#eef4fb"/><path d="M58 10 L68 30 H48 Z M58 20 L70 40 H46 Z" fill="#3b6f8f"/><rect x="56" y="40" width="4" height="6" fill="#6b4329"/><circle cx="22" cy="40" r="9" fill="#fff"/><circle cx="22" cy="27" r="6.5" fill="#fff"/><path d="M22 27 l6 1.5 -6 1.5 Z" fill="#ff9a3d"/><circle cx="20" cy="25.5" r="1" fill="#1d1622"/><circle cx="24" cy="25.5" r="1" fill="#1d1622"/></svg>`,
-    w5: `<svg viewBox="0 0 80 60"><path d="M0 50 Q40 42 80 50 V60 H0 Z" fill="#8a5a36"/><path d="M40 6 l4 10 10 -3 -5 9 9 5 -10 3 2 10 -10 -6 -10 6 2 -10 -10 -3 9 -5 -5 -9 10 3 Z" fill="#e8743a"/><path d="M40 20 V46" stroke="#7a3d1c" stroke-width="2.4"/><circle cx="16" cy="44" r="4" fill="#c98a52"/><circle cx="64" cy="46" r="3.5" fill="#ffb347"/><path d="M60 34 l4 4 -2 3 -4 -3 Z" fill="#d9572b"/></svg>`,
+    w1: tile('i1', lg('i1w', [[0, '#5b3b70'], [1, '#3a2552']]) + lg('i1s', [[0, '#ff9dba'], [1, '#d65a80']]) + lg('i1f', [[0, '#5a3446'], [1, '#3e2232']]) + rg('i1l', '#ffd38a', 0.55) + rg('i1m', '#cfe0ff', 0.5),
+      `<rect width="80" height="60" fill="url(#i1w)"/>
+       <rect x="52" y="6" width="20" height="22" rx="2.5" fill="#24305e"/><circle cx="66" cy="12" r="10" fill="url(#i1m)"/><circle cx="66" cy="12" r="3.2" fill="#fff6d8"/><path d="M62 6 V28 M52 17 H72" stroke="#5b3b70" stroke-width="1.6"/>
+       <circle cx="12" cy="20" r="18" fill="url(#i1l)"/><path d="M6 14 Q12 11 18 14 L16 21 Q12 22 8 21 Z" fill="#f2c27a"/><rect x="11.2" y="21" width="1.6" height="22" fill="#2a1a3a"/>
+       <rect y="44" width="80" height="16" fill="url(#i1f)"/><ellipse cx="44" cy="51" rx="26" ry="5.5" fill="#7a3a5e" opacity=".75"/>
+       <path d="M24 44 V33 Q24 28 29 28 H59 Q64 28 64 33 V44 Z" fill="url(#i1s)"/>
+       <rect x="20" y="34" width="9" height="13" rx="4.5" fill="#e8708f"/><rect x="59" y="34" width="9" height="13" rx="4.5" fill="#e8708f"/>
+       <rect x="27" y="38" width="34" height="8" rx="3" fill="#f593ad"/>
+       <rect x="31" y="31" width="10" height="8" rx="3" fill="#ffd27a" transform="rotate(-8 36 35)"/><rect x="45" y="31" width="10" height="8" rx="3" fill="#9fd6ff" transform="rotate(6 50 35)"/>
+       <path d="M27 30 Q44 27 61 30" stroke="#fff" stroke-opacity=".35" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+       <rect x="24" y="47" width="2.4" height="4" rx="1" fill="#3e2232"/><rect x="62" y="47" width="2.4" height="4" rx="1" fill="#3e2232"/>`),
+    w2: tile('i2', lg('i2s', [[0, '#2f5d78'], [1, '#7fb8a0']]) + lg('i2h', [[0, '#6cc47a'], [1, '#3a8a50']]) + lg('i2b', [[0, '#5aa86a'], [1, '#2f7a45']]) + rg('i2t', '#9be08a', 0.8, '40%', '35%'),
+      `<rect width="80" height="60" fill="url(#i2s)"/>
+       <circle cx="16" cy="12" r="5" fill="#fff6d8" opacity=".85"/>
+       <path d="M-2 40 Q20 32 40 37 T82 34 V60 H-2 Z" fill="url(#i2b)" opacity=".9"/>
+       <rect x="54" y="22" width="4" height="20" rx="1.5" fill="#6b4329"/>
+       <circle cx="56" cy="18" r="13" fill="#4fae63"/><circle cx="47" cy="23" r="8" fill="#48a05a"/><circle cx="65" cy="24" r="8" fill="#48a05a"/><circle cx="53" cy="14" r="8" fill="url(#i2t)"/>
+       <path d="M-2 48 Q30 40 82 46 V60 H-2 Z" fill="url(#i2h)"/>
+       <g fill="#e2b27a"><path d="M6 50 V38 l2 -2.5 2 2.5 V50 Z"/><path d="M16 49 V37 l2 -2.5 2 2.5 V49 Z"/><path d="M26 48 V36 l2 -2.5 2 2.5 V48 Z"/><rect x="4" y="40" width="28" height="2.4" rx="1" transform="rotate(-3 18 41)"/><rect x="4" y="45" width="28" height="2.4" rx="1" transform="rotate(-3 18 46)"/></g>
+       <circle cx="40" cy="50" r="3.6" fill="#d8f25a"/><path d="M37 49 Q40 51 43 49" stroke="#fff" stroke-width=".9" fill="none"/>`),
+    w3: tile('i3', lg('i3s', [[0, '#4a4a8a'], [0.6, '#e09a8a'], [1, '#ffc49a']]) + lg('i3w', [[0, '#3aa6d8'], [1, '#2a7ab0']]) + lg('i3d', [[0, '#f2d6a0'], [1, '#d9b47a']]) + rg('i3g', '#fff1c4', 0.7),
+      `<rect width="80" height="60" fill="url(#i3s)"/>
+       <circle cx="18" cy="30" r="14" fill="url(#i3g)"/><circle cx="18" cy="30" r="6" fill="#fff1c4"/>
+       <rect y="32" width="80" height="12" fill="url(#i3w)"/><path d="M8 36 H20 M30 39 H44 M56 35 H70" stroke="#fff" stroke-opacity=".45" stroke-width="1.2" stroke-linecap="round"/>
+       <path d="M-2 44 Q20 40 40 43 T82 42 V60 H-2 Z" fill="url(#i3d)"/>
+       <path d="M53 18 L54.4 50" stroke="#f3e6cf" stroke-width="2" stroke-linecap="round"/>
+       <path d="M36 22 Q52 4 70 22 Z" fill="#ff8fab"/><path d="M45 22 Q52 8 61 22 Z" fill="#fff"/><path d="M36 22 Q53 19 70 22" stroke="#d9577a" stroke-width="1.2" fill="none"/>
+       <ellipse cx="40" cy="52" rx="9" ry="2.4" fill="#ff8fab" opacity=".85"/><circle cx="24" cy="53" r="2" fill="#f7a8c0"/>`),
+    w4: tile('i4', lg('i4s', [[0, '#22325e'], [1, '#5a6fa8']]) + lg('i4h', [[0, '#ffffff'], [1, '#c9d7ee']]) + lg('i4b', [[0, '#dfe8f6'], [1, '#aab9d6']]),
+      `<rect width="80" height="60" fill="url(#i4s)"/>
+       <circle cx="42" cy="11" r="4.5" fill="#f2f6ff" opacity=".9"/><circle cx="42" cy="11" r="9" fill="#f2f6ff" opacity=".12"/>
+       <path d="M-2 36 Q24 24 46 32 T82 28 V60 H-2 Z" fill="url(#i4b)"/>
+       <path d="M58 10 L68 28 H48 Z" fill="#2f5f7f"/><path d="M58 18 L71 38 H45 Z" fill="#2b5675"/><path d="M58 10 L61.5 16.5 Q58 18 54.5 16.5 Z" fill="#fff" opacity=".9"/><path d="M50 28 Q58 31 66 28" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" fill="none" stroke-linecap="round"/><rect x="56.5" y="38" width="3" height="5" fill="#5a3a2a"/>
+       <path d="M-2 46 Q30 38 82 44 V60 H-2 Z" fill="url(#i4h)"/>
+       <circle cx="24" cy="44" r="8" fill="#fff"/><circle cx="24" cy="32.5" r="5.6" fill="#fff"/><circle cx="22" cy="31.5" r=".9" fill="#1d1622"/><circle cx="26" cy="31.5" r=".9" fill="#1d1622"/><path d="M24 33 l4 1 -4 1 Z" fill="#ff9a3d"/><path d="M19 36.5 Q24 39 29 36.5" stroke="#ff6f6f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+       <g fill="#fff" opacity=".8"><circle cx="10" cy="10" r="1"/><circle cx="30" cy="20" r="1.2"/><circle cx="44" cy="18" r=".9"/><circle cx="74" cy="22" r="1"/><circle cx="6" cy="26" r=".9"/></g>`),
+    w5: tile('i5', lg('i5s', [[0, '#7a3a4a'], [1, '#f0a26a']]) + lg('i5g', [[0, '#8a5a36'], [1, '#5a3a22']]) + rg('i5t', '#ffb347', 0.9, '40%', '35%'),
+      `<rect width="80" height="60" fill="url(#i5s)"/>
+       <circle cx="16" cy="40" r="16" fill="#ffd0a0" opacity=".35"/>
+       <g fill="#6a3a24"><rect x="2" y="36" width="76" height="2.4"/><rect x="2" y="42" width="76" height="2.4"/>${[4, 14, 24, 34, 44, 54, 64, 74].map((x) => `<path d="M${x} 48 V35 l2 -2 2 2 V48 Z"/>`).join('')}</g>
+       <path d="M50 46 Q51 30 46 22 M50 34 Q56 28 62 26" stroke="#5a2a1a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+       <circle cx="48" cy="18" r="12" fill="#d9572b"/><circle cx="60" cy="22" r="10" fill="#e8743a"/><circle cx="38" cy="22" r="8" fill="#c9481f"/><circle cx="46" cy="13" r="7" fill="url(#i5t)"/>
+       <path d="M-2 48 Q40 44 82 48 V60 H-2 Z" fill="url(#i5g)"/>
+       <g><path d="M20 52 l2 -4 2 4 -2 1.6 Z" fill="#ffb347"/><path d="M30 54 l2.4 -3.6 2.2 4 -2.4 1.2 Z" fill="#e8743a"/><path d="M62 53 l2 -4 2 4 -2 1.6 Z" fill="#d9572b"/><ellipse cx="44" cy="54" rx="12" ry="3" fill="#c9702a" opacity=".85"/></g>
+       <path d="M70 12 l1.6 -3.2 1.6 3.2 -1.6 1.4 Z" fill="#ffb347" transform="rotate(30 71.6 11)"/>`),
   };
   const PAW_DOT = '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="15.5" rx="5.2" ry="4.4"/><circle cx="5.5" cy="9.5" r="2.4"/><circle cx="9.6" cy="5.6" r="2.4"/><circle cx="14.4" cy="5.6" r="2.4"/><circle cx="18.5" cy="9.5" r="2.4"/></svg>';
 
