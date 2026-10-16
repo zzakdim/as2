@@ -114,13 +114,14 @@
   track('app_open', { firstBoot });
 
   // ---------------------------------------------------------------- screens
-  const screens = ['home', 'game', 'gacha', 'kennel', 'map'];
+  const screens = ['home', 'game', 'gacha', 'kennel', 'worlds', 'map'];
   function show(name) {
     screens.forEach((s) => { $('#screen-' + s).hidden = s !== name; });
     if (name === 'home') renderHome();
     if (name === 'gacha') renderGacha();
     if (name === 'kennel') renderKennel();
     if (name === 'map') renderMap();
+    if (name === 'worlds') renderWorlds();
     tutorialOnShow(name);
   }
 
@@ -216,13 +217,13 @@
     const el = $('#home-buddy');
     el.classList.remove('boop'); void el.offsetWidth; el.classList.add('boop');
   });
-  $('#btn-play').addEventListener('click', () => { Audio.unlock(); const n = nextLevel(); if (n) mapWorld = n.world; show('map'); });
+  $('#btn-play').addEventListener('click', () => { Audio.unlock(); const n = nextLevel(); if (n) mapWorld = n.world; show('worlds'); });
   $('#btn-endless').addEventListener('click', () => { Audio.unlock(); startRun(); });
   $('#btn-gacha').addEventListener('click', () => { Audio.unlock(); show('gacha'); });
   $('#btn-kennel').addEventListener('click', () => { Audio.unlock(); show('kennel'); });
   $('#btn-settings').addEventListener('click', openSettings);
   $('#btn-boards').addEventListener('click', () => { track('leaderboard_open', {}); boards.show(); });
-  document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => show('home')));
+  document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => show(b.dataset.back || 'home')));
 
   // ---------------------------------------------------------------- game
   const boardEl = $('#board');
@@ -934,45 +935,105 @@
     'Squirrels come back': 'A chased squirrel returns after 6 moves',
   };
 
-  function renderMap() {
-    const w = Levels.WORLDS.find((x) => x.id === mapWorld);
-    $('#map-title').textContent = w.name;
-    $('#world-tabs').innerHTML = Levels.WORLDS.map((x, k) => `<button type="button" class="world-tab${x.id === mapWorld ? ' on' : ''}${x.levels.length ? '' : ' soon'}${x.levels.length && !worldOpen(x) ? ' locked' : ''}" data-world="${x.id}">${state.sweeps[x.id] ? '<span class="crown">♛</span>' : ''}${x.levels.length && !worldOpen(x) ? '<span class="lock">🔒</span>' : ''}${k + 1}. ${x.name}</button>`).join('');
-    $('#world-tabs .on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
-    const path = $('#map-path');
-    if (!w.levels.length) {
-      $('#map-stars').textContent = '0';
-      path.innerHTML = `<div class="soon-card"><p class="eyebrow">Coming soon</p><p>${w.soon}</p></div>`;
+  // Small scene for each world's card.
+  const WORLD_ART = {
+    w1: `<svg viewBox="0 0 80 60"><rect x="6" y="44" width="68" height="6" rx="3" fill="#7a4a6a"/><path d="M12 44 V30 a6 6 0 0 1 12 0 V34 H56 V30 a6 6 0 0 1 12 0 V44 Z" fill="#e86f8f"/><rect x="20" y="24" width="40" height="14" rx="6" fill="#f08aa6"/><rect x="14" y="44" width="4" height="8" rx="2" fill="#5a3450"/><rect x="62" y="44" width="4" height="8" rx="2" fill="#5a3450"/><circle cx="34" cy="31" r="4" fill="#ffd84d"/></svg>`,
+    w2: `<svg viewBox="0 0 80 60"><path d="M0 50 Q40 40 80 50 V60 H0 Z" fill="#3f9a55"/><rect x="50" y="22" width="5" height="28" rx="2" fill="#7a4a24"/><circle cx="52" cy="18" r="14" fill="#5fbf72"/><circle cx="44" cy="24" r="9" fill="#4fae63"/><g fill="#d7a46a"><rect x="6" y="36" width="4" height="16" rx="1"/><rect x="18" y="36" width="4" height="16" rx="1"/><rect x="30" y="36" width="4" height="16" rx="1"/><rect x="4" y="40" width="34" height="3" rx="1"/><rect x="4" y="46" width="34" height="3" rx="1"/></g></svg>`,
+    w3: `<svg viewBox="0 0 80 60"><path d="M0 46 Q20 40 40 46 T80 46 V60 H0 Z" fill="#e6c98f"/><path d="M0 40 Q10 36 20 40 T40 40 T60 40 T80 40 V46 Q60 42 40 46 T0 46 Z" fill="#4fc0f5"/><rect x="51" y="14" width="3" height="32" fill="#f3e2c0"/><path d="M36 18 Q52 0 70 18 Z" fill="#ff8fab"/><path d="M44 18 Q52 6 60 18 Z" fill="#fff4f7"/><circle cx="18" cy="14" r="7" fill="#ffd04a"/></svg>`,
+    w4: `<svg viewBox="0 0 80 60"><path d="M0 52 Q30 26 60 44 Q70 38 80 42 V60 H0 Z" fill="#eef4fb"/><path d="M58 10 L68 30 H48 Z M58 20 L70 40 H46 Z" fill="#3b6f8f"/><rect x="56" y="40" width="4" height="6" fill="#6b4329"/><circle cx="22" cy="40" r="9" fill="#fff"/><circle cx="22" cy="27" r="6.5" fill="#fff"/><path d="M22 27 l6 1.5 -6 1.5 Z" fill="#ff9a3d"/><circle cx="20" cy="25.5" r="1" fill="#1d1622"/><circle cx="24" cy="25.5" r="1" fill="#1d1622"/></svg>`,
+    w5: `<svg viewBox="0 0 80 60"><path d="M0 50 Q40 42 80 50 V60 H0 Z" fill="#8a5a36"/><path d="M40 6 l4 10 10 -3 -5 9 9 5 -10 3 2 10 -10 -6 -10 6 2 -10 -10 -3 9 -5 -5 -9 10 3 Z" fill="#e8743a"/><path d="M40 20 V46" stroke="#7a3d1c" stroke-width="2.4"/><circle cx="16" cy="44" r="4" fill="#c98a52"/><circle cx="64" cy="46" r="3.5" fill="#ffb347"/><path d="M60 34 l4 4 -2 3 -4 -3 Z" fill="#d9572b"/></svg>`,
+  };
+  const PAW_DOT = '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="15.5" rx="5.2" ry="4.4"/><circle cx="5.5" cy="9.5" r="2.4"/><circle cx="9.6" cy="5.6" r="2.4"/><circle cx="14.4" cy="5.6" r="2.4"/><circle cx="18.5" cy="9.5" r="2.4"/></svg>';
+
+  function worldStars(w) { return w.levels.reduce((a, l) => a + ((state.levels[l.id] || {}).stars || 0), 0); }
+
+  // ---- the world list: one card per world, newest open world marked with your buddy.
+  function renderWorlds() {
+    const total = Levels.WORLDS.reduce((a, w) => a + worldStars(w), 0);
+    $('#worlds-stars').textContent = total;
+    const here = (nextLevel() || {}).world || mapWorld;
+    $('#world-list').innerHTML = Levels.WORLDS.filter((w) => w.levels.length).map((w, k) => {
+      const open = worldOpen(w);
+      const done = w.levels.filter((l) => cleared(l.id)).length;
+      const stars = worldStars(w);
+      const req = w.unlockAfter && Levels.BY_ID[w.unlockAfter];
+      const reqWorld = req && Levels.WORLDS.find((x) => x.id === req.world);
+      const nxt = open && w.levels.find((l) => !cleared(l.id));
+      const sub = !open ? `Clear ${reqWorld.name} level ${req.n} to open`
+        : done === w.levels.length ? (state.sweeps[w.id] ? '♛ Every level at 3 stars' : 'All levels cleared')
+          : `Next: ${nxt.n} · ${nxt.name}`;
+      return `<button type="button" class="world-card${open ? '' : ' locked'}${w.id === here && open ? ' here' : ''}" data-world="${w.id}">
+        <span class="wc-art">${WORLD_ART[w.id] || ''}</span>
+        <span class="wc-info"><small>World ${k + 1}</small><b>${w.name}</b><span class="wc-sub">${sub}</span>
+          <span class="wc-bar"><i style="width:${Math.round((100 * done) / w.levels.length)}%"></i></span>
+          <span class="wc-meta">${done}/${w.levels.length} levels · <span class="pill-star">★</span> ${stars}/${w.levels.length * 3}</span></span>
+        ${!open ? '<span class="wc-lock" aria-label="Locked">🔒</span>' : ''}
+        ${w.id === here && open ? `<span class="wc-buddy" aria-hidden="true">${Pups.renderPup(Pups.BY_ID[state.buddy], { plain: true })}</span>` : ''}
+      </button>`;
+    }).join('');
+    const cur = $('#world-list .here');
+    if (cur) cur.scrollIntoView({ block: 'nearest' });
+  }
+  $('#world-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-world]');
+    if (!b) return;
+    const w = Levels.WORLDS.find((x) => x.id === b.dataset.world);
+    if (!worldOpen(w)) {
+      const req = Levels.BY_ID[w.unlockAfter];
+      sfx.nope();
+      toast(`Clear ${Levels.WORLDS.find((x) => x.id === req.world).name} level ${req.n} to open the ${w.name}`);
       return;
     }
-    const earned = w.levels.reduce((a, l) => a + ((state.levels[l.id] || {}).stars || 0), 0);
-    $('#map-stars').textContent = `${earned}/${w.levels.length * 3}`;
+    mapWorld = w.id;
+    show('map');
+  });
+
+  // ---- one world's levels: a winding trail from the bottom up, with paw prints between stops.
+  const STEP = 96; // px between levels
+  const trailX = (k) => 50 + 28 * Math.sin(k * 0.85); // % across
+  function renderMap() {
+    const w = Levels.WORLDS.find((x) => x.id === mapWorld);
+    const screen = $('#screen-map');
+    screen.dataset.world = w.id;
+    $('#map-title').textContent = w.name;
+    $('#map-stars').textContent = `${worldStars(w)}/${w.levels.length * 3}`;
+    const n = w.levels.length;
+    const yOf = (k) => (n - 1 - k) * STEP + 70; // level 1 at the bottom
     let currentId = null;
-    const gate = worldOpen(w) ? '' : (() => {
-      const req = Levels.BY_ID[w.unlockAfter];
-      const rw = Levels.WORLDS.find((x) => x.id === req.world);
-      return `<div class="soon-card gate-card"><p class="eyebrow">Locked</p><p>Clear <b>${rw.name} level ${req.n}</b> to open the ${w.name}.</p></div>`;
-    })();
-    path.innerHTML = gate + w.levels.map((l, k) => {
+    let html = '';
+    // Paw prints along the trail between each pair of stops.
+    for (let k = 0; k < n - 1; k++) {
+      const walked = cleared(w.levels[k].id);
+      for (let t = 1; t <= 3; t++) {
+        const f = t / 4;
+        const x = trailX(k + f), y = yOf(k) - f * STEP;
+        const dx = trailX(k + f + 0.05) - trailX(k + f - 0.05);
+        html += `<i class="trail${walked ? ' walked' : ''}" style="left:${x}%;top:${y}px;--r:${Math.round(dx * 6)}deg">${PAW_DOT}</i>`;
+      }
+    }
+    html += w.levels.map((l, k) => {
       const rec = state.levels[l.id] || { stars: 0 };
       const open = levelUnlocked(w, k);
-      if (open && !rec.stars && !currentId) currentId = l.id;
-      const badges = (l.reward.type === 'dig' && !rec.stars ? `<i class="lvl-badge dig">${verb()}</i>` : '') + (l.gift && !state.gifts[l.id] ? '<i class="lvl-badge gift">Pup</i>' : '');
-      return `<button type="button" class="lvl-node ${k % 2 ? 'right' : 'left'}${open ? '' : ' locked'}${l.id === currentId ? ' current' : ''}${rec.stars ? ' done' : ''}" data-level="${l.id}" ${open ? '' : 'disabled'}>
-        <span class="lvl-num">${l.n}</span>
-        <span class="lvl-info"><b>${l.name}</b><span class="lvl-stars">${[1, 2, 3].map((s) => `<i class="${s <= rec.stars ? 'on' : ''}">★</i>`).join('')}</span></span>
-        ${badges}</button>`;
-    }).join('') + (state.sweeps[w.id] ? '<p class="sweep-note">♛ Every level at 3 stars</p>' : '');
-    const cur = path.querySelector('.current');
+      const cur = open && !rec.stars && !currentId;
+      if (cur) currentId = l.id;
+      const x = trailX(k);
+      const side = x < 50 ? 'r' : 'l';
+      const badge = l.gift && !state.gifts[l.id] ? '<i class="lv-badge gift" title="A pup is trapped here">🎁</i>'
+        : l.reward.type === 'dig' && !rec.stars ? `<i class="lv-badge dig" title="Free ${verb().toLowerCase()}">⛏️</i>` : '';
+      return `<button type="button" class="lv${open ? '' : ' locked'}${cur ? ' current' : ''}${rec.stars ? ' done' : ''}${rec.stars === 3 ? ' perfect' : ''}" style="left:${x}%;top:${yOf(k)}px" data-level="${l.id}" ${open ? '' : 'disabled'} aria-label="Level ${l.n}, ${l.name}${rec.stars ? `, ${rec.stars} stars` : ''}">
+        <span class="lv-n">${open ? l.n : '🔒'}</span>
+        <span class="lv-stars">${[1, 2, 3].map((s) => `<i class="${s <= rec.stars ? 'on' : ''}">★</i>`).join('')}</span>
+        <span class="lv-name ${side}">${l.name}</span>${badge}
+        ${cur ? `<span class="lv-buddy">${Pups.renderPup(Pups.BY_ID[state.buddy], { plain: true })}</span>` : ''}
+      </button>`;
+    }).join('');
+    const path = $('#map-path');
+    path.style.height = `${(n - 1) * STEP + 150}px`;
+    path.innerHTML = html + (state.sweeps[w.id] ? `<p class="sweep-note" style="top:8px">♛ Every level at 3 stars</p>` : '');
+    const cur = path.querySelector('.current') || path.querySelector('.lv.done:last-of-type') || path.querySelector('.lv');
     if (cur) cur.scrollIntoView({ block: 'center' });
   }
 
-  $('#world-tabs').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-world]');
-    if (!b) return;
-    mapWorld = b.dataset.world;
-    renderMap();
-  });
   $('#map-path').addEventListener('click', (e) => {
     const b = e.target.closest('[data-level]');
     if (!b || b.disabled) return;

@@ -109,15 +109,25 @@
     </div>
   </section>
 
-  <section id="screen-map" class="screen map" hidden>
+  <section id="screen-worlds" class="screen worlds" hidden>
     <header class="topbar">
       <button class="icon-btn" type="button" data-back aria-label="Back">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 class="screen-title">Worlds</h2>
+      <div class="bones-pill star-pill"><span class="pill-star">★</span><span id="worlds-stars">0</span></div>
+    </header>
+    <div id="world-list" class="world-list"></div>
+  </section>
+
+  <section id="screen-map" class="screen map" hidden>
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-back="worlds" aria-label="Back to worlds">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="screen-title" id="map-title">Living Room</h2>
       <div class="bones-pill star-pill"><span class="pill-star">★</span><span id="map-stars">0</span></div>
     </header>
-    <div id="world-tabs" class="world-tabs"></div>
     <div id="map-path" class="map-path"></div>
   </section>
 
