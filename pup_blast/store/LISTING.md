@@ -76,7 +76,7 @@ blocks,cube,brick,tile,line,clear,dog,puppy,pet,cute,collect,gacha,brain,relax,o
 ```
 
 - **Support URL:** `https://zzakdim.github.io/pupblast/support.html`
-- **Marketing URL:** leave blank
+- **Marketing URL:** `https://zzakdim.github.io` (AdMob reads app-ads.txt from this site)
 - **Version:** `1.0`
 
 ## In-app purchase: Remove Ads
