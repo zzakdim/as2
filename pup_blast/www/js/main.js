@@ -906,8 +906,14 @@
   // A world opens when the level named by its unlockAfter is cleared (Dog Park: Living Room 30),
   // so a player stuck late in one world can move on.
   function worldOpen(world) { return dev() || !world.unlockAfter || cleared(world.unlockAfter); }
+  // Clearing a level opens the next 3 in its world, so one hard level never blocks the way.
+  const LEVEL_REACH = 3;
   function levelUnlocked(world, k) {
-    return dev() || (k === 0 ? worldOpen(world) : cleared(world.levels[k - 1].id));
+    if (dev()) return true;
+    if (!worldOpen(world)) return false;
+    if (k === 0) return true;
+    for (let j = Math.max(0, k - LEVEL_REACH); j < k; j++) if (cleared(world.levels[j].id)) return true;
+    return false;
   }
   // The next uncleared level, preferring the world the player was last in.
   function nextLevel() {
@@ -952,8 +958,20 @@
     const total = Levels.WORLDS.reduce((a, w) => a + worldStars(w), 0);
     $('#worlds-stars').textContent = total;
     const here = (nextLevel() || {}).world || mapWorld;
-    $('#world-list').innerHTML = Levels.WORLDS.filter((w) => w.levels.length).map((w, k) => {
+    // Worlds stay hidden until they open; only the next one shows, as a mystery card.
+    const worlds = Levels.WORLDS.filter((w) => w.levels.length);
+    const shown = worlds.filter((w, k) => worldOpen(w) || (k > 0 && worldOpen(worlds[k - 1])));
+    $('#world-list').innerHTML = shown.map((w) => {
+      const k = worlds.indexOf(w);
       const open = worldOpen(w);
+      if (!open) {
+        const req = Levels.BY_ID[w.unlockAfter];
+        const reqWorld = Levels.WORLDS.find((x) => x.id === req.world);
+        return `<button type="button" class="world-card locked mystery" data-world="${w.id}">
+          <span class="wc-art"><b class="wc-q">?</b></span>
+          <span class="wc-info"><small>World ${k + 1}</small><b>A new world</b><span class="wc-sub">Clear ${reqWorld.name} level ${req.n} to discover it</span></span>
+          <span class="wc-lock" aria-label="Locked">🔒</span></button>`;
+      }
       const done = w.levels.filter((l) => cleared(l.id)).length;
       const stars = worldStars(w);
       const req = w.unlockAfter && Levels.BY_ID[w.unlockAfter];
@@ -981,7 +999,7 @@
     if (!worldOpen(w)) {
       const req = Levels.BY_ID[w.unlockAfter];
       sfx.nope();
-      toast(`Clear ${Levels.WORLDS.find((x) => x.id === req.world).name} level ${req.n} to open the ${w.name}`);
+      toast(`Clear ${Levels.WORLDS.find((x) => x.id === req.world).name} level ${req.n} to discover the next world`);
       return;
     }
     mapWorld = w.id;

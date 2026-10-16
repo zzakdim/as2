@@ -486,6 +486,10 @@ a.btn { text-decoration: none; text-align: center; }
 .world-card.locked { filter: saturate(.3) brightness(.7); }
 .world-card.locked .wc-sub { color: var(--ink); }
 .wc-lock { position: absolute; right: 14px; top: 12px; font-size: 18px; }
+.world-card.mystery { background: #1d1838; filter: none; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .08), 0 5px 0 #0c0a22; }
+.world-card.mystery .wc-art { background: rgba(255, 255, 255, .05); }
+.wc-q { font: 800 40px/1 var(--display); color: var(--muted); opacity: .6; }
+.world-card.mystery .wc-sub { white-space: normal; }
 .wc-buddy { position: absolute; right: 8px; top: -22px; width: 48px; height: 48px; animation: bob 2.4s ease-in-out infinite; pointer-events: none; }
 .wc-buddy svg { width: 100%; height: 100%; }
 
