@@ -47,7 +47,7 @@
   const ALLOW_DEV = true;
   // Public web pages, linked from Settings (Apple requires the privacy policy inside the app too).
   // Links stay hidden until filled in.
-  const LINKS = { privacy: '', support: '' };
+  const LINKS = { privacy: 'https://zzakdim.github.io/privacy.html', support: 'https://zzakdim.github.io/support.html' };
   const dev = () => ALLOW_DEV && state.settings.dev;
   // Tester builds start with dev mode on, so a wiped save (new device, cleared browser data) never hides the tools.
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }

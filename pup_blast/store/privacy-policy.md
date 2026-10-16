@@ -2,7 +2,7 @@
 
 _Last updated: [date you publish this page]_
 
-Pup Blast ("the game") is made by **[Your LLC legal name]** ("we", "us"). This policy explains what information the game uses and why. If you have questions, email **[support email]**.
+Pup Blast ("the game") is made by an independent developer ("we", "us"). This policy explains what information the game uses and why. If you have questions, email **pupblastsupport@gmail.com**.
 
 ## The short version
 
@@ -49,7 +49,7 @@ The game is intended for a general audience and is not directed to children unde
 - Turn off tracking: iPhone **Settings → Privacy & Security → Tracking**.
 - Change ad consent: the game's menu → **Privacy choices**.
 - Remove all game data: delete the app.
-- Questions or requests: email **[support email]**.
+- Questions or requests: email **pupblastsupport@gmail.com**.
 
 ## Changes
 
@@ -57,5 +57,4 @@ If we change this policy, we will update the date at the top of this page.
 
 ## Contact
 
-**[Your LLC legal name]**
-**[support email]**
+Email: **pupblastsupport@gmail.com**

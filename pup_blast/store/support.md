@@ -2,7 +2,7 @@
 
 Thanks for playing Pup Blast!
 
-**Need help or found a bug?** Email **[support email]**. Tell us your iPhone model, iOS version and what happened, and we'll get back to you.
+**Need help or found a bug?** Email **pupblastsupport@gmail.com**. Tell us your iPhone model, iOS version and what happened, and we'll get back to you.
 
 ## Common questions
 

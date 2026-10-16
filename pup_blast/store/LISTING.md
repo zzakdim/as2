@@ -12,7 +12,7 @@ Everything App Store Connect asks for, ready to paste. Fill in the **[brackets]*
 ## Before you submit a build
 
 - [ ] `www/js/main.js`: set `ALLOW_DEV = false`. While it's true, every new player starts in developer mode, which shows **Google's test ads (you earn nothing)** and unlocks cheats.
-- [ ] `www/js/main.js`: fill in `LINKS.privacy` and `LINKS.support`.
+- [ ] Check https://zzakdim.github.io/privacy.html and /support.html open (site/ uploaded to the zzakdim.github.io repo).
 - [ ] Then `npx cap sync ios` and archive in Xcode.
 
 AdMob is already wired: app ID `ca-app-pub-6694593592282571~7797930009` (Info.plist), rewarded and interstitial units in `www/js/ads.js`.
@@ -26,7 +26,7 @@ AdMob is already wired: app ID `ca-app-pub-6694593592282571~7797930009` (Info.pl
 - **Primary category:** Games → Puzzle
 - **Secondary category:** Games → Casual
 - **Content rights:** No, it doesn't contain third-party content (all art is original).
-- **Copyright:** `2026 [Your LLC legal name]`
+- **Copyright:** `2026 [your full legal name, as on your Apple developer account]`
 
 ## Version information
 
@@ -75,7 +75,7 @@ Grab a pup, drop some blocks, and see how far your pack can go!
 blocks,cube,brick,tile,line,clear,dog,puppy,pet,cute,collect,gacha,brain,relax,offline,classic
 ```
 
-- **Support URL:** `[URL of your support page]`
+- **Support URL:** `https://zzakdim.github.io/support.html`
 - **Marketing URL:** leave blank
 - **Version:** `1.0`
 
