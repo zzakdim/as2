@@ -137,42 +137,45 @@
     const n = ctx.stars(r);
     let progress;
     if (result.isNew) {
-      progress = `<div class="stamp">NEW!</div>`;
+      progress = `<div class="lvl new"><b>New pup!</b></div>`;
     } else {
       const o = ctx.owned(p);
-      const pips = Array.from({ length: ctx.maxLevel }, (_, k) => `<i class="${k < o.level ? 'on' : ''}${result.leveledUp && k === o.level - 1 ? ' fresh' : ''}"></i>`).join('');
       const need = ctx.copiesToNext(p, result.leveledUp ? o.level - 1 : o.level);
       const line = result.leveledUp
         ? `Level ${o.level}! ${pw.name} ×${ctx.charges(p, o.level)} per run`
-        : o.level >= ctx.maxLevel ? 'Max level' : `${o.dupes}/${need} copies to level ${o.level + 1}`;
+        : o.level >= ctx.maxLevel ? 'Max level' : `Copy ${o.dupes} of ${need} for level ${o.level + 1}`;
       // The copy bar fills from where it was to where it is now; a level-up fills it all the way.
       const from = result.leveledUp ? (need - 1) / need : Math.max(0, o.dupes - 1) / (need || 1);
       const to = result.leveledUp || o.level >= ctx.maxLevel ? 1 : o.dupes / need;
       const bar = `<span class="copybar"><i style="--from:${from.toFixed(3)};--to:${to.toFixed(3)}"></i></span>`;
-      progress = `<div class="lvl${result.leveledUp ? ' up' : ''}"><span class="pips">${pips}</span>${bar}<b>${line}</b><small>+${result.refund} bones</small></div>`;
+      progress = `<div class="lvl${result.leveledUp ? ' up' : ''}"><b>${line}</b>${bar}<small>+${result.refund} bones</small></div>`;
     }
+    const confetti = r === 'legendary' && !reduced()
+      ? `<div class="confetti">${Array.from({ length: 28 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 7) * 0.18}s;--t:${2.2 + (i % 5) * 0.35}s;--c:${['#ffd04a', '#ff8fab', '#62bdff', '#fff'][i % 4]}"></i>`).join('')}</div>` : '';
     sheet.innerHTML = `
       <div class="result r-${r}">
-        <div class="rays"></div>
+        <div class="glowbg"></div>
+        ${rank(r) >= 2 ? '<div class="rays"></div>' : ''}
+        ${confetti}
         <div class="pup-pop">${ctx.renderPup(p)}</div>
+        <span class="rarity-chip">${ctx.rarityLabel(r)}</span>
         <div class="banner">
-          <span class="rarity-chip">${ctx.rarityLabel(r)}</span>
           <h3>${p.name}</h3>
-          <p class="breed">${p.breed}</p>
-          <p class="res-stars">${'<span>★</span>'.repeat(n)}</p>
+          <p class="breed">${p.breed} <span class="res-stars">${'<span>★</span>'.repeat(n)}</span></p>
         </div>
         ${progress}
         <p class="res-power"><b>${pw.name}</b> ${pw.desc}</p>
         <div class="stack res-actions">${ctx.actions(result)}</div>
       </div>`;
     ctx.sfx.fanfare(rank(r));
+    const chip = sheet.querySelector('.rarity-chip');
+    setTimeout(() => { chip.classList.add('in'); ctx.sfx.stamp(); ctx.haptic('MEDIUM'); }, reduced() ? 0 : 380);
     const stars = sheet.querySelectorAll('.res-stars span');
-    stars.forEach((s, i) => setTimeout(() => { s.classList.add('in'); ctx.sfx.ding(i); ctx.haptic('LIGHT'); }, reduced() ? 0 : 520 + i * 150));
-    const after = reduced() ? 0 : 560 + n * 150;
+    stars.forEach((s, i) => setTimeout(() => { s.classList.add('in'); ctx.sfx.ding(i); ctx.haptic('LIGHT'); }, reduced() ? 0 : 640 + i * 140));
+    const after = reduced() ? 0 : 700 + n * 140;
     setTimeout(() => {
-      const st = sheet.querySelector('.stamp, .lvl');
-      if (st) { st.classList.add('in'); ctx.sfx.stamp(); ctx.haptic('MEDIUM'); }
-      if (result.leveledUp) setTimeout(() => ctx.sfx.upgrade(3), 200);
+      const st = sheet.querySelector('.lvl');
+      if (st) { st.classList.add('in'); if (result.isNew || result.leveledUp) ctx.sfx.upgrade(3); }
     }, after);
     setTimeout(() => sheet.querySelector('.result').classList.add('ready'), after + 250);
   }
@@ -254,8 +257,7 @@
   }
 
   // ================================================================ dig
-  // A backyard mound. Each tap digs deeper; a glow rises through the dirt in the rarity colors;
-  // on the last dig the pup's silhouette (ears first) peeks out, wiggles, and bursts free.
+  // A backyard mound, dug out by your buddy.
 
   const DIRT = ['#8a5a36', '#a8714a', '#6b4329', '#5a3720'];
 
@@ -321,29 +323,52 @@
     </svg>`;
   }
 
+  // Every dig takes the same three taps, so the tap count never gives the rarity away. Your buddy
+  // does the digging. Then the light in the hole climbs through the rarities (sometimes it teases one
+  // more step and fizzles), the pup's ears peek out, and one last tap pulls the pup free.
+  const DIG_TAPS = 3;
+  const TEASE = [0.4, 0.3, 0.25]; // chance the glow flickers toward the next rarity and falls back
+
   function dig(sheet, result, ctx) {
     return new Promise((resolve) => {
       const target = rank(result.rarity);
-      const total = 3 + target; // commons take 3 digs, legendaries 6
+      const buddy = ctx.buddy && ctx.buddy();
+      const modal = sheet.parentElement;
       sheet.innerHTML = `
         <div class="pull-stage dig-stage" style="--cc:#ffffff;--h:.05;--m:1;--p:0;--g:0">
           <div class="halo"></div>
-          ${yardSvg(ctx.renderPup(result.pup, { plain: true }))}
+          <div class="dig-scene">
+            ${yardSvg(ctx.renderPup(result.pup, { plain: true }))}
+            ${buddy ? `<div class="digger">${ctx.renderPup(buddy, { plain: true })}<i class="bang">!</i></div>` : ''}
+          </div>
           <p class="tap-hint">Tap to dig!</p>
         </div>`;
       const stage = sheet.querySelector('.dig-stage');
       const yard = stage.querySelector('.yard');
       const halo = stage.querySelector('.halo');
       const hint = stage.querySelector('.tap-hint');
+      const digger = stage.querySelector('.digger');
       let digs = 0;
-      let done = false;
+      let phase = 'dig'; // dig → glow → peek → done
+      let fast = false;
       let idle = null;
+      let pullNow = null;
 
       const set = (k, v) => stage.style.setProperty(k, v);
-      const armIdle = () => { clearTimeout(idle); idle = setTimeout(() => { if (!done) dig1(); }, 7000); };
+      const sky = (color, a) => { if (modal) { modal.classList.add('digging'); modal.style.setProperty('--sky', color); modal.style.setProperty('--sky-a', a); } };
+      const nap = (ms) => wait(fast ? Math.min(ms, 90) : ms);
+      const glowTo = (step, strength) => {
+        const c = COLORS[ORDER[step]];
+        set('--cc', c);
+        halo.style.setProperty('--cc', c);
+        set('--g', strength.toFixed(2));
+        restart(halo, 'ping');
+        sky(c, (0.18 + step * 0.12).toFixed(2));
+      };
+      const react = (cls) => { if (digger) restart(digger, cls); };
+      const armIdle = () => { clearTimeout(idle); idle = setTimeout(() => { if (phase === 'dig') dig1(); }, 7000); };
 
-      const dig1 = async () => {
-        if (done) return;
+      const dig1 = () => {
         digs++;
         armIdle();
         const swipe = yard.querySelector('.swipe');
@@ -351,47 +376,84 @@
         void swipe.getBoundingClientRect();
         swipe.classList.add(digs % 2 ? 'l' : 'r');
         restart(yard, 'thud');
+        react('scoop');
         ctx.sfx.dig(); ctx.haptic('MEDIUM');
-        dirtSpray(stage, 12, 110);
-        const f = digs / total;
-        set('--h', (0.25 + f * 0.75).toFixed(2));
-        set('--m', Math.max(0, 1 - f * 1.6).toFixed(2));
+        dirtSpray(stage, 12 + digs * 3, 100 + digs * 15, '58%');
+        const f = digs / DIG_TAPS;
+        set('--h', (0.3 + f * 0.7).toFixed(2));
+        set('--m', Math.max(0, 1 - f * 1.4).toFixed(2));
         set('--p', Math.min(1, f * 1.2).toFixed(2));
-        if (digs >= 2 && digs < total) {
-          const step = Math.min(digs - 2, target);
-          set('--cc', COLORS[ORDER[step]]);
-          halo.style.setProperty('--cc', COLORS[ORDER[step]]);
-          set('--g', (0.55 + step * 0.15).toFixed(2));
-          restart(halo, 'ping');
-          setTimeout(() => ctx.sfx.upgrade(step), 90);
-          if (step >= 2) burst(stage, COLORS[ORDER[step]], 6 + step * 2, 80);
-        }
-        hint.textContent = digs < total - 1 ? 'Keep digging!' : 'One more!';
-        if (digs < total) return;
+        if (digs === 2) { set('--g', '.25'); hint.textContent = 'One more!'; }
+        else hint.textContent = 'Deeper!';
+        if (digs >= DIG_TAPS) glow();
+      };
 
-        // Last dig: ears first.
-        done = true;
+      // The hole lights up and climbs. Taps from here on speed it along.
+      const glow = async () => {
+        phase = 'glow';
         clearTimeout(idle);
         hint.classList.add('gone');
-        set('--cc', COLORS[result.rarity]);
-        set('--g', 1);
+        await nap(260);
+        ctx.sfx.thunk(); ctx.haptic('HEAVY');
+        react('startle');
+        glowTo(0, 0.55);
+        await nap(650);
+        for (let step = 1; step <= target; step++) {
+          glowTo(step, 0.6 + step * 0.13);
+          ctx.sfx.upgrade(step); ctx.haptic(step >= 2 ? 'HEAVY' : 'MEDIUM');
+          react('hop');
+          restart(yard, 'thud');
+          if (step >= 2) { yard.classList.add('beaming'); stage.classList.add('rumble'); if (!fast) burst(stage, COLORS[ORDER[step]], 6 + step * 3, 90); }
+          if (step === 3) stage.classList.add('legend');
+          await nap(560 + step * 160);
+        }
+        // The tease: the light flickers toward the next rarity... and settles back.
+        if (target < 3 && !fast && Math.random() < TEASE[target]) {
+          const now = COLORS[ORDER[target]];
+          const next = COLORS[ORDER[target + 1]];
+          ctx.sfx.rattle(); ctx.haptic('LIGHT');
+          react('hop');
+          for (let i = 0; i < 7; i++) {
+            const c = i % 2 ? now : next;
+            set('--cc', c); halo.style.setProperty('--cc', c);
+            await wait(i < 4 ? 110 : 150);
+          }
+          glowTo(target, 0.6 + target * 0.13);
+          ctx.sfx.tick();
+          react('slump');
+          await wait(450);
+        }
+        peek();
+      };
+
+      // Ears first. One more tap pulls the pup out (or it hops out by itself).
+      const peek = async () => {
+        phase = 'peek';
         yard.classList.add('peeking');
         ctx.sfx.sniff();
-        await wait(450);
+        await nap(380);
         yard.classList.add('wiggle');
-        ctx.haptic('LIGHT');
-        if (target >= 2) { yard.classList.add('beaming'); ctx.sfx.rattle(); }
-        await wait(target === 3 ? 1100 : target === 2 ? 800 : 550);
+        hint.textContent = 'Tap to pull!';
+        hint.classList.remove('gone');
+        await new Promise((go) => { pullNow = go; setTimeout(go, fast ? 500 : 2600); });
+        if (phase !== 'peek') return;
+        phase = 'done';
+        hint.classList.add('gone');
+        react('cheer');
         yard.classList.add('burst');
         ctx.sfx.pop(); ctx.haptic('HEAVY');
         flash(COLORS[result.rarity]);
         burst(stage, COLORS[result.rarity], 18 + target * 10, 150 + target * 30);
-        dirtSpray(stage, 16, 150);
-        await wait(320);
+        dirtSpray(stage, 18, 160, '58%');
+        await wait(300);
         resolve();
       };
 
-      stage.addEventListener('click', dig1);
+      stage.addEventListener('click', () => {
+        if (phase === 'dig') dig1();
+        else if (phase === 'glow') fast = true;
+        else if (phase === 'peek' && pullNow) pullNow();
+      });
       armIdle();
     });
   }

@@ -135,10 +135,11 @@
     const m = $('#modal');
     $('#modal-sheet').innerHTML = html;
     $('#modal-sheet').className = 'sheet' + (opts && opts.cls ? ' ' + opts.cls : '');
+    m.className = 'modal'; // drops the dig's tinted sky
     m.hidden = false;
     return $('#modal-sheet');
   }
-  function closeModal() { $('#modal').hidden = true; $('#modal-sheet').innerHTML = ''; }
+  function closeModal() { $('#modal').hidden = true; $('#modal').className = 'modal'; $('#modal-sheet').innerHTML = ''; }
 
   function stars(rarity) {
     const n = Pups.RARITY[rarity].stars;
@@ -1063,6 +1064,7 @@
   const fxCtx = {
     sfx, haptic,
     renderPup: (p, o) => Pups.renderPup(p, o),
+    buddy: () => Pups.BY_ID[state.buddy],
     power: (p) => powerOf(p),
     stars: (r) => Pups.RARITY[r].stars,
     rarityLabel: (r) => Pups.RARITY[r].label,
