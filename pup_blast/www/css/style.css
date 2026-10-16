@@ -70,6 +70,7 @@ button { font: inherit; color: inherit; }
 .bone { width: 20px; height: 20px; flex: none; }
 .bones-pill.earned { opacity: .9; }
 
+a.btn { text-decoration: none; text-align: center; }
 .btn {
   --b: var(--accent); --bd: var(--accent-deep);
   border: 0; border-radius: 18px; cursor: pointer;

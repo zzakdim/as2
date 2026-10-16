@@ -141,6 +141,12 @@ npx cap open ios
    - Fill in the App Store privacy labels for ads, tracking, purchases and Game Center.
    - Set the age rating to 12+ and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
 
+## Store listing
+
+`store/` has everything App Store Connect needs: the 1024px icon, 6.9" iPhone screenshots, and `LISTING.md` with the name, description, keywords, in-app purchase, leaderboard and privacy answers, plus reviewer notes. `privacy-policy.md` and `support.md` are page texts to publish on the web. Regenerate the art with `node store/make-icon.cjs` and `node store/make-screenshots.cjs` (Playwright).
+
+Before an App Store build: `ALLOW_DEV = false` and fill in `LINKS` in `www/js/main.js`.
+
 ## Next steps
 
 - More purchases: a starter pack (bones plus a guaranteed Rare) and bone bundles.

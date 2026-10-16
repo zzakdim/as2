@@ -42,8 +42,12 @@
   }
   applySettings();
 
+  // ---- Release settings: check these before every App Store build ----
   // Dev mode is a tester tool. Set ALLOW_DEV to false for App Store builds.
   const ALLOW_DEV = true;
+  // Public web pages, linked from Settings (Apple requires the privacy policy inside the app too).
+  // Links stay hidden until filled in.
+  const LINKS = { privacy: '', support: '' };
   const dev = () => ALLOW_DEV && state.settings.dev;
   // Tester builds start with dev mode on, so a wiped save (new device, cleared browser data) never hides the tools.
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
@@ -1234,6 +1238,7 @@
         <button type="button" class="btn ghost" data-act="reset">Reset progress</button>
         <button type="button" class="btn ghost" data-act="close">Done</button>
       </div>
+      ${LINKS.privacy || LINKS.support ? `<div class="pull-row">${LINKS.privacy ? `<a class="btn ghost small" href="${LINKS.privacy}" target="_blank" rel="noopener">Privacy policy</a>` : ''}${LINKS.support ? `<a class="btn ghost small" href="${LINKS.support}" target="_blank" rel="noopener">Support</a>` : ''}</div>` : ''}
       <p class="fine">${gachaName()} odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better every ${Gacha.PITY_EPIC} pulls; Legendary every ${Gacha.PITY_LEGENDARY}.</p>`);
     sheet.querySelector('#set-sound').onchange = (e) => { s.sound = e.target.checked; Audio.setSound(s.sound); save(); };
     sheet.querySelector('#set-haptics').onchange = (e) => { s.haptics = e.target.checked; Audio.setHaptics(s.haptics); save(); };
