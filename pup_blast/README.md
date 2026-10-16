@@ -80,7 +80,7 @@ The design leans on rewarded ads. Players opt in to them, they pay the best eCPM
 
 **Consent.** At launch the app asks Google's consent service (UMP) whether this player needs the consent form, shows it if so, then the iOS tracking prompt, and only then starts ads. The form is required in the EU, UK and some US states. You design it in the AdMob console under Privacy & messaging. Settings shows a **Privacy choices** button when Google says the player must be able to change their answer.
 
-**Remove Ads** ($2.99, non-consumable, `com.example.pupblast.removeads`) turns off interstitials only, so rewarded ads keep working. `www/js/store.js` buys and restores it through StoreKit 2 (`@capgo/native-purchases`). There's no server: Apple's receipt is checked at each launch. Settings has **Restore purchases**, which Apple requires. In a browser a stand-in sheet grants it.
+**Remove Ads** ($2.99, non-consumable, `com.bonepile.pupblast.removeads`) turns off interstitials only, so rewarded ads keep working. `www/js/store.js` buys and restores it through StoreKit 2 (`@capgo/native-purchases`). There's no server: Apple's receipt is checked at each launch. Settings has **Restore purchases**, which Apple requires. In a browser a stand-in sheet grants it.
 
 ## Leaderboards
 
@@ -88,9 +88,9 @@ The design leans on rewarded ads. Players opt in to them, they pay the best eCPM
 
 | Board | ID | Sent |
 |---|---|---|
-| Endless, all time | `com.example.pupblast.endless` | after every Endless run, and the saved best at launch |
-| Endless, this week | `com.example.pupblast.endless.weekly` (recurring, resets Mondays) | after every Endless run |
-| Total stars | `com.example.pupblast.stars` | after every level run, and at launch |
+| Endless, all time | `com.bonepile.pupblast.endless` | after every Endless run, and the saved best at launch |
+| Endless, this week | `com.bonepile.pupblast.endless.weekly` (recurring, resets Mondays) | after every Endless run |
+| Total stars | `com.bonepile.pupblast.stars` | after every level run, and at launch |
 
 In a browser it keeps your own best per board in the save and lists them.
 
@@ -110,7 +110,7 @@ npm run build:preview    # dist/pup-blast.html, a single-file build for sharing 
    - Create the app with your bundle ID, and set the same ID as `appId` in `capacitor.config.json`.
    - Under Game Center, add the three leaderboards from the table above. The weekly one is a "recurring" leaderboard.
    - Under In-App Purchases, add the non-consumable `…removeads`.
-   - If your bundle ID isn't `com.example.pupblast`, update the IDs in `www/js/gamecenter.js` and `www/js/store.js`.
+   - If your bundle ID isn't `com.bonepile.pupblast`, update the IDs in `www/js/gamecenter.js` and `www/js/store.js`.
 2. **AdMob console:**
    - Add the app and create an interstitial unit and a rewarded unit. Put their IDs in `UNITS` in `www/js/ads.js`.
    - Under Privacy & messaging, create the GDPR message and the US states message.

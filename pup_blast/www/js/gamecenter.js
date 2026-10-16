@@ -7,9 +7,9 @@
   // Must match the leaderboard IDs created in App Store Connect (Game Center).
   // weekly is a recurring leaderboard that resets every Monday.
   const BOARDS = {
-    endless: { id: 'com.example.pupblast.endless', name: 'Endless · all time' },
-    weekly: { id: 'com.example.pupblast.endless.weekly', name: 'Endless · this week' },
-    stars: { id: 'com.example.pupblast.stars', name: 'Total stars' },
+    endless: { id: 'com.bonepile.pupblast.endless', name: 'Endless · all time' },
+    weekly: { id: 'com.bonepile.pupblast.endless.weekly', name: 'Endless · this week' },
+    stars: { id: 'com.bonepile.pupblast.stars', name: 'Total stars' },
   };
 
   function nativePlugin() {

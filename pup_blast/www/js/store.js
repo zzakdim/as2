@@ -6,7 +6,7 @@
   'use strict';
 
   // Must match the product ID created in App Store Connect (In-App Purchases → Non-Consumable).
-  const PRODUCTS = { removeAds: 'com.example.pupblast.removeads' };
+  const PRODUCTS = { removeAds: 'com.bonepile.pupblast.removeads' };
   const FALLBACK_PRICE = '$2.99';
 
   function nativePlugin() {
