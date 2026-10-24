@@ -105,10 +105,10 @@ const SHOTS = [
   for (const s of SHOTS) {
     const img = 'data:image/png;base64,' + fs.readFileSync(raw[s.file]).toString('base64');
     await shot.setContent(`<!doctype html><html><head>
-      <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Nunito:wght@700&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@700&display=swap" rel="stylesheet">
       <style>
         html,body{margin:0;width:440px;height:956px;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#4a3fa8 0%,#2c2763 45%,#1f1b45 100%)}
-        h1{margin:58px 24px 6px;text-align:center;color:#fff7ec;font:800 34px/1.05 'Baloo 2',sans-serif}
+        h1{margin:58px 24px 6px;text-align:center;color:#fff7ec;font:700 34px/1.05 'Fredoka',sans-serif}
         p{margin:0 28px;text-align:center;color:#ffd0dc;font:700 17px/1.3 Nunito,sans-serif}
         .phone{position:absolute;left:50%;top:190px;width:356px;transform:translateX(-50%);border-radius:44px;overflow:hidden;
           box-shadow:0 0 0 7px #120f2c,0 0 0 9px #4a3fa8,0 24px 50px rgba(0,0,0,.45)}

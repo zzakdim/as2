@@ -18,7 +18,8 @@
 
   --common: #9fdcb4; --rare: #62bdff; --epic: #c38cff; --legend: #ffd04a;
 
-  --display: 'Baloo 2', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  --display: 'Fredoka', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  --logo: 'Gluten', 'Fredoka', 'Arial Rounded MT Bold', system-ui, sans-serif; /* hand-lettered, for the logo only */
   --body: 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   color-scheme: dark;
@@ -114,7 +115,7 @@ a.btn { text-decoration: none; text-align: center; }
 .home::before { content: ""; position: absolute; left: 4%; top: 64px; width: 54px; height: 54px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(circle at 42% 40%, #fff8dc, #f3e2a6 62%, #f3e2a600 72%); box-shadow: 0 0 40px 6px #fff3c430, 0 0 110px 30px #fff3c414; filter: blur(.6px); opacity: .9; }
 .home-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; justify-content: center; }
-.logo { margin: 0; font-family: var(--display); font-weight: 800; line-height: .82; text-align: center; transform: rotate(-4deg); }
+.logo { margin: 0; font-family: var(--logo); font-weight: 800; line-height: .82; text-align: center; transform: rotate(-4deg); }
 .logo-pup { display: block; font-size: 64px; color: var(--bone); text-shadow: 0 5px 0 #b4794a; }
 .logo-blast { display: block; font-size: 76px; color: var(--accent); text-shadow: 0 6px 0 var(--accent-deep), 0 0 30px rgba(255, 143, 171, .4); }
 .buddy-stage {
