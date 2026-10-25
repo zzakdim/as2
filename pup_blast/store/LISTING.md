@@ -5,6 +5,7 @@ Everything App Store Connect asks for, ready to paste. Fill in the **[brackets]*
 | File | Goes where |
 |---|---|
 | `icon-1024.png` | Xcode (the app icon). Run `npx @capacitor/assets generate --ios --iconBackgroundColor '#1f1b45'` after copying it to `assets/icon-only.png`, or drag it into Xcode's AppIcon. |
+| `header/header-16x9.png` | App Store Connect → Product Page Information → Header and Search Results (see below). |
 | `screenshots/*.png` | App Store Connect → your app → iOS App → 6.9" iPhone display. Upload in number order. |
 | `privacy-policy.md` | A public web page (Google Sites, Notion, or your own site). Paste its URL in App Store Connect and in `LINKS.privacy` in `www/js/main.js`. |
 | `support.md` | Another public page; its URL goes in App Store Connect and `LINKS.support`. |
@@ -80,6 +81,10 @@ blocks,cube,brick,tile,line,clear,dog,puppy,pet,cute,collect,gacha,brain,relax,o
 - **Support URL:** `https://zzakdim.github.io/pupblast/support.html`
 - **Marketing URL:** `https://zzakdim.github.io` (AdMob reads app-ads.txt from this site)
 - **Version:** `1.0`
+
+## Header and Search Results (optional, iOS 27+)
+
+Product Page Information → **Header and Search Results**. Upload `header/header-16x9.png` (5244x2950, 16:9, no transparency) as the **universal** image and tick **Use header asset in search results**. App Store Connect crops it to 21:9 for the product page header and 3:2 for search results; the pups, logo and tagline sit in the centre both crops keep. Check it with **Preview**, then submit it with the version. Older iOS versions, and apps without one, show screenshots there instead. Rebuild with `PW=$(npm root -g)/playwright node store/make-header.cjs`.
 
 ## In-app purchase: Remove Ads
 
