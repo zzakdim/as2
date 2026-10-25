@@ -6,8 +6,14 @@ const path = require('path');
 const main = fs.readFileSync(path.join(__dirname, '../www/js/main.js'), 'utf8');
 
 test('dev mode can never be hard-wired on for release builds', () => {
-  assert.ok(!/const ALLOW_DEV = true/.test(main), 'ALLOW_DEV must come from the build (Capacitor.DEBUG), not a constant');
-  assert.ok(/const ALLOW_DEV = !native \|\| window\.Capacitor\.DEBUG === true/.test(main));
+  assert.ok(!/const ALLOW_DEV = true/.test(main), 'ALLOW_DEV must come from the build, not a constant');
+  // Capacitor.DEBUG reads true in Release builds too (prebuilt xcframework), so it must not decide this.
+  assert.ok(!/ALLOW_DEV = [^\n]*Capacitor\.DEBUG/.test(main), 'ALLOW_DEV must not trust Capacitor.DEBUG');
+  assert.ok(/const ALLOW_DEV = !native \|\| window\.PB_DEBUG_BUILD === true/.test(main));
+  // The flag is only ever set inside the app target's Debug-only block.
+  const avc = fs.readFileSync(path.join(__dirname, '../native/ios/AppViewController.swift'), 'utf8');
+  assert.match(avc, /#if DEBUG\s+webView\?\.configuration\.userContentController\.addUserScript\(\s+WKUserScript\(source: "window\.PB_DEBUG_BUILD = true;"[^)]*\)\)\s+#endif/);
+  assert.strictEqual(avc.split('PB_DEBUG_BUILD').length - 1, 1, 'PB_DEBUG_BUILD is set in exactly one place');
 });
 
 test('the real ad units are configured', () => {

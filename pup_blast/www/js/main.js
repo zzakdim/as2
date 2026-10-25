@@ -47,11 +47,11 @@
   applySettings();
 
   // ---- Release settings ----
-  // Dev mode is a tester tool: on in the browser preview and in Xcode Debug runs (Capacitor sets DEBUG from
-  // CAPACITOR_DEBUG, which only ios/debug.xcconfig turns on). Archives for TestFlight and the App Store are
-  // Release builds, so players never get it.
+  // Dev mode is a tester tool: on in the browser preview and in Xcode Debug runs. AppViewController sets
+  // PB_DEBUG_BUILD only in Debug builds (not Capacitor.DEBUG, which reads true in Release too). Archives for
+  // TestFlight and the App Store are Release builds, so players never get it.
   const native = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
-  const ALLOW_DEV = !native || window.Capacitor.DEBUG === true;
+  const ALLOW_DEV = !native || window.PB_DEBUG_BUILD === true;
   // Public web pages, linked from Settings (Apple requires the privacy policy inside the app too).
   // Links stay hidden until filled in.
   const LINKS = { privacy: 'https://zzakdim.github.io/pupblast/privacy.html', support: 'https://zzakdim.github.io/pupblast/support.html' };
