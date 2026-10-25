@@ -19,15 +19,19 @@
   // the native copy is restored and the page reloads with it.
   const cap = window.Capacitor;
   const Prefs = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.Preferences;
-  let backupReady = !(firstBoot && Prefs); // don't overwrite the native copy before checking it
+  let state = State.load(storage);
+  // An empty or unreadable save checks the native copy first, and never overwrites a copy it couldn't read.
+  const needRestore = firstBoot || state.corrupt;
+  delete state.corrupt;
+  let backupReady = !(needRestore && Prefs);
   if (!backupReady) {
     Prefs.get({ key: State.KEY }).then(({ value }) => {
       if (value && storage) { storage.setItem(State.KEY, value); location.reload(); return; }
+      if (value) { try { state = State.normalize(JSON.parse(value)); } catch (e) { /* keep the fresh save */ } }
       backupReady = true;
       save();
-    }).catch(() => { backupReady = true; });
+    }).catch(() => { /* leave the backup alone this session */ });
   }
-  let state = State.load(storage);
   const loginBonus = State.rollDaily(state, Date.now());
   const newWeek = State.rollWeekly(state, Date.now());
   const save = () => {
@@ -42,9 +46,12 @@
   }
   applySettings();
 
-  // ---- Release settings: check these before every App Store build ----
-  // Dev mode is a tester tool. Set ALLOW_DEV to false for App Store builds.
-  const ALLOW_DEV = true;
+  // ---- Release settings ----
+  // Dev mode is a tester tool: on in the browser preview and in Xcode Debug runs (Capacitor sets DEBUG from
+  // CAPACITOR_DEBUG, which only ios/debug.xcconfig turns on). Archives for TestFlight and the App Store are
+  // Release builds, so players never get it.
+  const native = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+  const ALLOW_DEV = !native || window.Capacitor.DEBUG === true;
   // Public web pages, linked from Settings (Apple requires the privacy policy inside the app too).
   // Links stay hidden until filled in.
   const LINKS = { privacy: 'https://zzakdim.github.io/pupblast/privacy.html', support: 'https://zzakdim.github.io/pupblast/support.html' };
@@ -54,7 +61,6 @@
 
   // Anonymous play statistics (TelemetryDeck). Browser previews and developer mode count as test data.
   const APP_VERSION = '1.0';
-  const native = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
   const analytics = Analytics.create({
     version: APP_VERSION,
     testMode: () => !native || dev(),
@@ -109,7 +115,7 @@
 
   const rng = Core.mulberry32((Date.now() ^ (Math.random() * 1e9)) >>> 0);
 
-  // Lightweight analytics hook. Wire to Firebase/GameAnalytics in the native build.
+  // Lightweight analytics hook. Sent to TelemetryDeck (analytics.js) in the native build.
   function track(event, params) { if (window.PB_TRACK) window.PB_TRACK(event, params || {}); }
   track('app_open', { firstBoot });
 
@@ -782,7 +788,8 @@
     return false;
   }
 
-  function runBones() { return Core.bonesForRun(run.game) * (run.doubled ? 2 : 1); }
+  // "Double bones" doubles what was on the sheet when the ad was watched, not bones earned after a revive.
+  function runBones() { return Core.bonesForRun(run.game) + (run.doubleBonus || 0); }
 
   function starRow(n) {
     return `<p class="result-stars" aria-label="${n} of 3 stars">${[1, 2, 3].map((k) => `<span class="${k <= n ? 'on' : ''}">★</span>`).join('')}</p>`;
@@ -808,8 +815,8 @@
       ${head}
       ${bones > 0 ? `<p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>` : ''}
       <div class="stack">
-        ${run.revived ? '' : '<button type="button" class="btn ad" data-act="revive"><span class="ad-chip">AD</span>Keep playing</button>'}
-        ${run.doubled || bones <= 0 ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
+        ${run.revived || !state.tutorial.done ? '' : '<button type="button" class="btn ad" data-act="revive"><span class="ad-chip">AD</span>Keep playing</button>'}
+        ${run.doubled || bones <= 0 || !state.tutorial.done ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
         ${lvl ? '<button type="button" class="btn" data-act="collect">Collect</button>'
     : `<button type="button" class="btn" data-act="again">Collect &amp; play again</button>
         <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>`}
@@ -834,6 +841,7 @@
         track('ad_rewarded_request', { placement: 'double' });
         if (await ads.rewarded()) {
           state.ads.rewardedToday++;
+          run.doubleBonus = Core.bonesForRun(run.game);
           run.doubled = true;
           sfx.coin();
           track('ad_rewarded_granted', { placement: 'double' });
@@ -1507,6 +1515,7 @@
     const input = sheet.querySelector('#pup-name');
     setTimeout(() => { input.focus(); input.select(); }, 50);
     const saveName = () => {
+      if (input.value.trim() === pup.baseName) { delete o.name; done(); return; } // unchanged (some names are longer than the limit)
       const name = Pups.cleanName(input.value);
       if (!name) { sfx.nope(); input.focus(); return; }
       if (name === pup.baseName) delete o.name; else o.name = name;
@@ -1554,8 +1563,9 @@
       if (act === 'close') closeModal();
       if (act === 'noads') {
         track('iap_request', { product: 'removeAds' });
-        store.buyRemoveAds().then((ok) => {
-          if (!ok) return;
+        store.buyRemoveAds().then((r) => {
+          if (r.pending) { toast('Waiting for approval. Ads will go away once it goes through'); return; }
+          if (!r.ok) { if (!r.cancelled) toast("Couldn't reach the App Store. Try again later"); return; }
           s.noAds = true; save(); track('iap_purchase', { product: 'removeAds' });
           sfx.coin(); closeModal(); toast('Ads removed. Thank you!');
         });
@@ -1573,7 +1583,7 @@
       if (act === 'reset') {
         if (a.dataset.armed) {
           // Keeps what isn't progress: a bought Remove Ads, and dev mode in tester builds.
-          const keep = { noAds: s.noAds, dev: s.dev };
+          const keep = { noAds: s.noAds, dev: s.dev, sound: s.sound, haptics: s.haptics, artStyle: s.artStyle, pullStyle: s.pullStyle, devSkipAds: s.devSkipAds };
           state = State.freshState();
           Object.assign(state.settings, keep);
           State.rollDaily(state, Date.now()); State.rollWeekly(state, Date.now());

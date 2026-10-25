@@ -39,12 +39,15 @@
         try { return { removeAds: await ownsRemoveAds() }; } catch (e) { return { removeAds: null }; }
       },
       price: () => price,
-      // Resolves true when the player now owns Remove Ads. A cancelled sheet resolves false.
+      // Resolves { ok } when the player now owns Remove Ads; otherwise says why (cancelled, pending, error).
       async buyRemoveAds() {
         try {
           const t = await NP.purchaseProduct({ productIdentifier: PRODUCTS.removeAds, productType: 'inapp' });
-          return !!t && t.productIdentifier === PRODUCTS.removeAds;
-        } catch (e) { return false; }
+          return { ok: !!t && t.productIdentifier === PRODUCTS.removeAds };
+        } catch (e) {
+          const m = String((e && e.message) || e);
+          return { ok: false, cancelled: /cancel/i.test(m), pending: /pending/i.test(m), error: m };
+        }
       },
       async restore() {
         try { await NP.restorePurchases(); return { removeAds: await ownsRemoveAds() }; } catch (e) { return { removeAds: false, error: true }; }
@@ -72,7 +75,7 @@
       kind: 'mock',
       async init() { return { removeAds: null }; }, // null = no answer; keep the saved flag
       price: () => FALLBACK_PRICE,
-      buyRemoveAds: () => confirm('Remove Ads', `${FALLBACK_PRICE} · StoreKit handles this in the iOS build.`, `Buy for ${FALLBACK_PRICE}`),
+      buyRemoveAds: () => confirm('Remove Ads', `${FALLBACK_PRICE} · StoreKit handles this in the iOS build.`, `Buy for ${FALLBACK_PRICE}`).then((ok) => ({ ok, cancelled: !ok })),
       async restore() { return { removeAds: null }; },
     };
   }

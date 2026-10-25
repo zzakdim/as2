@@ -11,7 +11,8 @@ Everything App Store Connect asks for, ready to paste. Fill in the **[brackets]*
 
 ## Before you submit a build
 
-- [ ] `www/js/main.js`: set `ALLOW_DEV = false`. While it's true, every new player starts in developer mode, which shows **Google's test ads (you earn nothing)** and unlocks cheats.
+- [ ] Archive with **Xcode 26 or later** (Apple requires the iOS 26 SDK for uploads). Product → Archive builds a Release build, which automatically turns developer mode and test ads off; nothing to flip by hand.
+- [ ] Bump the build number (Xcode → App target → General → Build) for every upload.
 - [ ] Check https://zzakdim.github.io/pupblast/privacy.html and support.html open (site/ goes in the zzakdim.github.io repo under pupblast/, app-ads.txt at its root).
 - [ ] Then `npx cap sync ios` and archive in Xcode.
 
@@ -83,7 +84,7 @@ blocks,cube,brick,tile,line,clear,dog,puppy,pet,cute,collect,gacha,brain,relax,o
 
 - **Type:** Non-Consumable
 - **Reference name:** `Remove Ads`
-- **Product ID:** `[your bundle ID].removeads` (must match `PRODUCTS.removeAds` in `www/js/store.js`)
+- **Product ID:** `com.bonepile.pupblast.removeads` (must match `PRODUCTS.removeAds` in `www/js/store.js`)
 - **Price:** $2.99 (Tier 3)
 - **Display name:** `Remove Ads`
 - **Description:** `No more ads between games. Bonus ads stay optional.`
@@ -96,9 +97,9 @@ Create these in App Store Connect → your app → Game Center. The IDs must mat
 
 | Reference name | Leaderboard ID | Type | Score format | Sort | Score range |
 |---|---|---|---|---|---|
-| Endless all time | `[bundle ID].endless` | Classic | Integer | High to low | 0 – 500,000 |
-| Endless this week | `[bundle ID].endless.weekly` | Recurring, every 7 days, starting a Monday | Integer | High to low | 0 – 500,000 |
-| Total stars | `[bundle ID].stars` | Classic | Integer | High to low | 0 – 600 |
+| Endless all time | `com.bonepile.pupblast.endless` | Classic | Integer | High to low | 0 – 500,000 |
+| Endless this week | `com.bonepile.pupblast.endless.weekly` | Recurring, every 7 days, starting a Monday | Integer | High to low | 0 – 500,000 |
+| Total stars | `com.bonepile.pupblast.stars` | Classic | Integer | High to low | 0 – 600 |
 
 The score range rejects obviously faked scores. Display names: "Endless: All Time", "Endless: This Week", "Total Stars".
 
@@ -106,8 +107,12 @@ The score range rejects obviously faked scores. Display names: "Endless: All Tim
 
 Answer Apple's questionnaire truthfully. For this game:
 - No violence, horror, profanity, mature themes, medical content or user-generated content.
-- **Gambling:** no real-money gambling. The pup "digs" are random rewards paid for with in-game bones or watching an ad, never with money.
-- **Advertising:** yes, the app shows ads.
+- **Gambling:** none. The pup "digs" are random rewards paid for with in-game bones or watching an ad, never with money.
+- **Loot boxes:** No. Apple defines them as randomized items *for purchase*; digs can't be bought. (If bone packs are ever sold, this becomes Yes, and the odds must show before purchase.)
+- **Contests:** Infrequent (Game Center leaderboards).
+- **Advertising:** yes, the app shows ads. Ads are capped to "General" content in the code; also set AdMob → Blocking controls → Maximum ad content rating → G.
+- **Parental controls / age assurance:** none. **User-generated content:** none (pup names stay on the device).
+- Expected result: **4+**.
 - **Made for Kids:** **No.** Kids-category apps can't use most ad networks.
 
 ## App Privacy ("nutrition label")
@@ -120,8 +125,9 @@ The game has no servers; save data stays on the device. The label covers **Googl
 | Location → Coarse location (from IP) | Third-party advertising, Analytics | No | No |
 | Usage data → Product interaction, Advertising data | Third-party advertising, Analytics | No | No |
 | Diagnostics → Crash data, Performance data, Other diagnostic data | Analytics | No | No |
+| Purchases → Purchase history | Analytics | No | No |
 
-- **Purchases:** Apple handles them; you don't collect purchase data, so don't declare it.
+- **Purchases:** declare Purchase history (Analytics, not linked, not tracking): the anonymous statistics note when Remove Ads is bought. Payment details are Apple's and never reach the game.
 - **Game Center:** Apple's own service; nothing to declare for it.
 
 ## Notes for the reviewer
@@ -134,7 +140,7 @@ Pup Blast is a single-player block puzzle. No account or login is needed.
 - Remove Ads (non-consumable): open the menu (top-left on the home screen) → Remove ads. "Restore purchases" is in the same menu.
 - Game Center: the trophy button on the home screen opens the leaderboards. Scores are sent after Endless runs and level runs.
 - Ads: Google AdMob. Rewarded ads are optional (bonus digs, "Keep playing", double bones). Interstitials appear between games, never in the first 3 games.
-- On first launch, players in regions that require it see Google's consent form, then the iOS tracking prompt. "Privacy choices" in the menu reopens the consent form.
+- The iOS tracking prompt (and, in regions that require it, Google's consent form just before it) appears right after the short tutorial ends, not at first launch. To reach it quickly: during the first game tap the back arrow, then "Skip tutorial". "Privacy choices" in the menu reopens the consent form.
 - The privacy policy is linked in the menu.
 
 Thank you!

@@ -29,7 +29,7 @@
 
   function canShowInterstitial(state, now) {
     if (state.settings.noAds) return false;
-    if (state.stats.games < POLICY.graceGames) return false;
+    if (state.stats.games <= POLICY.graceGames) return false; // the results of game 3 are ad-free too
     if (state.ads.gamesSinceInterstitial < POLICY.everyNGames) return false;
     return now - state.ads.lastInterstitialAt >= POLICY.minGapMs;
   }
@@ -89,7 +89,8 @@
         if (!canRequest) return; // the player declined in a region that needs consent: no ads this session
         const testing = !!(testAds && testAds());
         units = testing ? TEST_UNITS : UNITS;
-        await AdMob.initialize({ initializeForTesting: testing });
+        // Ads stay family-friendly, to match the 4+ age rating (also set in AdMob → Blocking controls).
+        await AdMob.initialize({ initializeForTesting: testing, maxAdContentRating: 'General' });
         ready = true;
         prepInterstitial();
         prepRewarded();

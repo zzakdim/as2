@@ -27,6 +27,11 @@
     return d.getTime();
   }
   function weekKey(now) { return dayKey(weekStart(now)); }
+  // Day number of a dayKey ("2026-10-25" or the unpadded "2026-10-5"), for comparing dates in order.
+  function dayNum(key) {
+    const m = /^(\d+)-(\d+)-(\d+)$/.exec(key || '');
+    return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000) : -Infinity;
+  }
   function msToNextWeek(now) {
     const next = new Date(weekStart(now));
     next.setDate(next.getDate() + 7);
@@ -107,7 +112,8 @@
   function rollWeekly(state, now) {
     if (clockWentBack(state, now)) return false;
     const key = weekKey(now);
-    if (state.weekly.week === key) return false;
+    // Only ever forward: flipping the clock (or time zone) back and forth across a boundary pays nothing.
+    if (dayNum(key) <= dayNum(state.weekly.week)) return false;
     state.weekly.week = key;
     state.weekly.pullsLeft = WEEKLY_FREE_PULLS;
     return true;
@@ -117,7 +123,7 @@
   function rollDaily(state, now) {
     if (clockWentBack(state, now)) return 0;
     const today = dayKey(now);
-    if (state.daily.date === today) return 0;
+    if (dayNum(today) <= dayNum(state.daily.date)) return 0; // only ever forward (see rollWeekly)
     const y = new Date(now);
     y.setDate(y.getDate() - 1); // calendar yesterday (now - 24h misses it on a 23-hour DST day)
     const yesterday = dayKey(y.getTime());
@@ -137,7 +143,9 @@
     let raw = null;
     try { raw = text ? JSON.parse(text) : null; } catch (e) {
       try { storage.setItem(KEY + '.bak', text); } catch (e2) { /* storage full */ }
-      return freshState();
+      const fresh = freshState();
+      fresh.corrupt = true; // tells the app to restore from its native backup instead of overwriting it
+      return fresh;
     }
     return normalize(raw);
   }

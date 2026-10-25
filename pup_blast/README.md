@@ -115,12 +115,12 @@ npm run build:preview    # dist/pup-blast.html, a single-file build for sharing 
    - Add the app and create an interstitial unit and a rewarded unit. Put their IDs in `UNITS` in `www/js/ads.js`.
    - Under Privacy & messaging, create the GDPR message and the US states message.
    - Host `app-ads.txt` on your developer website.
-3. **Build:** `./scripts/ios-bootstrap.sh --admob-app-id ca-app-pub-XXXX~YYYY` does all of this and a simulator build in one go (leave the flag off to use Google's test app ID). By hand:
+3. **Build:** `./scripts/ios-bootstrap.sh --admob-app-id ca-app-pub-XXXX~YYYY` does all of this and a simulator build in one go (the flag is optional: it defaults to Pup Blast's real AdMob app ID). By hand:
 
 ```bash
 npm install
 npx cap add ios
-npm run ios:setup -- --admob-app-id ca-app-pub-XXXX~YYYY   # leave the flag off to use Google's test app ID
+npm run ios:setup -- --admob-app-id ca-app-pub-XXXX~YYYY   # the flag is optional: defaults to Pup Blast's real AdMob app ID
 npx cap sync ios
 npx cap open ios
 ```
@@ -139,7 +139,7 @@ npx cap open ios
    - In App Store Connect, give each leaderboard a score range, so obviously faked scores are rejected.
    - Add crash reporting (for example Sentry or Firebase Crashlytics) so errors on players' phones reach you.
    - Fill in the App Store privacy labels for ads, tracking, purchases and Game Center.
-   - Set the age rating to 12+ and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
+   - Answer the age rating questionnaire as in `store/LISTING.md` (expected 4+) and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
 
 ## Store listing
 

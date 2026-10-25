@@ -96,9 +96,9 @@ test('old or broken saves load safely', () => {
 test('interstitial pacing respects grace games, frequency and gap', () => {
   const s = State.freshState();
   const now = 10_000_000;
-  s.stats.games = 2; s.ads.gamesSinceInterstitial = 5;
-  assert.ok(!Ads.canShowInterstitial(s, now), 'grace period');
-  s.stats.games = 3;
+  s.stats.games = 3; s.ads.gamesSinceInterstitial = 5; // games counts the one just finished
+  assert.ok(!Ads.canShowInterstitial(s, now), 'grace period covers the end of game 3');
+  s.stats.games = 4;
   assert.ok(Ads.canShowInterstitial(s, now));
   Ads.noteInterstitialShown(s, now);
   s.ads.gamesSinceInterstitial = 2;

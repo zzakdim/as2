@@ -1,7 +1,8 @@
 // One-time iOS wiring after `npx cap add ios` (run on the Mac, from the project root):
 //   node scripts/ios-setup.mjs [--admob-app-id ca-app-pub-XXXX~YYYY]  (defaults to Pup Blast's real AdMob app ID)
 // It copies the Game Center plugin into the app, points Main.storyboard at AppViewController,
-// and adds the Info.plist keys AdMob and App Tracking Transparency need. Safe to run twice.
+// adds the Game Center entitlement and the privacy manifest, makes the app iPhone-only and portrait-only,
+// and sets the Info.plist keys AdMob, App Tracking Transparency and the status bar need. Safe to run twice.
 // What it can't do (Xcode project settings) is printed at the end.
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -75,9 +76,8 @@ let plist = readFileSync(plistPath, 'utf8');
 const keys = [
   ['GADApplicationIdentifier', `<string>${admobAppId}</string>`],
   ['NSUserTrackingUsageDescription', '<string>We use this to show you more relevant ads and keep Pup Blast free.</string>'],
-  // Google's own ad network ID. Add the full list from the AdMob iOS docs when you turn on mediation.
-  ['SKAdNetworkItems', '<array><dict><key>SKAdNetworkIdentifier</key><string>cstr6suwn9.skadnetwork</string></dict></array>'],
   ['ITSAppUsesNonExemptEncryption', '<false/>'],
+  ['UIStatusBarStyle', '<string>UIStatusBarStyleLightContent</string>'], // light text on the dark game
 ];
 const added = [];
 // The AdMob app ID is replaced on every run, so running again with the release ID updates it.
@@ -88,12 +88,52 @@ for (const [key, value] of keys) {
   plist = plist.replace(/<\/dict>\s*<\/plist>\s*$/, `\t<key>${key}</key>\n\t${value}\n</dict>\n</plist>\n`);
   added.push(key);
 }
+// Google's full SKAdNetwork list (native/ios/skadnetwork-items.plist.xml), replaced on every run so it stays current.
+const skan = readFileSync(join('native', 'ios', 'skadnetwork-items.plist.xml'), 'utf8').trimEnd();
+const skanRe = /\t*<key>SKAdNetworkItems<\/key>\s*<array>[\s\S]*?<\/array>\n?/;
+plist = skanRe.test(plist) ? plist.replace(skanRe, skan + '\n') : plist.replace(/<\/dict>\s*<\/plist>\s*$/, `${skan}\n</dict>\n</plist>\n`);
+// Portrait only (the layout is a phone column), arm64, and no iPad orientation list (the app is iPhone-only).
+const arr = (key, items) => `<key>${key}</key>\n\t<array>\n${items.map((i) => `\t\t<string>${i}</string>`).join('\n')}\n\t</array>`;
+plist = plist.replace(/<key>UISupportedInterfaceOrientations<\/key>\s*<array>[\s\S]*?<\/array>/, arr('UISupportedInterfaceOrientations', ['UIInterfaceOrientationPortrait']));
+plist = plist.replace(/\t*<key>UISupportedInterfaceOrientations~ipad<\/key>\s*<array>[\s\S]*?<\/array>\n?/, '');
+plist = plist.replace(/<key>UIRequiredDeviceCapabilities<\/key>\s*<array>[\s\S]*?<\/array>/, arr('UIRequiredDeviceCapabilities', ['arm64']));
 writeFileSync(plistPath, plist);
 console.log(added.length ? `Info.plist: added ${added.join(', ')}` : 'Info.plist already has every key');
+console.log('Info.plist: SKAdNetwork list, portrait only, arm64');
+
+// 4. Game Center entitlement and the privacy manifest (Apple requires one; UserDefaults is used for the save backup).
+copyFileSync(join('native', 'ios', 'App.entitlements'), join(app, 'App.entitlements'));
+copyFileSync(join('native', 'ios', 'PrivacyInfo.xcprivacy'), join(app, 'PrivacyInfo.xcprivacy'));
+pbx = readFileSync(pbxPath, 'utf8');
+const files = [['App.entitlements', 'text.plist.entitlements', false], ['PrivacyInfo.xcprivacy', 'text.xml', true]];
+for (const [f, type, bundled] of files) {
+  if (pbx.includes(`/* ${f} */ = {isa = PBXFileReference`)) continue;
+  const ref = xid('ref:' + f), build = xid('build:' + f);
+  pbx = pbx.replace(/(\t*\w{24} \/\* AppDelegate\.swift \*\/ = \{isa = PBXFileReference;[^\n]*\n)/, `$1\t\t${ref} /* ${f} */ = {isa = PBXFileReference; lastKnownFileType = ${type}; path = ${f}; sourceTree = "<group>"; };\n`);
+  pbx = pbx.replace(/(\n(\t+)\w{24} \/\* AppDelegate\.swift \*\/,\n)/, `$1$2${ref} /* ${f} */,\n`);
+  if (bundled) {
+    pbx = pbx.replace(/(\t*\w{24} \/\* LaunchScreen\.storyboard in Resources \*\/ = \{isa = PBXBuildFile;[^\n]*\n)/, `$1\t\t${build} /* ${f} in Resources */ = {isa = PBXBuildFile; fileRef = ${ref} /* ${f} */; };\n`);
+    pbx = pbx.replace(/(\n(\t+)\w{24} \/\* LaunchScreen\.storyboard in Resources \*\/,\n)/, `$1$2${build} /* ${f} in Resources */,\n`);
+  }
+  console.log(`added ${f} to the App target`);
+}
+// Every App target configuration: the entitlements file, and iPhone only (iPads run it in iPhone mode).
+pbx = pbx.replace(/(\n(\t+)INFOPLIST_FILE = App\/Info\.plist;\n)(?![\s\S]{0,400}CODE_SIGN_ENTITLEMENTS)/g, '$1$2CODE_SIGN_ENTITLEMENTS = App/App.entitlements;\n');
+pbx = pbx.replace(/TARGETED_DEVICE_FAMILY = "1,2";/g, 'TARGETED_DEVICE_FAMILY = 1;');
+writeFileSync(pbxPath, pbx);
+console.log('Xcode project: Game Center entitlement, privacy manifest, iPhone only');
+
+// 5. Launch screen: the game's night color instead of white behind the splash.
+const lsPath = join(app, 'Base.lproj', 'LaunchScreen.storyboard');
+if (existsSync(lsPath)) {
+  const ls = readFileSync(lsPath, 'utf8');
+  const out = ls.replace(/<color key="backgroundColor" systemColor="systemBackgroundColor"\/>/, '<color key="backgroundColor" red="0.122" green="0.106" blue="0.271" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>');
+  if (out !== ls) { writeFileSync(lsPath, out); console.log('launch screen: night background'); }
+}
 if (admobAppId === TEST_APP_ID) console.log('  (using Google\'s test AdMob app ID; pass --admob-app-id for release)');
 
 console.log(`
 Still to do in Xcode (npx cap open ios):
-  1. Signing & Capabilities: pick your team, then + Capability → Game Center, and + In-App Purchase.
+  1. Signing & Capabilities: pick your team. Game Center is already on (App.entitlements); add + In-App Purchase.
   2. Build to a real device and check: consent form (use a VPN to the EU, or the UMP debug
      geography), test ads, Game Center sign-in banner, and a sandbox Remove Ads purchase.`);

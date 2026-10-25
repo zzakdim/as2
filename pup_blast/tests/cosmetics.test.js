@@ -38,3 +38,18 @@ test('renderPup draws the item a pup is wearing, and opts.wear previews one', ()
   assert.ok(Pups.renderPup(cosmo).includes('#ffe680'));
   assert.ok(!Pups.renderPup(cosmo, { wear: 'none' }).includes('<ellipse cx="60" cy="8" rx="20"'));
 });
+
+test('daily and weekly rewards only roll forward (no clock or time-zone flipping)', () => {
+  const s = State.freshState();
+  const sun = new Date(2026, 9, 25, 23, 30).getTime(); // Sunday 23:30 local
+  const mon = new Date(2026, 9, 26, 0, 20).getTime(); // Monday 00:20 local
+  State.rollDaily(s, sun); State.rollWeekly(s, sun);
+  const bones0 = s.bones;
+  let weekly = 0, daily = 0;
+  for (let i = 0; i < 10; i++) {
+    for (const t of [mon, sun]) { daily += State.rollDaily(s, t) > 0 ? 1 : 0; weekly += State.rollWeekly(s, t) ? 1 : 0; }
+  }
+  assert.strictEqual(daily, 1, 'one new day');
+  assert.strictEqual(weekly, 1, 'one new week');
+  assert.ok(s.bones - bones0 < 100);
+});
