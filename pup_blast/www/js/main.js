@@ -701,7 +701,7 @@
   }
 
   $('#btn-power').addEventListener('click', () => {
-    if (!run || run.charges <= 0) return;
+    if (!run || run.over || run.charges <= 0) return;
     if (run.tut && state.tutorial.step !== TUT.POWER) { coachBump(); return; }
     Audio.unlock();
     if (run.targeting) { cancelTargeting(); return; }
@@ -713,7 +713,7 @@
 
   // Targeted powers: the first tap previews what will clear, a second tap on the same target fires.
   boardEl.addEventListener('click', (e) => {
-    if (!run || !run.targeting) return;
+    if (!run || !run.targeting || run.over || run.charges <= 0) return;
     const cell = e.target.closest('.cell');
     if (!cell) return;
     const i = Number(cell.dataset.i);
@@ -750,8 +750,9 @@
     if (!Core.isGameOver(run.game)) return;
     if (!fxMs) { handleStuck(); return; }
     const thisRun = run;
-    run.over = true; // no placing while we wait (there's no room anyway)
-    setTimeout(() => { if (run !== thisRun) return; run.over = false; if (Core.isGameOver(run.game)) handleStuck(); }, fxMs + 400);
+    run.over = true; // no placing or powers while we wait (there's no room anyway)
+    clearTimeout(run.stuckTimer);
+    run.stuckTimer = setTimeout(() => { if (run !== thisRun) return; run.over = false; if (Core.isGameOver(run.game)) handleStuck(); }, fxMs + 400);
   }
 
   function handleStuck() {
@@ -770,7 +771,7 @@
       }, 500);
       return;
     }
-    if (run.charges > 0 && Powers.canUse(run.pup.power, run.game)) {
+    if (!run.gaveUp && run.charges > 0 && Powers.mayUnstick(run.pup.power, run.game)) {
       // Let the player try their buddy's power before calling the run.
       run.over = false;
       $('#btn-power').classList.add('nudge');
@@ -784,7 +785,11 @@
 
   // A run that is stuck but still has a power charge can be ended by the player.
   function giveUpIfStuck() {
-    if (run && run.stuckWithPower && Core.isGameOver(run.game)) { run.charges = 0; renderBuddyBar(); handleStuck(); return true; }
+    // Giving up ends the run but keeps unused charges, in case the player revives.
+    if (run && run.stuckWithPower && Core.isGameOver(run.game)) {
+      if (run.targeting) cancelTargeting();
+      run.gaveUp = true; renderBuddyBar(); handleStuck(); return true;
+    }
     return false;
   }
 
@@ -827,19 +832,26 @@
       const a = act.dataset.act;
       if (a === 'revive') {
         track('ad_rewarded_request', { placement: 'revive' });
-        if (await ads.rewarded()) {
+        act.disabled = true; // one ad, one revive, however fast the button is tapped
+        const ok = await ads.rewarded();
+        act.disabled = false;
+        if (ok && run && !run.revived) {
           state.ads.rewardedToday++;
-          run.revived = true; run.over = false; run.stuckWithPower = false;
+          run.revived = true; run.over = false; run.stuckWithPower = false; run.gaveUp = false;
+          clearAim(); run.targeting = false;
           Core.revive(run.game);
           closeModal();
-          renderBoard(); renderTray(); renderScore();
+          renderBoard(); renderTray(); renderScore(); renderBuddyBar();
           floatText('Second wind!', 'praise');
           if (Core.isGameOver(run.game)) handleStuck();
           track('ad_rewarded_granted', { placement: 'revive' });
         }
       } else if (a === 'double') {
         track('ad_rewarded_request', { placement: 'double' });
-        if (await ads.rewarded()) {
+        act.disabled = true;
+        const ok = await ads.rewarded();
+        act.disabled = false;
+        if (ok && run && !run.doubled) {
           state.ads.rewardedToday++;
           run.doubleBonus = Core.bonesForRun(run.game);
           run.doubled = true;

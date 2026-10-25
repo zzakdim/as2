@@ -67,9 +67,15 @@
     return Object.assign({}, piece, { cells, w: piece.h, h: piece.w });
   }
 
+  // Shapes are compared by their cells: rotate() keeps a piece's old id, so a spun i4h is still 'i4h'.
+  const cellKey = (p) => p.cells.map(String).sort().join('|');
+  const sameShape = (p, id) => cellKey(p) === cellKey(Core.SHAPE_BY_ID[id]);
+  const swapCan = (ids) => (g) => g.tray.some((p) => p && !ids.some((id) => sameShape(p, id)));
+
   // Swaps one tray piece for `shape`: the first piece that can't be placed, else the biggest one.
+  // Pieces that already are one of the target shapes are left alone (swapping them would change nothing).
   function swapPiece(g, shapeIds) {
-    const live = g.tray.map((p, i) => [p, i]).filter(([p]) => p);
+    const live = g.tray.map((p, i) => [p, i]).filter(([p]) => p && !shapeIds.some((id) => sameShape(p, id)));
     if (!live.length) return none();
     const stuck = live.find(([p]) => !Core.fitsAnywhere(g.board, p));
     const [, i] = stuck || live.reduce((a, b) => (b[0].cells.length > a[0].cells.length ? b : a));
@@ -87,11 +93,11 @@
     fetch: { tier: 1, name: 'Fetch', desc: 'Swap your three pieces for new ones', apply: (g) => { Core.dealTray(g); return none(); } },
     spin: {
       tier: 1, name: 'Spin', desc: 'Rotate all your pieces a quarter turn',
-      can: (g) => g.tray.some(Boolean),
+      can: (g) => g.tray.some((p) => p && cellKey(rotate(p)) !== cellKey(p)), // squares and dots look the same turned
       apply: (g) => { g.tray = g.tray.map((p) => (p ? rotate(p) : null)); return none(); },
     },
-    goodsit: { tier: 1, name: 'Good Sit', desc: 'Swap your worst piece for a 2×2 square', can: (g) => g.tray.some(Boolean), apply: (g) => swapPiece(g, ['o2']) },
-    stick: { tier: 1, name: 'Stick!', desc: 'Swap your worst piece for a 4-long stick', can: (g) => g.tray.some(Boolean), apply: (g) => swapPiece(g, ['i4h', 'i4v']) },
+    goodsit: { tier: 1, name: 'Good Sit', desc: 'Swap your worst piece for a 2×2 square', can: swapCan(['o2']), apply: (g) => swapPiece(g, ['o2']) },
+    stick: { tier: 1, name: 'Stick!', desc: 'Swap your worst piece for a 4-long stick', can: swapCan(['i4h', 'i4v']), apply: (g) => swapPiece(g, ['i4h', 'i4v']) },
     nap: { tier: 1, name: 'Nap Time', desc: 'Swap in three small pieces', apply: (g) => { Core.dealTray(g, { small: true }); return none(); } },
     pampered: {
       tier: 1, name: 'Pampered', desc: 'Turn your pieces into single blocks',
@@ -102,9 +108,10 @@
     shakeoff: { tier: 1, name: 'Shake Off', desc: 'Clear 4 random blocks', can: filled, apply: (g) => clear(g, shuffle(g, blocks(g)).slice(0, 4)) },
     treattoss: {
       tier: 1, name: 'Treat Toss', desc: 'Hide 4 bone treats in your blocks',
-      can: (g) => g.board.some((v, i) => Core.isBlock(g, i) && !g.treats[i] && g.specials[i] !== Core.SPECIAL.CRATE),
+      // Not on cells with a golden bone or tennis ball (they'd hide the treat) or the crate.
+      can: (g) => g.board.some((v, i) => Core.isBlock(g, i) && !g.treats[i] && !g.specials[i]),
       apply: (g) => {
-        const spots = shuffle(g, blocks(g).filter((i) => !g.treats[i] && g.specials[i] !== Core.SPECIAL.CRATE)).slice(0, 4);
+        const spots = shuffle(g, blocks(g).filter((i) => !g.treats[i] && !g.specials[i])).slice(0, 4);
         spots.forEach((i) => { g.treats[i] = 1; });
         return Object.assign(none(), { treated: spots });
       },
@@ -178,7 +185,19 @@
     return out;
   }
 
-  const Powers = { POWERS, canUse, validTarget, use, rotate, previewCells };
+  // Whether a power could possibly get a stuck board moving again, so the game only suggests it when it can.
+  // Clearing powers and fresh deals can; these can be checked exactly.
+  function mayUnstick(id, game) {
+    if (!canUse(id, game)) return false;
+    const fits = (sh) => Core.fitsAnywhere(game.board, sh);
+    if (id === 'treattoss') return false;
+    if (id === 'goodsit') return fits(Core.SHAPE_BY_ID.o2);
+    if (id === 'stick') return fits(Core.SHAPE_BY_ID.i4h) || fits(Core.SHAPE_BY_ID.i4v);
+    if (id === 'spin') return game.tray.some((p) => p && fits(rotate(p)));
+    return true;
+  }
+
+  const Powers = { POWERS, canUse, mayUnstick, validTarget, use, rotate, previewCells };
 
   root.PB = root.PB || {};
   root.PB.Powers = Powers;

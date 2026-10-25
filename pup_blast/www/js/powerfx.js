@@ -48,7 +48,8 @@
   function areaFx(ctx, cleared, lead) {
     const N = ctx.size;
     let or = ctx.r, oc = ctx.c;
-    if (or == null) { // no tap (Bass Drop, Trim): the middle of what cleared
+    if (or == null && !cleared.length) { or = oc = (N - 1) / 2; } // nothing cleared (only ice chipped): the middle
+    else if (or == null) { // no tap (Bass Drop, Trim): the middle of what cleared
       or = cleared.reduce((a, x) => a + Math.floor(x.i / N), 0) / cleared.length;
       oc = cleared.reduce((a, x) => a + (x.i % N), 0) / cleared.length;
     }
