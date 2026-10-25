@@ -172,6 +172,7 @@
     $('#modal-sheet').className = 'sheet' + (opts && opts.cls ? ' ' + opts.cls : '');
     m.className = 'modal'; // drops the dig's tinted sky
     m.hidden = false;
+    $('#toast').hidden = true; // a toast never sits on top of a sheet
     return $('#modal-sheet');
   }
   function closeModal() { $('#modal').hidden = true; $('#modal').className = 'modal'; $('#modal-sheet').innerHTML = ''; }
@@ -366,6 +367,9 @@
   function renderBoard() {
     const g = run.game;
     $('#board').dataset.world = run.lvl ? run.lvl.world : '';
+    const N = Core.SIZE, holeAll = (f) => { for (let k = 0; k < N; k++) if (g.board[f(k)] !== Core.HOLE_COLOR) return false; return true; };
+    $('#board').style.setProperty('--trim-x', holeAll((k) => k * N + N - 1) ? 1 : 0);
+    $('#board').style.setProperty('--trim-y', holeAll((k) => (N - 1) * N + k) ? 1 : 0);
     for (let i = 0; i < cellEls.length; i++) {
       const v = g.board[i];
       if (v === Core.POST_COLOR) { cellEls[i].className = 'cell post'; cellEls[i].innerHTML = POST_SVG; continue; }
@@ -454,7 +458,10 @@
     const { pup, level, charges } = run;
     const power = powerOf(pup);
     $('#game-buddy').innerHTML = Pups.renderPup(pup);
-    $('#game-buddy-name').textContent = `${pup.name} · Lv ${level}${run.bond > 1 ? ` · ♥${run.bond} ${pct(Pups.bondBonus(run.bond))}` : ''}`;
+    { const nm = document.createElement('span'), lv = document.createElement('span');
+      nm.className = 'bb-nm'; nm.textContent = pup.name; lv.className = 'bb-lv';
+      lv.textContent = ` · Lv ${level}${run.bond > 1 ? ` · ♥${run.bond} ${pct(Pups.bondBonus(run.bond))}` : ''}`;
+      $('#game-buddy-name').replaceChildren(nm, lv); }
     $('#game-buddy-perk').textContent = run.targeting ? targetHint() : power.desc;
     const btn = $('#btn-power');
     if (power.passive) {
