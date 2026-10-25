@@ -83,6 +83,9 @@
       if (!Pups.BY_ID[id] || !r || typeof r !== 'object') continue;
       const rec = { level: Math.max(1, Math.min(Math.floor(num(r.level, 1)), Pups.MAX_LEVEL)), dupes: Math.max(0, Math.floor(num(r.dupes, 0))) };
       if (num(r.bond, 0) > 0) rec.bond = r.bond;
+      const name = typeof r.name === 'string' ? Pups.cleanName(r.name) : '';
+      if (name) rec.name = name;
+      if (r.wear === 'none' || Pups.COSMETICS.some((c) => c.id === r.wear)) rec.wear = r.wear;
       out.pups[id] = rec;
     }
     if (!out.pups[Pups.STARTER_ID]) out.pups[Pups.STARTER_ID] = { level: 1, dupes: 0 };

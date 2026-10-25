@@ -285,7 +285,10 @@
   function renderPup(pup, opts) {
     const o = opts || {};
     const style = o.style || (root.PB && root.PB.artStyle) || 'bean';
-    const l = pup.look;
+    // A pup's look can be dressed up: opts.wear previews an item; otherwise the game's lookFor hook
+    // supplies what the player has put on it (see COSMETICS). Unknown pups always show their own look.
+    const wear = o.wear !== undefined ? o.wear : (!o.silhouette && root.PB && root.PB.wearFor ? root.PB.wearFor(pup) : null);
+    const l = wear ? Object.assign({}, pup.look, { acc: wear === 'none' ? null : wear }) : pup.look;
     const rc = RARITY[pup.rarity].color;
     const line = isLight(l.fur) ? '#6a6582' : shade(l.fur, -0.5);
     const ink = '#1d1622';
@@ -337,6 +340,17 @@
       </g>${twinkle}</svg>`;
   }
 
+  // Signature items: each Epic and Legendary pup's accessory. Finding the pup unlocks its item, and any pup you've
+  // reached Bond WEAR_BOND with can wear one. Purely cosmetic. The Legendary glow stays with its owner.
+  const COSMETIC_NAMES = { shades: 'Shades', captain: "Captain's hat", tiara: 'Tiara', wizard: 'Wizard hat', headphones: 'Headphones', crown: 'Crown', halo: 'Halo' };
+  const COSMETICS = ROSTER.filter((p) => (p.rarity === 'epic' || p.rarity === 'legendary') && COSMETIC_NAMES[p.look.acc])
+    .map((p) => ({ id: p.look.acc, name: COSMETIC_NAMES[p.look.acc], from: p.id }));
+  const RENAME_BOND = 2; // bond level that lets you rename a pup
+  const WEAR_BOND = 3; // bond level that lets a pup wear another pup's signature item
+  const NAME_MAX = 12;
+  // Names go into the page as text and HTML, so markup characters are dropped.
+  function cleanName(s) { return String(s || '').replace(/[<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX); }
+
   // Bond: a second track per pup, separate from copies. It grows by playing with that pup as
   // your buddy (and faster by feeding it bones), and each bond level adds a small score bonus.
   // Star targets are tuned with no bond, so bond is pure headroom for chasing 3 stars.
@@ -368,6 +382,7 @@
 
   const Pups = {
     RARITY, BREEDS, ROSTER, BY_ID, STARTER_ID, MAX_LEVEL, COPIES_PER_LEVEL, chargesFor, copiesToNext, renderPup,
+    COSMETICS, RENAME_BOND, WEAR_BOND, NAME_MAX, cleanName,
     BOND, bondLevel, bondBonus, bondXpForRun, bondToNext, addBond,
   };
 

@@ -177,6 +177,17 @@
   function powerOf(pup) { return Powers.POWERS[pup.power]; }
   // Bond: per-pup, grows with play and bone feeding, +3% score per level above 1.
   const bondOf = (id) => Pups.bondLevel((state.pups[id] || {}).bond);
+
+  // Your pups, your names: a renamed pup shows its new name everywhere (cards, power lines, the buddy bar).
+  // The roster keeps the original in baseName. Unowned pups always use their own name.
+  Pups.ROSTER.forEach((p) => {
+    const base = p.name;
+    p.baseName = base;
+    Object.defineProperty(p, 'name', { configurable: true, get: () => (state.pups[p.id] && state.pups[p.id].name) || base });
+  });
+  // What a pup is wearing, for renderPup: a signature item it was given, or 'none' for bare-headed.
+  window.PB.wearFor = (p) => (state.pups[p.id] && state.pups[p.id].wear) || null;
+  const ownsCosmetic = (c) => !!state.pups[c.from];
   const pct = (b) => `+${Math.round(b * 100)}%`;
   function bondText(id) {
     const b = bondOf(id);
@@ -1412,7 +1423,9 @@
         <div><dt>Per game</dt><dd>${n} ${chargeWord(n, pup)}</dd></div>
         <div><dt>Level ${o.level}</dt><dd>${pips(o.level)}<small>${need}</small></dd></div>
         ${bondRow(pup, o)}
+        ${nameRow(pup, o)}
       </dl>
+      ${styleRow(pup, o)}
       <div class="stack">
         ${feedButtons(o)}
         ${isBuddy ? '<p class="go-sub">Your current buddy</p>' : '<button type="button" class="btn" data-act="buddy">Make buddy</button>'}
@@ -1441,6 +1454,15 @@
         reopen();
         return;
       }
+      if (act === 'rename') { renamePup(pup, reopen); return; }
+      if (act === 'wear') {
+        const w = a.dataset.wear;
+        if (w === 'own') delete o.wear; else o.wear = w;
+        sfx.pick(); haptic('LIGHT');
+        track('pup_style', { pup: pup.id, item: w });
+        reopen();
+        return;
+      }
       if (act === 'lvup' || act === 'lvdown') {
         o.level = Math.max(1, Math.min(Pups.MAX_LEVEL, o.level + (act === 'lvup' ? 1 : -1)));
         o.dupes = 0;
@@ -1452,6 +1474,56 @@
       closeModal();
     };
   });
+
+  // ---- names and signature items (pup detail)
+  function nameRow(pup, o) {
+    const can = Pups.bondLevel(o.bond) >= Pups.RENAME_BOND || dev();
+    const was = o.name && o.name !== pup.baseName ? `<small>Was ${pup.baseName}</small>` : '';
+    return `<div><dt>Name</dt><dd>${can ? `<button type="button" class="btn ghost small" data-act="rename">Rename</button>${was}` : `<small>Rename at Bond ${Pups.RENAME_BOND}</small>`}</dd></div>`;
+  }
+  function styleRow(pup, o) {
+    const owned = Pups.COSMETICS.filter(ownsCosmetic);
+    if (!owned.length) return '<p class="go-sub style-note">Find Epic and Legendary pups to collect their signature items.</p>';
+    if (Pups.bondLevel(o.bond) < Pups.WEAR_BOND && !dev()) return `<p class="go-sub style-note">${pup.name} can wear signature items at Bond ${Pups.WEAR_BOND}.</p>`;
+    const cur = o.wear || 'own';
+    // First chip: the pup's own look (its own signature item, a bandana, or nothing).
+    const ownAcc = pup.look.acc || null;
+    const ownName = ownAcc ? ((Pups.COSMETICS.find((c) => c.id === ownAcc) || {}).name || 'Bandana') : 'Own look';
+    const chips = [['own', ownName, ownAcc || 'none'], ...(ownAcc ? [['none', 'Nothing', 'none']] : []),
+      ...owned.filter((c) => c.from !== pup.id).map((c) => [c.id, c.name, c.id])];
+    return `<div class="style-picker"><p class="eyebrow">Style</p><div class="style-chips">${chips.map(([id, label, wear]) =>
+      `<button type="button" class="style-chip${cur === id ? ' on' : ''}" data-act="wear" data-wear="${id}" aria-pressed="${cur === id}">
+        <span class="sc-art">${Pups.renderPup(pup, { plain: true, wear })}</span><span>${label}</span></button>`).join('')}</div></div>`;
+  }
+  function renamePup(pup, done) {
+    const o = state.pups[pup.id];
+    const sheet = openModal(`<p class="eyebrow">${pup.breed}</p>
+      <div class="detail-art r-${pup.rarity}">${Pups.renderPup(pup)}</div>
+      <label class="rename"><span>New name</span><input id="pup-name" type="text" maxlength="${Pups.NAME_MAX}" autocomplete="off" autocapitalize="words" spellcheck="false" value="${pup.name}"></label>
+      <p class="go-sub">Up to ${Pups.NAME_MAX} letters. ${pup.baseName}'s breed stays the same.</p>
+      <div class="stack"><button type="button" class="btn" data-act="save">Save name</button>
+        ${o.name ? `<button type="button" class="btn ghost" data-act="reset">Back to ${pup.baseName}</button>` : ''}
+        <button type="button" class="btn ghost" data-act="cancel">Cancel</button></div>`);
+    const input = sheet.querySelector('#pup-name');
+    setTimeout(() => { input.focus(); input.select(); }, 50);
+    const saveName = () => {
+      const name = Pups.cleanName(input.value);
+      if (!name) { sfx.nope(); input.focus(); return; }
+      if (name === pup.baseName) delete o.name; else o.name = name;
+      sfx.woof(); haptic('LIGHT');
+      track('pup_renamed', { pup: pup.id });
+      done();
+      toast(`Say hi to ${pup.name}!`);
+    };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveName(); });
+    sheet.onclick = (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      if (a.dataset.act === 'save') saveName();
+      else if (a.dataset.act === 'reset') { delete o.name; done(); }
+      else done();
+    };
+  }
 
   // ---------------------------------------------------------------- settings
   function openSettings() {
