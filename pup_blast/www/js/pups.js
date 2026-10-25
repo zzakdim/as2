@@ -349,7 +349,7 @@
   const WEAR_BOND = 3; // bond level that lets a pup wear another pup's signature item
   const NAME_MAX = 12;
   // Names go into the page as text and HTML, so markup characters are dropped.
-  function cleanName(s) { return String(s || '').replace(/[<>&"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX); }
+  function cleanName(s) { return String(s || '').replace(/'/g, '’').replace(/[<>&"`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX); }
 
   // Bond: a second track per pup, separate from copies. It grows by playing with that pup as
   // your buddy (and faster by feeding it bones), and each bond level adds a small score bonus.

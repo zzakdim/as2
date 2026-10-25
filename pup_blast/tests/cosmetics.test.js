@@ -13,7 +13,7 @@ test('names are cleaned: no markup, trimmed, capped', () => {
   assert.strictEqual(Pups.cleanName('  Nugget  '), 'Nugget');
   assert.strictEqual(Pups.cleanName('<img src=x onerror=alert(1)>'), 'img src=x on');
   assert.strictEqual(Pups.cleanName('Sir   Wigglesworth III'), 'Sir Wigglesw');
-  assert.strictEqual(Pups.cleanName('a&b"c\'d`e'), 'abcde');
+  assert.strictEqual(Pups.cleanName('a&b"c\'d`e'), 'abc’de');
   assert.strictEqual(Pups.cleanName(''), '');
 });
 

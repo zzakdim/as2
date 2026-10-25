@@ -124,6 +124,7 @@
   const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function show(name) {
     screens.forEach((s) => { $('#screen-' + s).hidden = s !== name; });
+    if (state.tutorial.done && coachOpts) coachHide(); // the goodbye bubble doesn't follow you around
     const el = $('#screen-' + name);
     el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
     if (name === 'home') renderHome();
@@ -192,6 +193,8 @@
     Object.defineProperty(p, 'name', { configurable: true, get: () => (state.pups[p.id] && state.pups[p.id].name) || base });
   });
   // What a pup is wearing, for renderPup: a signature item it was given, or 'none' for bare-headed.
+  // Level 1 greets the starter by whatever the player named him.
+  { const first = Levels.WORLDS[0].levels[0]; if (/Mochi/.test(first.name)) { const t = first.name; Object.defineProperty(first, 'name', { configurable: true, get: () => t.replace('Mochi', Pups.BY_ID[Pups.STARTER_ID].name) }); } }
   window.PB.wearFor = (p) => (state.pups[p.id] && state.pups[p.id].wear) || null;
   const ownsCosmetic = (c) => !!state.pups[c.from];
   const pct = (b) => `+${Math.round(b * 100)}%`;
@@ -265,7 +268,7 @@
     const el = document.createElement('div');
     el.className = 'wipe';
     if (world) el.dataset.world = world;
-    el.innerHTML = `<div class="wipe-card">${html}</div>`;
+    el.innerHTML = `<div class="wipe-fill"></div><div class="wipe-card">${html}</div>`;
     let skip = null;
     el.addEventListener('click', () => skip && skip());
     document.body.appendChild(el);
@@ -818,7 +821,7 @@
          ${nextMilestone ? `<p class="go-sub">Reach ${nextMilestone[0].toLocaleString()} for a ${nextMilestone[1]}-bone prize</p>` : ''}`);
     const sheet = openModal(`
       ${head}
-      ${bones > 0 ? `<p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> bones</p>` : ''}
+      ${bones > 0 ? `<p class="go-bones">${BONE_SVG}<span>+${bones.toLocaleString()}</span> ${bones === 1 ? 'bone' : 'bones'}</p>` : ''}
       <div class="stack">
         ${run.revived || !state.tutorial.done ? '' : '<button type="button" class="btn ad" data-act="revive"><span class="ad-chip">AD</span>Keep playing</button>'}
         ${run.doubled || bones <= 0 || !state.tutorial.done ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
@@ -955,7 +958,7 @@
     show('map');
     const nxt = Levels.next(lvl);
     const tutorial = !state.tutorial.done && state.tutorial.step === TUT.POSTRUN;
-    const lines = [...(bones > 0 ? [`+${bones.toLocaleString()} bones`] : []), ...sum.rewards];
+    const lines = [...(bones > 0 ? [`+${bones.toLocaleString()} ${bones === 1 ? 'bone' : 'bones'}`] : []), ...sum.rewards];
     if (sum.sweep) lines.push(`Every level at 3 stars! A crown for this world and a free Epic ${verb().toLowerCase()}`);
     const sheet = openModal(`
       <div class="res-buddy ${sum.got ? 'happy' : 'sad'}" aria-hidden="true">${Pups.renderPup(Pups.BY_ID[state.buddy], { plain: true })}</div>
@@ -1666,7 +1669,9 @@
     track('tutorial_skipped', {});
   });
 
-  function setStep(n) { state.tutorial.step = n; save(); track('tutorial_step', { step: n }); }
+  function setStep(n) { if (state.tutorial.done) return; state.tutorial.step = n; save(); track('tutorial_step', { step: n }); }
+  // Tutorial timers only act on the run that started them, and never after the tutorial is done or skipped.
+  const tutLater = (ms, fn) => { const thisRun = run; setTimeout(() => { if (run === thisRun && !state.tutorial.done) fn(); }, ms); };
   function finishTutorial() { state.tutorial.done = true; save(); coachHide(); track('tutorial_done', {}); setTimeout(startAds, 800); }
 
   function startTutorial() {
@@ -1716,21 +1721,21 @@
     run.tutTarget = null; run.tutLock = true;
     coachHide();
     if (step === TUT.PLACE) {
-      setTimeout(() => coachShow({ text: 'Full rows and columns clear!' }), 350);
-      setTimeout(() => { setStep(TUT.DOUBLE); if (run && run.tut) setupTutorialStep(TUT.DOUBLE); }, 2000);
+      tutLater(350, () => coachShow({ text: 'Full rows and columns clear!' }));
+      tutLater(2000, () => { setStep(TUT.DOUBLE); if (run && run.tut) setupTutorialStep(TUT.DOUBLE); });
     } else if (step === TUT.DOUBLE) {
-      setTimeout(() => coachShow({ text: 'Two lines at once means bonus points. And that bone? Bones buy digs!' }), 350);
-      setTimeout(() => { setStep(TUT.POWER); if (run && run.tut) setupTutorialStep(TUT.POWER); }, 2800);
+      tutLater(350, () => coachShow({ text: 'Two lines at once means bonus points. And that bone? Bones buy digs!' }));
+      tutLater(2800, () => { setStep(TUT.POWER); if (run && run.tut) setupTutorialStep(TUT.POWER); });
     }
   }
 
   function tutorialAfterPower() {
     run.tutLock = true;
     coachHide();
-    setTimeout(() => coachShow({
+    tutLater(700, () => coachShow({
       text: "That's it! Clear lines to make room. The run ends when nothing fits.", next: "Let's play",
-      onNext: () => { setStep(TUT.POSTRUN); startRun({ level: Levels.WORLDS[0].levels[0] }); },
-    }), 700);
+      onNext: () => { if (state.tutorial.done) return; setStep(TUT.POSTRUN); startRun({ level: Levels.WORLDS[0].levels[0] }); },
+    }));
   }
 
   function tutorialOnShow(name) {
@@ -1738,6 +1743,7 @@
     // The free dig was spent but the app closed before its reveal finished: move on.
     if (state.tutorial.step === TUT.DIG && Object.keys(state.pups).length > 1) setStep(TUT.KENNEL);
     const step = state.tutorial.step;
+    if (step >= TUT.KENNEL) { finishTutorial(); return; }
     if (step < TUT.POSTRUN) return;
     if (name === 'game') { coachHide(); return; }
     if (name === 'home' && (step === TUT.POSTRUN || step === TUT.DIG)) {
@@ -1751,11 +1757,10 @@
 
   function tutorialAfterReveal() {
     if (state.tutorial.done || state.tutorial.step !== TUT.DIG) return;
+    // The tutorial is done once the first dig is revealed; the last message is just a goodbye.
     setStep(TUT.KENNEL);
-    coachShow({
-      text: 'Your pups live in the Kennel. Your buddy brings its power into every run. Have fun!', next: 'Got it',
-      onNext: () => finishTutorial(),
-    });
+    finishTutorial();
+    coachShow({ text: 'Your pups live in the Kennel. Your buddy brings its power into every run. Have fun!', next: 'Got it' });
   }
 
   // ---------------------------------------------------------------- developer tools
