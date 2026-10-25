@@ -49,6 +49,7 @@ DIG UP PUPPIES
 • Rare, Epic and Legendary pups with bigger powers
 • Every extra copy levels your pup up for more charges per game
 • Build a bond with your buddy as you play for a score bonus
+• Name your pups and dress them up with signature items from Epic and Legendary pups
 
 200 LEVELS, 5 WORLDS
 • Living Room, Dog Park, Beach, Snowy Hill and the Autumn Backyard
