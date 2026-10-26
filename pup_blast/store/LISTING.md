@@ -103,11 +103,11 @@ Create these in App Store Connect → your app → Game Center. The IDs must mat
 
 | Reference name | Leaderboard ID | Type | Score format | Sort | Score range |
 |---|---|---|---|---|---|
-| Endless all time | `com.bonepile.pupblast.endless` | Classic | Integer | High to low | 0 – 500,000 |
-| Endless this week | `com.bonepile.pupblast.endless.weekly` | Recurring, every 7 days, starting a Monday | Integer | High to low | 0 – 500,000 |
+| Endless all time | `com.bonepile.pupblast.endless` | Classic | Integer | High to low | 0 – 100,000,000 |
+| Endless this week | `com.bonepile.pupblast.endless.weekly` | Recurring, every 7 days, starting a Monday | Integer | High to low | 0 – 100,000,000 |
 | Total stars | `com.bonepile.pupblast.stars` | Classic | Integer | High to low | 0 – 600 |
 
-The score range rejects obviously faked scores. Display names: "Endless: All Time", "Endless: This Week", "Total Stars".
+The score range only rejects obviously faked scores; Game Center silently drops anything above the max, so the Endless cap is generous (combos stack with no limit). Stars top out at exactly 600 (200 levels x 3). Display names: "Endless: All Time", "Endless: This Week", "Total Stars".
 
 ## Age rating
 
