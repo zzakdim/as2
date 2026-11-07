@@ -84,7 +84,11 @@
   };
   const ads = {
     interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.interstitial())),
-    rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.rewarded())),
+    rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.rewarded()).then((ok) => {
+      // Say so when there was nothing to watch, instead of the button silently doing nothing.
+      if (!ok && adProvider.lastFailed()) { toast('No video ready right now. Try again in a bit!'); track('ad_unavailable', { kind: 'rewarded' }); }
+      return ok;
+    })),
   };
   // Remove Ads purchase. StoreKit is the source of truth in the app; the saved flag covers offline starts.
   const store = Store.createStore(document);

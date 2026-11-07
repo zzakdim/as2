@@ -23,3 +23,30 @@ test('Remove Ads stops interstitials', () => {
   state.settings.noAds = false;
   assert.strictEqual(Ads.canShowInterstitial(state, Date.now()), true);
 });
+
+test('a rewarded ad with nothing to show reports it, so the game can say so', async () => {
+  const listeners = {};
+  const AdMob = {
+    requestConsentInfo: async () => ({ status: 'NOT_REQUIRED', canRequestAds: true }),
+    trackingAuthorizationStatus: async () => ({ status: 'authorized' }),
+    initialize: async () => {},
+    prepareInterstitial: async () => {},
+    prepareRewardVideoAd: async () => {},
+    addListener: (ev, fn) => { listeners[ev] = fn; return { remove() {} }; },
+    showRewardVideoAd: async () => { throw new Error('no ad loaded'); }, // AdMob had no ad to fill
+  };
+  globalThis.Capacitor = { isNativePlatform: () => true, Plugins: { AdMob } };
+  try {
+    const ads = Ads.createProvider(null, () => false);
+    assert.strictEqual(ads.kind, 'admob');
+    await ads.init();
+    assert.strictEqual(await ads.rewarded(), false);
+    assert.strictEqual(ads.lastFailed(), true);
+    // A filled ad that's watched to the end clears it.
+    AdMob.showRewardVideoAd = async () => { listeners.onRewardedVideoAdReward(); listeners.onRewardedVideoAdDismissed(); };
+    assert.strictEqual(await ads.rewarded(), true);
+    assert.strictEqual(ads.lastFailed(), false);
+  } finally {
+    delete globalThis.Capacitor;
+  }
+});

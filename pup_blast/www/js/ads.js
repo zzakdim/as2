@@ -49,6 +49,7 @@
   function createAdMobProvider(AdMob, testAds) {
     let ready = false;
     let privacyRequired = false;
+    let lastFailed = false; // the last ad couldn't be shown (none loaded yet, or no ad to fill it)
     let units = UNITS;
     const prepInterstitial = () => AdMob.prepareInterstitial({ adId: units.interstitial }).catch(() => {});
     const prepRewarded = () => AdMob.prepareRewardVideoAd({ adId: units.rewarded }).catch(() => {});
@@ -98,18 +99,23 @@
       // Resolves after the ad closes. The next ad is loaded only then: loading while one is on screen
       // would be thrown away by the plugin when the shown ad is dismissed.
       async interstitial() {
+        lastFailed = !ready;
         if (!ready) return false;
         const r = await showAndWait(() => AdMob.showInterstitial(), { dismissed: 'interstitialAdDismissed', failed: 'interstitialAdFailedToShow' });
+        lastFailed = !r.shown;
         prepInterstitial();
         return r.shown;
       },
       // Resolves true only if the player watched to the reward, after the ad closes.
       async rewarded() {
+        lastFailed = !ready;
         if (!ready) return false;
         const r = await showAndWait(() => AdMob.showRewardVideoAd(), { reward: 'onRewardedVideoAdReward', dismissed: 'onRewardedVideoAdDismissed', failed: 'onRewardedVideoAdFailedToShow' });
+        lastFailed = !r.shown;
         prepRewarded();
         return r.earned;
       },
+      lastFailed: () => lastFailed,
       privacyOptionsRequired: () => privacyRequired,
       async showPrivacyOptions() {
         try { await AdMob.showPrivacyOptionsForm(); } catch (e) { /* form unavailable */ }
@@ -157,6 +163,7 @@
       async init() {},
       interstitial: () => show('interstitial', 3),
       rewarded: () => show('rewarded', 4),
+      lastFailed: () => false,
       privacyOptionsRequired: () => false,
       async showPrivacyOptions() {},
     };
