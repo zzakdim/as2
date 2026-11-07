@@ -52,10 +52,14 @@
   }
 
   // ---- State ---------------------------------------------------------------
-  // { cups: string[], cap, mode, orders?: string[], slots?, next?: int, open?: [{i, filled}] }
+  // { cups: string[], caps: int[] (per-cup size), cap (standard cup size), mode,
+  //   orders?: string[], slots?, next?: int, open?: [{i, filled}] }
+
+  const capOf = (s, i) => s.caps[i];
 
   function initState(level) {
     const s = { cups: level.cups.slice(), cap: level.cap || 4, mode: level.mode || 'sort' };
+    s.caps = level.caps ? level.caps.slice() : s.cups.map(() => s.cap);
     if (s.mode === 'orders') {
       s.orders = level.orders.slice();
       s.slots = level.slots || 2;
@@ -71,7 +75,7 @@
   }
 
   function clone(s) {
-    const c = { ...s, cups: s.cups.slice() };
+    const c = { ...s, cups: s.cups.slice(), caps: s.caps.slice() };
     if (s.open) c.open = s.open.map((o) => ({ ...o }));
     return c;
   }
@@ -89,7 +93,7 @@
       for (let j = 0; j < s.cups.length; j++) {
         if (i === j) continue;
         const dst = s.cups[j];
-        if (!accepts(dst, t, s.cap)) continue;
+        if (!accepts(dst, t, capOf(s, j))) continue;
         if (uniform && !dst.length) continue; // pointless: moving a pure cup into an empty one
         moves.push([i, j]);
       }
@@ -111,7 +115,7 @@
     const run = topRun(src);
     let amount;
     if (typeof j === 'number') {
-      amount = Math.min(run, n.cap - n.cups[j].length);
+      amount = Math.min(run, capOf(n, j) - n.cups[j].length);
       n.cups[j] = addToCup(n.cups[j], t, amount);
     } else {
       const k = +j.slice(1);
@@ -131,13 +135,15 @@
     return n;
   }
 
+  // Sort win: every non-empty cup holds exactly one standard cup's worth (s.cap) of a single
+  // ingredient. Bonus vials smaller than s.cap must therefore end up empty.
   function isWon(s) {
     if (s.mode === 'orders') return s.open.length === 0 && s.next === s.orders.length;
     return s.cups.every((c) => !c.length || (c.length === s.cap && topRun(c) === c.length));
   }
 
   function key(s) {
-    let k = s.cups.slice().sort().join('|');
+    let k = s.cups.map((c, i) => s.caps[i] + ':' + c).sort().join('|');
     if (s.mode === 'orders') k += '#' + s.next + ':' + s.open.map((o) => o.i + '.' + o.filled).join(',');
     return k;
   }
@@ -207,7 +213,15 @@
     return Math.round((100 * stuck) / runs);
   }
 
-  const api = { FLAVORS, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
+  // Bonus vial (e.g. reward for watching an ad): an extra empty cup of the given size.
+  function addVial(s, size) {
+    const n = clone(s);
+    n.cups.push('');
+    n.caps.push(size);
+    return n;
+  }
+
+  const api = { FLAVORS, addVial, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Boba = api;
 })(typeof window !== 'undefined' ? window : globalThis);

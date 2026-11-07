@@ -23,13 +23,20 @@
   .counter { display: flex; gap: 12px; justify-content: center; padding: 10px 0; flex-wrap: wrap; }
   .counter .label { width: 100%; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
   .queue { display:flex; gap:6px; justify-content:center; width:100%; color: var(--muted); font-size: 12px; }
-  .board { flex: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 14px 12px; padding: 12px 0; }
-  .cup { position: relative; width: 54px; height: 150px; border: 2.5px solid var(--glass-edge); border-top: none;
+  .board { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 14px 12px; padding: 12px 0; }
+  .cup { position: relative; width: 54px; height: calc(var(--cap) * 34px + 14px); border: 2.5px solid var(--glass-edge); border-top: none;
     border-radius: 6px 6px 22px 22px; background: var(--glass); display: flex; flex-direction: column-reverse;
     padding: 4px; gap: 2px; overflow: hidden; cursor: pointer; transition: transform .15s; }
   .cup.sel { transform: translateY(-14px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(201,167,255,.35); }
   .cup.hint { border-color: var(--warn); box-shadow: 0 0 0 3px rgba(255,207,122,.4); }
   .cup.done { border-color: var(--good); }
+  .cup.vial { width: 44px; border-color: rgba(201,167,255,.75); border-radius: 4px 4px 18px 18px; background: rgba(201,167,255,.10); }
+  .cup.vial.sel { border-color: var(--accent); }
+  .vialtag { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); }
+  .slot { position: relative; padding-top: 18px; }
+  #vial { border-color: var(--accent); }
+  body:not(.dev) .dev-only { display: none; }
+  .devbadge { font-size: 11px; color: var(--warn); border: 1px solid var(--warn); border-radius: 8px; padding: 1px 6px; }
   .order { width: 46px; height: 120px; border-style: dashed; cursor: pointer; }
   .layer { flex: 0 0 calc((100% - 6px) / var(--cap)); border-radius: 4px; position: relative; }
   .layer.ghost { opacity: .22; outline: 1.5px dashed rgba(255,255,255,.6); outline-offset: -2px; }
@@ -49,6 +56,7 @@
 <body>
 <header>
   <h1>🧋 Magic Boba</h1>
+  <span class="devbadge dev-only">DEV</span>
   <select id="pick" aria-label="Level"></select>
 </header>
 <div class="meta" id="meta"></div>
@@ -58,7 +66,8 @@
 <div class="tray">
   <button id="undo">↶ Undo</button>
   <button id="restart">⟲ Restart</button>
-  <button id="hint">✨ Hint</button>
+  <button id="vial">📺 + Vial</button>
+  <button id="hint" class="dev-only">✨ Hint</button>
   <button id="nextBtn">Next ›</button>
 </div>
 <div class="win" id="win"><div>
@@ -68,12 +77,26 @@
   <button id="winNext">Next level ›</button>
 </div></div>
 
+<div class="win" id="ad"><div>
+  <h2>📺 Ad break</h2>
+  <p>A rewarded ad plays here.<br>Watch it to get a <b id="adSize"></b>.</p>
+  <div class="stars" id="adCount"></div>
+  <button id="adCancel">No thanks</button>
+</div></div>
+
 <script src="engine.js"></script>
 <script src="levels.js"></script>
 <script>
 const { FLAVORS } = Boba;
 const CUSTOMERS = ['🐸','👻','🐉','🦊','🧙','🐈‍⬛','🦉','🍄'];
-let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [];
+let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [], vialsUsed = 0, adTimer = null;
+// Bonus vial sizes, one per ad watched in a level. Tunable per level via `bonusVials`.
+const vialSizes = () => level.bonusVials || [2, 3, 4];
+// Dev mode (open the page with #dev): shows Hint, difficulty stats, and skips the ad wait.
+const isDev = () => location.hash === '#dev';
+const syncDev = () => document.body.classList.toggle('dev', isDev());
+window.addEventListener('hashchange', () => { syncDev(); render(); });
+syncDev();
 
 const $ = (id) => document.getElementById(id);
 const pick = $('pick');
@@ -82,8 +105,9 @@ pick.onchange = () => load(+pick.value);
 
 function load(i) {
   idx = i; pick.value = i; level = LEVELS[i];
-  state = Boba.initState(level); history = []; sel = null; moves = 0; hintCups = [];
+  state = Boba.initState(level); history = []; sel = null; moves = 0; hintCups = []; vialsUsed = 0;
   $('win').classList.remove('show');
+  clearInterval(adTimer); $('ad').classList.remove('show');
   try { localStorage.setItem('boba.level', i); } catch {}
   render();
 }
@@ -98,7 +122,8 @@ function layerEl(code, ghost) {
 
 function render() {
   const s = level.stats;
-  $('meta').innerHTML = `<b>${level.world}</b> — ${level.note}<br>Moves <b>${moves}</b> · best possible <b>${s.optimal}</b> · random-play stuck rate ${s.randomPlayStuckPct}%`;
+  $('meta').innerHTML = `<b>${level.world}</b> — ${level.note}<br>Moves <b>${moves}</b> · best possible <b>${s.optimal}</b>` +
+    (isDev() ? ` · stuck rate ${s.randomPlayStuckPct}% · branching ${s.branching}` : '');
 
   // Counter (orders mode)
   const counter = $('counter');
@@ -127,17 +152,25 @@ function render() {
   state.cups.forEach((c, i) => {
     const cup = document.createElement('div');
     const done = state.mode === 'sort' && c.length === state.cap && Boba.topRun(c) === c.length;
-    cup.className = 'cup' + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '');
-    cup.style.setProperty('--cap', state.cap);
+    const isVial = i >= level.cups.length;
+    cup.className = 'cup' + (isVial ? ' vial' : '') + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '');
+    cup.style.setProperty('--cap', state.caps[i]);
     [...c].forEach((code) => cup.appendChild(layerEl(code)));
     cup.onclick = () => tap(i);
-    board.appendChild(cup);
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    if (isVial) slot.insertAdjacentHTML('beforeend', `<div class="vialtag">✦ ${state.caps[i]}</div>`);
+    slot.appendChild(cup);
+    board.appendChild(slot);
   });
 
   // Legend: only ingredients in this level
   const used = new Set((level.cups.join('') + (level.orders || []).join('')).split(''));
   $('legend').innerHTML = [...used].sort().map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c==='P'?' (sinks)':''}</span>`).join('');
   $('undo').disabled = !history.length;
+  const sizes = vialSizes();
+  $('vial').disabled = vialsUsed >= sizes.length;
+  $('vial').textContent = vialsUsed < sizes.length ? `📺 +${sizes[vialsUsed]}-layer vial` : 'No vials left';
 }
 
 function tap(target) {
@@ -170,12 +203,33 @@ function win() {
   const opt = level.stats.optimal;
   const stars = moves <= opt ? 3 : moves <= Math.ceil(opt * 1.4) ? 2 : 1;
   $('stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
-  $('winText').textContent = `${moves} moves (best possible: ${opt})`;
+  $('winText').textContent = `${moves} moves (best possible: ${opt})` + (vialsUsed ? ` · ${vialsUsed} bonus vial${vialsUsed > 1 ? 's' : ''}` : '');
   $('win').classList.add('show');
 }
 
 $('undo').onclick = () => { if (history.length) { state = history.pop(); moves--; sel = null; hintCups = []; render(); } };
 $('restart').onclick = () => load(idx);
+
+// Rewarded-ad flow (simulated). The vial is added to every undo step too, so Undo never takes it back.
+function grantVial() {
+  const size = vialSizes()[vialsUsed++];
+  state = Boba.addVial(state, size);
+  history = history.map((h) => Boba.addVial(h, size));
+  render();
+}
+$('vial').onclick = () => {
+  if (vialsUsed >= vialSizes().length) return;
+  if (isDev()) return grantVial();
+  let t = 3;
+  $('adSize').textContent = `${vialSizes()[vialsUsed]}-layer vial`;
+  $('adCount').textContent = t;
+  $('ad').classList.add('show');
+  adTimer = setInterval(() => {
+    t--; $('adCount').textContent = t;
+    if (t <= 0) { clearInterval(adTimer); $('ad').classList.remove('show'); grantVial(); }
+  }, 1000);
+};
+$('adCancel').onclick = () => { clearInterval(adTimer); $('ad').classList.remove('show'); };
 $('nextBtn').onclick = $('winNext').onclick = () => load((idx + 1) % LEVELS.length);
 $('hint').onclick = () => {
   const sol = Boba.solve(level, 200000, state);
