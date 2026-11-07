@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Magic Boba – Test Levels</title>
+<style>
+  :root {
+    --bg: #1e1830; --panel: #2a2242; --text: #f3eefc; --muted: #a99cc8;
+    --accent: #c9a7ff; --glass: rgba(255,255,255,.10); --glass-edge: rgba(255,255,255,.45);
+    --good: #8ee0a6; --warn: #ffcf7a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: radial-gradient(120% 80% at 50% 0%, #3a2b5c 0%, var(--bg) 60%); color: var(--text);
+    font: 15px/1.4 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; }
+  body { display: flex; flex-direction: column; min-height: 100%; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom); }
+  header { display: flex; align-items: center; gap: 8px; padding: 12px 0 4px; }
+  header h1 { font-size: 18px; margin: 0; flex: 1; }
+  select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid #4a3d70; border-radius: 12px; padding: 8px 12px; }
+  button:active { transform: scale(.96); }
+  .meta { color: var(--muted); font-size: 13px; min-height: 2.8em; }
+  .meta b { color: var(--text); }
+  .counter { display: flex; gap: 12px; justify-content: center; padding: 10px 0; flex-wrap: wrap; }
+  .counter .label { width: 100%; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+  .queue { display:flex; gap:6px; justify-content:center; width:100%; color: var(--muted); font-size: 12px; }
+  .board { flex: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 14px 12px; padding: 12px 0; }
+  .cup { position: relative; width: 54px; height: 150px; border: 2.5px solid var(--glass-edge); border-top: none;
+    border-radius: 6px 6px 22px 22px; background: var(--glass); display: flex; flex-direction: column-reverse;
+    padding: 4px; gap: 2px; overflow: hidden; cursor: pointer; transition: transform .15s; }
+  .cup.sel { transform: translateY(-14px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(201,167,255,.35); }
+  .cup.hint { border-color: var(--warn); box-shadow: 0 0 0 3px rgba(255,207,122,.4); }
+  .cup.done { border-color: var(--good); }
+  .order { width: 46px; height: 120px; border-style: dashed; cursor: pointer; }
+  .layer { flex: 0 0 calc((100% - 6px) / var(--cap)); border-radius: 4px; position: relative; }
+  .layer.ghost { opacity: .22; outline: 1.5px dashed rgba(255,255,255,.6); outline-offset: -2px; }
+  .layer.P { background-image: radial-gradient(circle at 25% 35%, #4b3434 18%, transparent 20%), radial-gradient(circle at 70% 30%, #4b3434 18%, transparent 20%),
+      radial-gradient(circle at 45% 75%, #4b3434 18%, transparent 20%), radial-gradient(circle at 85% 80%, #4b3434 16%, transparent 18%); }
+  .cust { text-align: center; font-size: 22px; }
+  .tray { display: flex; gap: 8px; justify-content: center; padding: 10px 0 18px; flex-wrap: wrap; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 12px; justify-content:center; color: var(--muted); font-size: 12px; padding-bottom: 8px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+  .win { position: fixed; inset: 0; display: none; place-items: center; background: rgba(20,14,34,.75); backdrop-filter: blur(4px); }
+  .win.show { display: grid; }
+  .win > div { background: var(--panel); border-radius: 20px; padding: 24px 28px; text-align: center; max-width: 320px; }
+  .win h2 { margin: 0 0 6px; }
+  .stars { font-size: 28px; letter-spacing: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧋 Magic Boba</h1>
+  <select id="pick" aria-label="Level"></select>
+</header>
+<div class="meta" id="meta"></div>
+<div class="counter" id="counter" hidden></div>
+<div class="board" id="board"></div>
+<div class="legend" id="legend"></div>
+<div class="tray">
+  <button id="undo">↶ Undo</button>
+  <button id="restart">⟲ Restart</button>
+  <button id="hint">✨ Hint</button>
+  <button id="nextBtn">Next ›</button>
+</div>
+<div class="win" id="win"><div>
+  <h2>Served! 🎉</h2>
+  <div class="stars" id="stars"></div>
+  <p id="winText"></p>
+  <button id="winNext">Next level ›</button>
+</div></div>
+
+<script src="engine.js"></script>
+<script src="levels.js"></script>
+<script>
+const { FLAVORS } = Boba;
+const CUSTOMERS = ['🐸','👻','🐉','🦊','🧙','🐈‍⬛','🦉','🍄'];
+let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [];
+
+const $ = (id) => document.getElementById(id);
+const pick = $('pick');
+LEVELS.forEach((l, i) => pick.add(new Option(`${l.id} · ${l.title}`, i)));
+pick.onchange = () => load(+pick.value);
+
+function load(i) {
+  idx = i; pick.value = i; level = LEVELS[i];
+  state = Boba.initState(level); history = []; sel = null; moves = 0; hintCups = [];
+  $('win').classList.remove('show');
+  try { localStorage.setItem('boba.level', i); } catch {}
+  render();
+}
+
+function layerEl(code, ghost) {
+  const d = document.createElement('div');
+  d.className = 'layer ' + code + (ghost ? ' ghost' : '');
+  d.style.backgroundColor = FLAVORS[code].color; // keep CSS background-image (pearl dots)
+  d.title = FLAVORS[code].name;
+  return d;
+}
+
+function render() {
+  const s = level.stats;
+  $('meta').innerHTML = `<b>${level.world}</b> — ${level.note}<br>Moves <b>${moves}</b> · best possible <b>${s.optimal}</b> · random-play stuck rate ${s.randomPlayStuckPct}%`;
+
+  // Counter (orders mode)
+  const counter = $('counter');
+  counter.hidden = state.mode !== 'orders';
+  counter.innerHTML = '';
+  if (state.mode === 'orders') {
+    counter.insertAdjacentHTML('beforeend', '<div class="label">Counter</div>');
+    state.open.forEach((o, k) => {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<div class="cust">${CUSTOMERS[o.i % CUSTOMERS.length]}</div>`;
+      const cup = document.createElement('div');
+      cup.className = 'cup order' + (hintCups.includes('o' + k) ? ' hint' : '');
+      cup.style.setProperty('--cap', level.orders[o.i].length);
+      [...level.orders[o.i]].forEach((c, n) => cup.appendChild(layerEl(c, n >= o.filled)));
+      cup.onclick = () => tap('o' + k);
+      wrap.appendChild(cup);
+      counter.appendChild(wrap);
+    });
+    const waiting = state.orders.length - state.next;
+    counter.insertAdjacentHTML('beforeend', `<div class="queue">${waiting ? 'In queue: ' + state.orders.slice(state.next).map((o,n)=>CUSTOMERS[(state.next+n)%CUSTOMERS.length]).join(' ') : 'No one else waiting'}</div>`);
+  }
+
+  // Play cups
+  const board = $('board');
+  board.innerHTML = '';
+  state.cups.forEach((c, i) => {
+    const cup = document.createElement('div');
+    const done = state.mode === 'sort' && c.length === state.cap && Boba.topRun(c) === c.length;
+    cup.className = 'cup' + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '');
+    cup.style.setProperty('--cap', state.cap);
+    [...c].forEach((code) => cup.appendChild(layerEl(code)));
+    cup.onclick = () => tap(i);
+    board.appendChild(cup);
+  });
+
+  // Legend: only ingredients in this level
+  const used = new Set((level.cups.join('') + (level.orders || []).join('')).split(''));
+  $('legend').innerHTML = [...used].sort().map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c==='P'?' (sinks)':''}</span>`).join('');
+  $('undo').disabled = !history.length;
+}
+
+function tap(target) {
+  hintCups = [];
+  if (typeof target === 'string') { // order cup: only valid as a destination
+    if (sel !== null) tryMove([sel, target]);
+    return;
+  }
+  if (sel === null) { if (state.cups[target].length) sel = target; render(); return; }
+  if (sel === target) { sel = null; render(); return; }
+  if (!tryMove([sel, target])) { sel = state.cups[target].length ? target : null; render(); }
+}
+
+function tryMove(m) {
+  const legal = Boba.legalMoves(state).some(([a, b]) => a === m[0] && b === m[1]);
+  // allow "pointless" pure-cup -> empty-cup moves for the player even though the solver prunes them
+  const src = state.cups[m[0]], dst = typeof m[1] === 'number' ? state.cups[m[1]] : null;
+  const pointless = dst !== null && !dst.length && src.length && Boba.topRun(src) === src.length;
+  if (!legal && !pointless) { buzz(); return false; }
+  history.push(state); state = Boba.applyMove(state, m); moves++; sel = null;
+  try { navigator.vibrate && navigator.vibrate(10); } catch {}
+  render();
+  if (Boba.isWon(state)) setTimeout(win, 250);
+  return true;
+}
+
+function buzz() { const b = $('board'); b.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}], {duration:180}); }
+
+function win() {
+  const opt = level.stats.optimal;
+  const stars = moves <= opt ? 3 : moves <= Math.ceil(opt * 1.4) ? 2 : 1;
+  $('stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+  $('winText').textContent = `${moves} moves (best possible: ${opt})`;
+  $('win').classList.add('show');
+}
+
+$('undo').onclick = () => { if (history.length) { state = history.pop(); moves--; sel = null; hintCups = []; render(); } };
+$('restart').onclick = () => load(idx);
+$('nextBtn').onclick = $('winNext').onclick = () => load((idx + 1) % LEVELS.length);
+$('hint').onclick = () => {
+  const sol = Boba.solve(level, 200000, state);
+  if (sol.solvable && sol.path.length) { hintCups = sol.path[0]; sel = null; render(); }
+  else { $('meta').insertAdjacentHTML('beforeend', '<br><b style="color:var(--warn)">Stuck! Undo or restart.</b>'); }
+};
+
+let start = 0; try { start = +localStorage.getItem('boba.level') || 0; } catch {}
+load(Math.min(start, LEVELS.length - 1));
+</script>
+</body>
+</html>
