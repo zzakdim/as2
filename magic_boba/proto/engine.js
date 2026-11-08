@@ -221,7 +221,35 @@
     return n;
   }
 
-  const api = { FLAVORS, addVial, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
+  // "Casual player" model, closer to a person than pure random play:
+  //  - prefers productive pours (onto the same flavour, or into an order cup) ~75% of the time
+  //  - looks one move ahead and avoids moves that leave no fresh moves at all
+  // Returns the % of playthroughs that get stuck without any bonus vials.
+  function casualStuckRate(level, runs = 200, rng = Math.random) {
+    let stuck = 0;
+    for (let r = 0; r < runs; r++) {
+      let s = initState(level);
+      const seen = new Set([key(s)]);
+      let ok = false;
+      for (let step = 0; step < 200; step++) {
+        if (isWon(s)) { ok = true; break; }
+        let opts = legalMoves(s)
+          .map((m) => ({ m, n: applyMove(s, m) }))
+          .filter((o) => !seen.has(key(o.n)));
+        if (!opts.length) break;
+        const alive = opts.filter((o) => isWon(o.n) || legalMoves(o.n).some((m2) => !seen.has(key(applyMove(o.n, m2)))));
+        if (alive.length) opts = alive;
+        const productive = opts.filter(({ m }) => typeof m[1] === 'string' || s.cups[m[1]].length > 0);
+        const pool = productive.length && rng() < 0.75 ? productive : opts;
+        s = pool[Math.floor(rng() * pool.length)].n;
+        seen.add(key(s));
+      }
+      if (!ok) stuck++;
+    }
+    return Math.round((100 * stuck) / runs);
+  }
+
+  const api = { FLAVORS, addVial, casualStuckRate, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Boba = api;
 })(typeof window !== 'undefined' ? window : globalThis);

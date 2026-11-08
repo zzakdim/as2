@@ -123,7 +123,7 @@ function layerEl(code, ghost) {
 function render() {
   const s = level.stats;
   $('meta').innerHTML = `<b>${level.world}</b> — ${level.note}<br>Moves <b>${moves}</b> · best possible <b>${s.optimal}</b>` +
-    (isDev() ? ` · stuck rate ${s.randomPlayStuckPct}% · branching ${s.branching}` : '');
+    (isDev() ? ` · ${level.tier} · casual stuck ${s.casualStuckPct ?? '?'}% (random ${s.randomPlayStuckPct}%) · branching ${s.branching}` : '');
 
   // Counter (orders mode)
   const counter = $('counter');

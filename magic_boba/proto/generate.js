@@ -4,7 +4,8 @@
 // optimal solution length is closest to the spec's target. Every shipped level is
 // proven solvable by the BFS solver.
 //
-// Usage: node generate.js            -> writes levels.json + levels.js
+// Usage: node generate.js            -> regenerates every level, writes levels.json + levels.js
+//        node generate.js 1-5 C-4   -> regenerates only those levels, keeps the rest
 const fs = require('fs');
 const path = require('path');
 const Boba = require('./engine');
@@ -66,6 +67,10 @@ function buildOrders(spec, r) {
   return { mode: 'orders', cap, cups, orders: spec.orders.slice(), slots: spec.slots || 2 };
 }
 
+// Difficulty tiers: max % of casual-player runs (engine.casualStuckRate) allowed to get stuck
+// with NO bonus vials. Ads should rescue frustration, never be required.
+const STUCK_CAP = { easy: 5, normal: 25, hard: 50 };
+
 const PACK = [
   // ---- World 1 · Cozy Corner — classic sort, no magic --------------------------------
   { id: '1-1', world: 'Cozy Corner', title: 'First Pour', note: 'Tutorial: 3 flavours, 2 spare cups.',
@@ -76,7 +81,7 @@ const PACK = [
     kind: 'sort', colors: ['T', 'M', 'G', 'S', 'B'], empty: 2, target: 12 },
   { id: '1-4', world: 'Cozy Corner', title: 'Full Menu', note: '6 flavours — first real think.',
     kind: 'sort', colors: ['T', 'M', 'G', 'S', 'B', 'R'], empty: 2, target: 15 },
-  { id: '1-5', world: 'Cozy Corner', title: 'One Spare Cup', note: 'Difficulty spike: only 1 empty cup.',
+  { id: '1-5', world: 'Cozy Corner', title: 'One Spare Cup', note: 'Hard level: only 1 empty cup.', tier: 'hard',
     kind: 'sort', colors: ['T', 'M', 'G', 'S'], empty: 1, target: 12 },
 
   // ---- World 2 · Pearl Grotto — pearls sink to the bottom ---------------------------
@@ -90,42 +95,51 @@ const PACK = [
   // ---- Counter mode — customer orders (tests the recipe idea) -----------------------
   { id: 'C-1', world: 'The Counter', title: 'First Customers', note: 'Orders mode: pour into the order cup what it needs next. 2 customers at a time.',
     kind: 'orders', orders: ['TTTT', 'MMMM', 'GGGG'], slots: 2, empty: 0, extraCups: 0, target: 6 },
-  { id: 'C-2', world: 'The Counter', title: 'Pearl Milk Tea', note: 'Recipes with pearls on the bottom.',
+  { id: 'C-2', world: 'The Counter', title: 'Pearl Milk Tea', note: 'Recipes with pearls on the bottom.', tier: 'normal',
     kind: 'orders', orders: ['PTTT', 'PMMM', 'GGGG', 'PSSS'], slots: 2, empty: 0, extraCups: 1, target: 9 },
   { id: 'C-3', world: 'The Counter', title: 'Moon Milk Tea', note: 'Layered recipes: black tea under moon milk.',
     kind: 'orders', orders: ['KKWW', 'PKKK', 'WWWW', 'PKWW', 'TTTT'], slots: 2, empty: 0, extraCups: 1, target: 12 },
-  { id: 'C-4', world: 'The Counter', title: 'Lunch Rush', note: 'Only one customer at a time, long queue.',
-    kind: 'orders', orders: ['PTTT', 'MMMM', 'PGGG', 'SSSS', 'PBBB', 'TTMM'], slots: 1, empty: 0, extraCups: 1, target: 14 },
+  { id: 'C-4', world: 'The Counter', title: 'Lunch Rush', note: 'Long queue of customers.', tier: 'hard',
+    kind: 'orders', orders: ['PTTT', 'MMMM', 'PGGG', 'SSSS', 'PBBB'], slots: 2, empty: 0, extraCups: 1, target: 14, tries: 60 },
 ];
 
 function generate(spec) {
   let best = null;
+  const tier = spec.tier || (/-1$/.test(spec.id) ? 'easy' : 'normal');
+  const cap = STUCK_CAP[tier];
   for (let seed = 1; seed <= (spec.tries || 120); seed++) {
     const r = rng(seed * 7919 + spec.id.charCodeAt(0) * 31 + spec.id.charCodeAt(2));
     const lvl = spec.kind === 'sort' ? buildSort(spec, r) : buildOrders(spec, r);
     if (!lvl) continue;
+    const casual = Boba.casualStuckRate(lvl, 150, rng(seed));
+    if (casual > cap) continue; // too punishing without an ad
     const sol = Boba.solve(lvl, 600000);
     if (!sol.solvable || sol.optimal < 3) continue;
     const score = Math.abs(sol.optimal - spec.target);
     if (!best || score < best.score) best = { score, seed, lvl, sol };
     if (score === 0) break;
   }
-  if (!best) throw new Error('No solvable deal for ' + spec.id);
+  if (!best) throw new Error(`No deal for ${spec.id} under the ${tier} stuck cap (${cap}%)`);
   const trap = Boba.trapRate(best.lvl, 300, rng(best.seed));
+  const casual = Boba.casualStuckRate(best.lvl, 400, rng(best.seed + 1));
   const { kind, colors, empty, extraCups, tries, target, ...meta } = spec;
   return {
     ...meta,
+    tier,
     ...best.lvl,
-    stats: { optimal: best.sol.optimal, target, branching: best.sol.branching, statesSearched: best.sol.states, randomPlayStuckPct: trap, seed: best.seed },
+    stats: { optimal: best.sol.optimal, target, branching: best.sol.branching, statesSearched: best.sol.states, casualStuckPct: casual, randomPlayStuckPct: trap, seed: best.seed },
     solution: best.sol.path,
   };
 }
 
+const only = process.argv.slice(2);
+const previous = only.length ? require('./levels.json') : [];
 const levels = PACK.map((spec) => {
+  if (only.length && !only.includes(spec.id)) return previous.find((l) => l.id === spec.id);
   const t0 = Date.now();
   const lvl = generate(spec);
   const s = lvl.stats;
-  console.log(`${lvl.id.padEnd(4)} ${lvl.title.padEnd(16)} optimal=${String(s.optimal).padStart(2)} (target ${s.target})  branching=${s.branching}  random-play stuck=${s.randomPlayStuckPct}%  [${Date.now() - t0}ms]`);
+  console.log(`${lvl.id.padEnd(4)} ${lvl.title.padEnd(16)} optimal=${String(s.optimal).padStart(2)} (target ${s.target})  branching=${s.branching}  casual stuck=${s.casualStuckPct}% (cap ${STUCK_CAP[lvl.tier]}%)  random stuck=${s.randomPlayStuckPct}%  [${Date.now() - t0}ms]`);
   return lvl;
 });
 

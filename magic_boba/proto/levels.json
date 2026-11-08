@@ -4,6 +4,7 @@
     "world": "Cozy Corner",
     "title": "First Pour",
     "note": "Tutorial: 3 flavours, 2 spare cups.",
+    "tier": "easy",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -18,6 +19,7 @@
       "target": 6,
       "branching": 3.63,
       "statesSearched": 61,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
       "seed": 6
     },
@@ -53,6 +55,7 @@
     "world": "Cozy Corner",
     "title": "Busy Morning",
     "note": "4 flavours.",
+    "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -68,6 +71,7 @@
       "target": 9,
       "branching": 3.55,
       "statesSearched": 302,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 4,
       "seed": 5
     },
@@ -115,6 +119,7 @@
     "world": "Cozy Corner",
     "title": "Five Teas",
     "note": "5 flavours.",
+    "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -131,6 +136,7 @@
       "target": 12,
       "branching": 3.15,
       "statesSearched": 806,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
       "seed": 34
     },
@@ -190,6 +196,7 @@
     "world": "Cozy Corner",
     "title": "Full Menu",
     "note": "6 flavours — first real think.",
+    "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -207,6 +214,7 @@
       "target": 15,
       "branching": 3.27,
       "statesSearched": 1749,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
       "seed": 18
     },
@@ -277,50 +285,40 @@
     "id": "1-5",
     "world": "Cozy Corner",
     "title": "One Spare Cup",
-    "note": "Difficulty spike: only 1 empty cup.",
+    "note": "Hard level: only 1 empty cup.",
+    "tier": "hard",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "GTMS",
-      "MGTT",
-      "SGMM",
-      "STSG",
+      "GMGM",
+      "SGMS",
+      "TTST",
+      "GTSM",
       ""
     ],
     "stats": {
       "optimal": 12,
       "target": 12,
-      "branching": 1.32,
-      "statesSearched": 32,
-      "randomPlayStuckPct": 97,
-      "seed": 1
+      "branching": 1.51,
+      "statesSearched": 54,
+      "casualStuckPct": 51,
+      "randomPlayStuckPct": 48,
+      "seed": 10
     },
     "solution": [
       [
-        2,
+        0,
         4
       ],
       [
         3,
-        2
+        4
       ],
       [
-        0,
+        1,
         3
       ],
       [
-        0,
-        4
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        1,
-        2
-      ],
-      [
         1,
         4
       ],
@@ -329,12 +327,12 @@
         1
       ],
       [
-        2,
-        0
+        0,
+        4
       ],
       [
-        3,
-        2
+        1,
+        0
       ],
       [
         3,
@@ -342,6 +340,18 @@
       ],
       [
         2,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        0,
         3
       ]
     ]
@@ -351,6 +361,7 @@
     "world": "Pearl Grotto",
     "title": "Sinking Feeling",
     "note": "Pearls added as a 4th \"flavour\". They sink under liquid.",
+    "tier": "easy",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -365,6 +376,7 @@
       "target": 7,
       "branching": 7.86,
       "statesSearched": 388,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 27,
       "seed": 5
     },
@@ -404,6 +416,7 @@
     "world": "Pearl Grotto",
     "title": "Pearl Diver",
     "note": "Pearls + 4 flavours.",
+    "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -420,6 +433,7 @@
       "target": 13,
       "branching": 6.62,
       "statesSearched": 26920,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 17,
       "seed": 2
     },
@@ -483,6 +497,7 @@
     "world": "Pearl Grotto",
     "title": "Double Pearls",
     "note": "Two cups worth of pearls buried everywhere.",
+    "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
@@ -499,6 +514,7 @@
       "target": 12,
       "branching": 11.1,
       "statesSearched": 48818,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 15,
       "seed": 15
     },
@@ -564,6 +580,7 @@
       "GGGG"
     ],
     "slots": 2,
+    "tier": "easy",
     "mode": "orders",
     "cap": 4,
     "cups": [
@@ -576,6 +593,7 @@
       "target": 6,
       "branching": 2.61,
       "statesSearched": 22,
+      "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
       "seed": 15
     },
@@ -615,6 +633,7 @@
     "world": "The Counter",
     "title": "Pearl Milk Tea",
     "note": "Recipes with pearls on the bottom.",
+    "tier": "normal",
     "orders": [
       "PTTT",
       "PMMM",
@@ -625,35 +644,32 @@
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "MGG",
-      "TS",
-      "MMGG",
-      "PSST",
-      "PPT"
+      "GS",
+      "MTSS",
+      "PGG",
+      "PPTT",
+      "MMG"
     ],
     "stats": {
       "optimal": 12,
       "target": 9,
-      "branching": 5.53,
-      "statesSearched": 2829,
-      "randomPlayStuckPct": 74,
-      "seed": 57
+      "branching": 5.99,
+      "statesSearched": 2493,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 63,
+      "seed": 60
     },
     "solution": [
       [
-        3,
-        4
-      ],
-      [
         1,
-        3
+        0
       ],
       [
-        4,
+        3,
         1
       ],
       [
-        4,
+        3,
         "o0"
       ],
       [
@@ -661,31 +677,35 @@
         "o0"
       ],
       [
-        0,
-        "o1"
-      ],
-      [
         2,
         "o1"
       ],
       [
-        0,
-        2
+        2,
+        "o0"
+      ],
+      [
+        1,
+        "o0"
       ],
       [
         4,
         "o1"
       ],
       [
+        4,
+        "o0"
+      ],
+      [
         3,
         "o1"
       ],
       [
-        3,
-        "o0"
+        0,
+        "o1"
       ],
       [
-        2,
+        0,
         "o0"
       ]
     ]
@@ -703,6 +723,7 @@
       "TTTT"
     ],
     "slots": 2,
+    "tier": "normal",
     "mode": "orders",
     "cap": 4,
     "cups": [
@@ -718,6 +739,7 @@
       "target": 12,
       "branching": 9.95,
       "statesSearched": 57873,
+      "casualStuckPct": 3,
       "randomPlayStuckPct": 40,
       "seed": 63
     },
@@ -780,66 +802,74 @@
     "id": "C-4",
     "world": "The Counter",
     "title": "Lunch Rush",
-    "note": "Only one customer at a time, long queue.",
+    "note": "Long queue of customers.",
+    "tier": "hard",
     "orders": [
       "PTTT",
       "MMMM",
       "PGGG",
       "SSSS",
-      "PBBB",
-      "TTMM"
+      "PBBB"
     ],
-    "slots": 1,
+    "slots": 2,
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "TB",
-      "PBSS",
-      "TTMT",
-      "PPS",
-      "GMMM",
-      "MMST",
-      "GGB"
+      "GGTT",
+      "PPGB",
+      "M",
+      "PBST",
+      "MMM",
+      "SSSB"
     ],
     "stats": {
-      "optimal": 19,
+      "optimal": 16,
       "target": 14,
       "branching": 7.49,
-      "statesSearched": 20568,
-      "randomPlayStuckPct": 100,
-      "seed": 89
+      "statesSearched": 5668,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 37,
+      "seed": 35
     },
     "solution": [
       [
-        0,
-        6
-      ],
-      [
         2,
-        0
-      ],
-      [
-        5,
-        0
-      ],
-      [
-        3,
-        5
-      ],
-      [
-        3,
-        "o0"
+        4
       ],
       [
         0,
-        "o0"
+        2
       ],
       [
-        2,
-        "o0"
+        3,
+        2
       ],
       [
         4,
+        "o1"
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        "o0"
+      ],
+      [
+        1,
+        "o1"
+      ],
+      [
+        0,
+        "o1"
+      ],
+      [
+        2,
         "o0"
       ],
       [
@@ -847,40 +877,20 @@
         "o0"
       ],
       [
+        3,
+        4
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
         4,
-        "o0"
-      ],
-      [
-        6,
-        0
-      ],
-      [
-        6,
-        "o0"
-      ],
-      [
-        1,
-        "o0"
-      ],
-      [
-        1,
-        0
+        "o1"
       ],
       [
         5,
-        "o0"
-      ],
-      [
-        1,
-        "o0"
-      ],
-      [
-        0,
-        "o0"
-      ],
-      [
-        2,
-        "o0"
+        "o1"
       ],
       [
         5,
