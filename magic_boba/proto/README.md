@@ -72,3 +72,20 @@ by the return trip. Pearls fall as particles and drop in under the liquid, which
 - The music ducks under big rewards. The lo-fi loop (80 BPM, swung) is scheduled with a look-ahead clock.
 - Sound effects and music each have a toggle, saved per device. Haptics use `navigator.vibrate` where the browser supports it; the iOS build would use `UIImpactFeedbackGenerator`.
 - `prefers-reduced-motion` turns off flights, shakes, confetti and ambient motion.
+
+## Skins (visual A/B/C candidates)
+
+Tap 🎨 in the header to cycle looks. The game logic is the same in all three; only CSS variables,
+the flavour palette and the background particles change. Your choice is remembered per device.
+
+| Skin | Mood | Signature details |
+|---|---|---|
+| **Night Café** (default) | Cozy, witchy, dark | Warm lamp glow, wooden shelf, white dome lid + pink straw, rising dust motes |
+| **Sakura Pastel** | Cute, light, casual-friendly | Cups have faces: they blink, look surprised when lifted, sleep when empty and beam with blush when done. Falling petals, pink lid with a heart. |
+| **Potion Lab** | Mystical, glowing, striking | Test tubes on a brass rack, neon liquids, corks instead of lids, finished potions pulse with light, rising bubbles |
+
+Shared polish: shelf planks and contact shadows (the shadow shrinks when a cup lifts), a moving
+liquid surface, fizz, a selection glow in the liquid's colour, an "almost done" pulse when a cup is
+one layer from finished, rows balanced so no cup sits alone, and a themed counter for customers.
+
+Comparison screenshots are in `magic_boba/design/` (`skins-play.jpg`, `skins-orders.jpg`, `skins-win.jpg`).

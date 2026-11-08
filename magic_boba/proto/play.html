@@ -4,124 +4,246 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Magic Boba – Test Levels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Cinzel:wght@600;700&family=Fredoka:wght@400;600;700&display=swap">
 <style>
+  /* ===== Skins =====================================================================
+     Every visual decision is a variable so the same game can wear different designs.
+     Default (:root) = "Night Café". html[data-skin=...] overrides for the other looks. */
   :root {
-    --bg: #1e1830; --panel: #2a2242; --text: #f3eefc; --muted: #a99cc8;
-    --accent: #c9a7ff; --glass: rgba(255,255,255,.08); --glass-edge: rgba(255,255,255,.42);
-    --good: #8ee0a6; --warn: #ffcf7a; --gold: #ffd76a;
+    --bg: #1e1830;
+    --bg-image: radial-gradient(60% 40% at 18% 8%, rgba(255,190,120,.22), transparent 70%),
+                radial-gradient(50% 35% at 85% 12%, rgba(255,140,190,.16), transparent 70%),
+                radial-gradient(18% 12% at 10% 72%, rgba(255,200,140,.10), transparent 100%),
+                radial-gradient(22% 14% at 92% 55%, rgba(201,167,255,.10), transparent 100%),
+                radial-gradient(14% 10% at 72% 92%, rgba(255,200,140,.08), transparent 100%),
+                radial-gradient(120% 80% at 50% 0%, #3d2c60 0%, #1e1830 62%);
+    --panel: #2a2242; --panel-edge: #4a3d70; --text: #f3eefc; --muted: #a99cc8;
+    --accent: #c9a7ff; --good: #8ee0a6; --warn: #ffcf7a; --gold: #ffd76a;
+    --font-display: "Fredoka", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    --font-body: "Fredoka", ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif;
+    --cup-w: 54px; --cup-unit: 34px; --cup-radius: 6px 6px 22px 22px;
+    --cup-bg: rgba(255,255,255,.07); --cup-edge: rgba(255,255,255,.45); --cup-border: 2.5px;
+    --cup-rim: inset 0 0 0 0 transparent;
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.24) 0 9%, transparent 28% 70%, rgba(0,0,0,.16));
+    --shelf: linear-gradient(180deg, #8a5a3c, #5c3a26); --shelf-h: 9px; --shelf-shadow: 0 6px 12px rgba(0,0,0,.45);
+    --contact: rgba(0,0,0,.45);
+    --lid: linear-gradient(180deg, #ffffff, #dcd3f0); --straw: repeating-linear-gradient(180deg, #ff8fb8 0 6px, #fff 6px 10px);
+    --fizz: .22; --face: none; --done-pulse: none;
+    --btn-bg: linear-gradient(180deg, #342a52, #2a2242); --cta: linear-gradient(180deg, #7d5fd0, #5a3fa8);
+    --overlay: rgba(20,14,34,.72); --card: linear-gradient(180deg, #33295a, #2a2242);
+    --bar: linear-gradient(90deg, #a689e0, #f47fa4, #f7b733);
+    color-scheme: dark;
   }
+  html[data-skin="sakura"] {
+    --bg: #ffeef3;
+    --bg-image: radial-gradient(circle, rgba(255,255,255,.75) 2px, transparent 2.5px) 0 0 / 26px 26px,
+                radial-gradient(60% 40% at 15% 0%, rgba(255,200,220,.7), transparent 70%),
+                radial-gradient(50% 40% at 90% 20%, rgba(200,220,255,.55), transparent 70%),
+                linear-gradient(180deg, #fff6f0 0%, #ffe4ec 100%);
+    --panel: #ffffff; --panel-edge: #ffc7d6; --text: #5b3a44; --muted: #b07f8c;
+    --accent: #ff7fa8; --good: #5ccf8a; --warn: #f2a33a; --gold: #ffb52e;
+    --font-display: "Baloo 2", "Fredoka", ui-rounded, system-ui, sans-serif;
+    --font-body: "Baloo 2", "Fredoka", ui-rounded, system-ui, sans-serif;
+    --cup-w: 58px; --cup-unit: 33px; --cup-radius: 4px 4px 20px 20px;
+    --cup-bg: rgba(255,255,255,.55); --cup-edge: #ffffff; --cup-border: 3px;
+    --cup-rim: inset 0 4px 0 #ffffff, 0 4px 14px rgba(255,140,170,.25);
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.35) 0 10%, transparent 30% 74%, rgba(160,80,110,.10));
+    --shelf: linear-gradient(180deg, #ffd1de, #f7aec4); --shelf-h: 10px; --shelf-shadow: 0 5px 10px rgba(240,120,160,.25);
+    --contact: rgba(214,110,150,.35);
+    --lid: linear-gradient(180deg, #ffd0e0, #ff9fc0); --straw: repeating-linear-gradient(180deg, #fff 0 5px, #8fd3ff 5px 10px);
+    --fizz: .3; --face: flex; --done-pulse: none;
+    --btn-bg: linear-gradient(180deg, #ffffff, #fff1f5); --cta: linear-gradient(180deg, #ff9fc0, #ff6f9c);
+    --overlay: rgba(255,220,232,.7); --card: linear-gradient(180deg, #ffffff, #fff1f6);
+    --bar: linear-gradient(90deg, #ffb3cc, #ff7fa8, #ffc94d);
+    color-scheme: light;
+  }
+  html[data-skin="lab"] {
+    --bg: #071315;
+    --bg-image: radial-gradient(70% 45% at 50% 105%, rgba(60,255,170,.18), transparent 70%),
+                radial-gradient(40% 30% at 85% 10%, rgba(180,110,255,.14), transparent 70%),
+                repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 48px),
+                repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 96px),
+                linear-gradient(180deg, #0c2226 0%, #050c0e 100%);
+    --panel: #10272a; --panel-edge: #2f5a52; --text: #e6fff4; --muted: #7fb3a3;
+    --accent: #58ffb0; --good: #58ffb0; --warn: #ffcf5a; --gold: #f4c25b;
+    --font-display: "Cinzel", Georgia, serif;
+    --font-body: "Fredoka", ui-rounded, system-ui, sans-serif;
+    --cup-w: 46px; --cup-unit: 35px; --cup-radius: 3px 3px 23px 23px;
+    --cup-bg: rgba(160,255,220,.05); --cup-edge: rgba(190,255,235,.55); --cup-border: 2px;
+    --cup-rim: inset 0 3px 0 rgba(190,255,235,.5);
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.3) 0 8%, transparent 26% 72%, rgba(0,0,0,.25));
+    --shelf: linear-gradient(180deg, #e6b45a, #8c6424 70%, #5a3e14); --shelf-h: 8px; --shelf-shadow: 0 6px 14px rgba(0,0,0,.6);
+    --contact: rgba(0,0,0,.6);
+    --lid: linear-gradient(180deg, #c8945f, #8a5a32); --straw: none;
+    --fizz: .45; --face: none; --done-pulse: potion 1.8s ease-in-out infinite;
+    --btn-bg: linear-gradient(180deg, #153236, #0e2427); --cta: linear-gradient(180deg, #2fd88d, #14975c);
+    --overlay: rgba(2,10,12,.75); --card: linear-gradient(180deg, #143236, #0c2124);
+    --bar: linear-gradient(90deg, #58ffb0, #4fb3ff, #b26bff);
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; background: radial-gradient(120% 80% at 50% 0%, #3a2b5c 0%, var(--bg) 60%); color: var(--text);
-    font: 15px/1.4 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; }
+  html, body { margin: 0; height: 100%; background-color: var(--bg); color: var(--text); font: 15px/1.4 var(--font-body); }
+  html { background-image: var(--bg-image); background-attachment: fixed; transition: background-color .4s; }
   body { display: flex; flex-direction: column; min-height: 100%; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
-    user-select: none; -webkit-user-select: none; overflow-x: hidden; }
+    user-select: none; -webkit-user-select: none; overflow-x: hidden; background: transparent; }
 
   /* ---- header ---- */
   header { display: flex; align-items: center; gap: 8px; padding: 12px 0 4px; flex-wrap: wrap; }
-  header h1 { font-size: 18px; margin: 0; flex: 1; white-space: nowrap; }
-  .pill { display: inline-flex; align-items: center; gap: 4px; background: var(--panel); border: 1px solid #4a3d70; border-radius: 999px; padding: 5px 10px;
+  header h1 { font: 600 20px/1.1 var(--font-display); margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .01em; }
+  html[data-skin="lab"] header h1 { font-size: 17px; letter-spacing: .04em; }
+  #pick { flex: 1 1 100%; max-width: 280px; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; background: var(--btn-bg); border: 1px solid var(--panel-edge); border-radius: 999px; padding: 5px 10px;
     font-weight: 600; font-variant-numeric: tabular-nums; }
   .pill.bump { animation: bump .45s cubic-bezier(.3,1.8,.5,1); }
   @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
-  select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid #4a3d70; border-radius: 12px; padding: 8px 12px; cursor: pointer;
-    transition: transform .12s cubic-bezier(.3,1.6,.5,1), filter .15s; }
-  button:active:not(:disabled) { transform: scale(.9); }
+  select, button { font: inherit; color: var(--text); background: var(--btn-bg); border: 1px solid var(--panel-edge); border-radius: 12px; padding: 8px 12px; cursor: pointer;
+    box-shadow: 0 2px 0 rgba(0,0,0,.18); transition: transform .12s cubic-bezier(.3,1.6,.5,1), filter .15s; }
+  button:active:not(:disabled) { transform: scale(.9) translateY(1px); box-shadow: none; }
   button:disabled { opacity: .45; cursor: default; }
   .icon { padding: 6px 9px; }
   .meta { color: var(--muted); font-size: 13px; min-height: 2.8em; }
   .meta b { color: var(--text); }
 
   /* ---- progress ---- */
-  .progress { position: relative; height: 10px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; margin: 2px 0 6px; }
-  .progress i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px;
-    background: linear-gradient(90deg, #a689e0, #f47fa4, #f7b733); transition: width .6s cubic-bezier(.3,1.3,.5,1); }
+  .progress { position: relative; height: 10px; border-radius: 99px; background: color-mix(in srgb, var(--text) 10%, transparent); overflow: hidden; margin: 2px 0 6px; }
+  .progress i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: var(--bar); transition: width .6s cubic-bezier(.3,1.3,.5,1); }
   .progress i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
     background-size: 200% 100%; animation: shine 2.4s linear infinite; }
   @keyframes shine { from { background-position: 150% 0; } to { background-position: -50% 0; } }
 
   /* ---- counter / customers ---- */
   .counter { display: flex; gap: 16px; justify-content: center; padding: 8px 0 4px; flex-wrap: wrap; }
-  .counter .label { width: 100%; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+  .counter .label { width: 100%; text-align: center; color: var(--muted); font: 600 12px var(--font-display); letter-spacing: .12em; text-transform: uppercase; }
   .queue { display: flex; gap: 6px; justify-content: center; width: 100%; color: var(--muted); font-size: 12px; min-height: 18px; }
-  .cust-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cust-slot { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding-bottom: 12px; }
+  .cust-slot::after { content: ""; position: absolute; left: -10px; right: -10px; bottom: 4px; height: var(--shelf-h); background: var(--shelf); border-radius: 2px; box-shadow: var(--shelf-shadow); z-index: -1; }
   .cust-slot.enter { animation: custIn .55s cubic-bezier(.3,1.5,.5,1) both; animation-delay: var(--d, 0ms); }
   @keyframes custIn { from { transform: translateX(70px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
-  .cust { font-size: 26px; animation: bob 2.6s ease-in-out infinite; display: inline-block; }
+  .cust { font-size: 32px; animation: bob 2.6s ease-in-out infinite; display: inline-block; filter: drop-shadow(0 3px 2px rgba(0,0,0,.2)); }
   @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
 
-  /* ---- board & cups ---- */
-  .board { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 6px 12px; padding: 8px 0; }
-  .slot { position: relative; padding: 22px 0 16px; }
-  .cup { position: relative; width: 54px; height: calc(var(--cap) * 34px + 14px); border: 2.5px solid var(--glass-edge); border-top: none;
-    border-radius: 6px 6px 22px 22px; background: var(--glass); display: flex; flex-direction: column-reverse;
-    padding: 4px; overflow: hidden; cursor: pointer; }
+  /* ---- board, shelf, cups ---- */
+  .board { flex: 1; width: 100%; margin: 0 auto; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 4px 12px; padding: 8px 0; }
+  .slot { position: relative; padding: 22px 0 18px; }
+  .slot::after { /* shelf plank; neighbours overlap so a row reads as one shelf */
+    content: ""; position: absolute; left: -7px; right: -7px; bottom: 9px; height: var(--shelf-h); background: var(--shelf);
+    border-radius: 2px; box-shadow: var(--shelf-shadow); z-index: -1; }
+  .slot::before { /* contact shadow, shrinks when the cup lifts */
+    content: ""; position: absolute; left: 8%; right: 8%; bottom: 14px; height: 10px; z-index: 0; border-radius: 50%;
+    background: radial-gradient(closest-side, var(--contact), transparent); transition: transform .25s, opacity .25s; }
+  .slot:has(.cup.sel)::before { transform: scaleX(.6); opacity: .45; }
+  .cup { position: relative; z-index: 1; width: var(--cup-w); height: calc(var(--cap) * var(--cup-unit) + 14px);
+    border: var(--cup-border) solid var(--cup-edge); border-top: none; border-radius: var(--cup-radius); background: var(--cup-bg);
+    box-shadow: var(--cup-rim); display: flex; flex-direction: column-reverse; padding: 4px; overflow: hidden; cursor: pointer; }
   .cup::before { /* glass glint that sweeps across now and then */
     content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 45%, transparent 55%); background-size: 300% 100%;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.22) 45%, transparent 55%); background-size: 300% 100%;
     animation: glint 7s ease-in-out infinite; animation-delay: var(--gd, 0s); }
   .cup::after { /* fixed glass highlight */
-    content: ""; position: absolute; top: 6px; bottom: 10px; left: 6px; width: 5px; border-radius: 4px; background: rgba(255,255,255,.16); z-index: 3; pointer-events: none; }
+    content: ""; position: absolute; top: 6px; bottom: 12px; left: 6px; width: 5px; border-radius: 4px; background: rgba(255,255,255,.22); z-index: 3; pointer-events: none; }
   @keyframes glint { 0%, 70% { background-position: 120% 0; } 100% { background-position: -40% 0; } }
-  .cup.sel { transform: translateY(-14px); border-color: var(--accent); box-shadow: 0 10px 26px rgba(201,167,255,.4); }
-  .cup.hint { border-color: var(--warn); box-shadow: 0 0 0 3px rgba(255,207,122,.4); }
-  .cup.done { border-color: var(--good); box-shadow: 0 0 18px rgba(142,224,166,.3); }
-  .cup.vial { width: 44px; border-color: rgba(201,167,255,.8); border-radius: 4px 4px 18px 18px; background: rgba(201,167,255,.12); }
-  .order { width: 46px; height: 120px; border-style: dashed; }
-  .layer { flex: 0 0 calc(100% / var(--cap)); position: relative; transform-origin: bottom;
-    background-image: linear-gradient(90deg, rgba(255,255,255,.22) 0 10%, transparent 30% 72%, rgba(0,0,0,.14)); }
-  .layer.seam { box-shadow: inset 0 2px 0 rgba(0,0,0,.18); }
-  .layer.surface { box-shadow: inset 0 3px 0 rgba(255,255,255,.38); border-radius: 2px 2px 0 0; }
-  .layer.ghost { opacity: .22; outline: 1.5px dashed rgba(255,255,255,.6); outline-offset: -2px; background-image: none; }
-  .layer.P { background-image: radial-gradient(circle at 22% 32%, rgba(255,255,255,.25) 6%, #4b3434 7% 17%, transparent 19%),
-      radial-gradient(circle at 68% 28%, rgba(255,255,255,.25) 6%, #4b3434 7% 17%, transparent 19%),
-      radial-gradient(circle at 44% 74%, rgba(255,255,255,.25) 6%, #4b3434 7% 17%, transparent 19%),
-      radial-gradient(circle at 86% 78%, rgba(255,255,255,.2) 5%, #4b3434 6% 15%, transparent 17%); }
-  .vialtag { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); }
-  .lid { position: absolute; top: 12px; left: 50%; width: calc(100% + 8px); height: 14px; margin-left: calc(-50% - 4px); z-index: 4;
-    background: linear-gradient(180deg, #fff, #dcd3f0); border-radius: 50% 50% 4px 4px / 100% 100% 4px 4px; box-shadow: 0 2px 4px rgba(0,0,0,.25); }
-  .straw { position: absolute; bottom: 8px; left: 58%; width: 7px; height: 34px; border-radius: 4px; transform: rotate(14deg); transform-origin: bottom;
-    background: repeating-linear-gradient(180deg, #ff8fb8 0 6px, #fff 6px 10px); }
+  .cup.sel { transform: translateY(-14px); border-color: var(--accent);
+    box-shadow: var(--cup-rim), 0 10px 26px color-mix(in srgb, var(--glow, var(--accent)) 55%, transparent), 0 0 0 2px color-mix(in srgb, var(--glow, var(--accent)) 40%, transparent); }
+  .cup.hint { border-color: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 50%, transparent); }
+  .cup.done { border-color: var(--good); box-shadow: var(--cup-rim), 0 0 20px color-mix(in srgb, var(--glow, var(--good)) 45%, transparent); animation: var(--done-pulse); }
+  @keyframes potion { 0%,100% { box-shadow: var(--cup-rim), 0 0 14px color-mix(in srgb, var(--glow) 45%, transparent); }
+                      50% { box-shadow: var(--cup-rim), 0 0 30px color-mix(in srgb, var(--glow) 80%, transparent); } }
+  .cup.almost { animation: almost 1.6s ease-in-out infinite; }
+  @keyframes almost { 0%,100% { box-shadow: var(--cup-rim), 0 0 0 0 transparent; } 50% { box-shadow: var(--cup-rim), 0 0 16px color-mix(in srgb, var(--glow) 60%, transparent); } }
+  .cup.vial { width: calc(var(--cup-w) - 10px); border-color: color-mix(in srgb, var(--accent) 80%, transparent); border-radius: 4px 4px 18px 18px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .order { width: calc(var(--cup-w) - 8px); height: 120px; border-style: dashed; border-top-style: none; }
+  .layer { flex: 0 0 calc(100% / var(--cap)); position: relative; transform-origin: bottom; background-image: var(--gloss); }
+  .layer:not(.P)::after { /* fizz: tiny bubbles drifting up */
+    content: ""; position: absolute; inset: 0; opacity: var(--fizz); pointer-events: none;
+    background-image: radial-gradient(circle at 30% 70%, #fff 1.2px, transparent 1.8px), radial-gradient(circle at 70% 30%, #fff 1px, transparent 1.6px),
+                      radial-gradient(circle at 55% 85%, #fff .8px, transparent 1.4px);
+    background-size: 18px 22px, 22px 26px, 14px 30px; animation: fizz 3.2s linear infinite; }
+  @keyframes fizz { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 -22px, 0 -26px, 0 -30px; } }
+  .layer.seam { box-shadow: inset 0 2px 0 rgba(0,0,0,.16); }
+  .layer.surface::before { /* living surface: a gentle travelling wave on the top layer */
+    content: ""; position: absolute; left: -16px; right: -16px; top: -2px; height: 4px; z-index: 1;
+    background: radial-gradient(ellipse 9px 2.5px at 50% 100%, var(--c) 96%, transparent 100%) 0 0 / 16px 4px repeat-x;
+    animation: wave 1.4s linear infinite; }
+  .layer.surface { box-shadow: inset 0 3px 0 rgba(255,255,255,.35); }
+  @keyframes wave { from { transform: translateX(0); } to { transform: translateX(16px); } }
+  .layer.ghost { background-color: color-mix(in srgb, var(--c) 22%, transparent) !important; outline: 1.5px dashed color-mix(in srgb, var(--c) 85%, transparent); outline-offset: -3px; background-image: none; }
+  .layer.ghost.P { background-image: none; }
+  .layer.ghost::after, .layer.ghost::before { display: none; }
+  .layer.P { background-image: radial-gradient(circle at 22% 32%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
+      radial-gradient(circle at 68% 28%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
+      radial-gradient(circle at 44% 74%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
+      radial-gradient(circle at 86% 78%, rgba(255,255,255,.3) 5%, #6e4a3c 6% 15%, transparent 17%); }
+  .vialtag { position: absolute; bottom: -2px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); font-weight: 600; }
+  .lid { position: absolute; top: 12px; left: 50%; width: calc(var(--cup-w) + 8px); height: 14px; margin-left: calc(var(--cup-w) / -2 - 4px); z-index: 4;
+    background: var(--lid); border-radius: 50% 50% 4px 4px / 100% 100% 4px 4px; box-shadow: 0 2px 4px rgba(0,0,0,.25); }
+  .straw { position: absolute; bottom: 8px; left: 58%; width: 7px; height: 34px; border-radius: 4px; transform: rotate(14deg); transform-origin: bottom; background: var(--straw); }
+  html[data-skin="lab"] .lid { width: calc(var(--cup-w) - 12px); margin-left: calc(var(--cup-w) / -2 + 6px); height: 18px; top: 8px; border-radius: 4px 4px 2px 2px;
+    background: var(--lid), repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px); background-blend-mode: multiply; }
+  html[data-skin="lab"] .straw { display: none; }
+  html[data-skin="sakura"] .lid::after { content: "♥"; position: absolute; left: 0; right: 0; top: -2px; text-align: center; font-size: 10px; color: #fff; }
+
+  /* sakura: cups have faces that react */
+  .face { display: var(--face, none); position: absolute; left: 0; right: 0; top: 40%; z-index: 5; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
+  .face i { width: 6px; height: 8px; border-radius: 50%; background: #4a2c34; animation: blink 4.5s infinite; animation-delay: var(--gd, 0s); }
+  .face b { position: absolute; top: 9px; left: 50%; width: 9px; height: 5px; margin-left: -4.5px; border: 2px solid #4a2c34; border-top: none; border-radius: 0 0 9px 9px; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+  .cup.sel .face i { width: 8px; height: 9px; }
+  .cup.sel .face b { width: 7px; height: 7px; margin-left: -3.5px; border: 2px solid #4a2c34; border-radius: 50%; }
+  .cup.empty .face i { height: 2px; border-radius: 2px; animation: none; }
+  .cup.done .face i { height: 5px; background: none; border: 2px solid #4a2c34; border-bottom: none; border-radius: 6px 6px 0 0; animation: none; }
+  .cup.done .face b { width: 11px; height: 6px; margin-left: -5.5px; background: #ff7f9e; }
+  .cup.done .face::before, .cup.done .face::after { content: ""; position: absolute; top: 6px; width: 9px; height: 5px; border-radius: 50%; background: rgba(255,120,160,.55); }
+  .cup.done .face::before { left: 6px; } .cup.done .face::after { right: 6px; }
+
   .flying { position: fixed !important; z-index: 40; pointer-events: none; box-shadow: 0 14px 30px rgba(0,0,0,.35); }
   .stream { position: fixed; width: 6px; border-radius: 3px; z-index: 39; pointer-events: none; transform-origin: top;
-    background-image: linear-gradient(90deg, rgba(255,255,255,.35), transparent 60%); }
+    background-image: linear-gradient(90deg, rgba(255,255,255,.4), transparent 60%); box-shadow: 0 0 8px var(--sc, transparent); }
 
   /* ---- tray & misc ---- */
-  .tray { display: flex; gap: 8px; justify-content: center; padding: 10px 0 18px; flex-wrap: wrap; }
-  #vial { border-color: var(--accent); box-shadow: 0 0 0 0 rgba(201,167,255,.6); }
+  .tray { display: flex; gap: 8px; justify-content: center; align-items: center; padding: 10px 0 18px; flex-wrap: wrap; }
+  .tray .sq { width: 46px; height: 46px; padding: 0; font-size: 20px; border-radius: 14px; }
+  #vial { height: 46px; padding: 0 16px; font-weight: 600; border-radius: 14px; }
+  #vial { border-color: var(--accent); }
   #vial.nudge { animation: nudge 1.6s ease-in-out infinite; }
-  @keyframes nudge { 0%,100% { box-shadow: 0 0 0 0 rgba(201,167,255,.0); } 50% { box-shadow: 0 0 0 6px rgba(201,167,255,.35); } }
+  @keyframes nudge { 0%,100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 40%, transparent); } }
   .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; color: var(--muted); font-size: 12px; padding-bottom: 6px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
   body:not(.dev) .dev-only { display: none; }
   .devbadge { font-size: 11px; color: var(--warn); border: 1px solid var(--warn); border-radius: 8px; padding: 1px 6px; }
-  .floaty { position: fixed; z-index: 60; pointer-events: none; font-weight: 800; white-space: nowrap; letter-spacing: .02em;
+  .floaty { position: fixed; z-index: 60; pointer-events: none; font: 800 20px var(--font-display); white-space: nowrap; letter-spacing: .02em;
     text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 0 14px rgba(255,255,255,.35); }
+  html[data-skin="sakura"] .floaty { text-shadow: 0 2px 0 #fff, 0 0 10px #fff; -webkit-text-stroke: 0; }
   .floaty.big { -webkit-text-stroke: 1px rgba(0,0,0,.25); }
+  .skin-toast { position: fixed; left: 50%; top: 38%; z-index: 70; pointer-events: none; transform: translate(-50%,-50%);
+    font: 700 26px var(--font-display); padding: 10px 22px; border-radius: 18px; background: var(--card); border: 1px solid var(--panel-edge); color: var(--text);
+    box-shadow: 0 16px 40px rgba(0,0,0,.35); }
 
   /* ---- overlays ---- */
-  .overlay { position: fixed; inset: 0; display: none; place-items: center; background: rgba(20,14,34,.72); backdrop-filter: blur(5px); z-index: 45; }
+  .overlay { position: fixed; inset: 0; display: none; place-items: center; background: var(--overlay); backdrop-filter: blur(5px); z-index: 45; }
   .overlay.show { display: grid; }
-  .card { background: linear-gradient(180deg, #33295a, var(--panel)); border: 1px solid #4f417d; border-radius: 22px; padding: 22px 26px; text-align: center;
-    width: min(320px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .card { background: var(--card); border: 1px solid var(--panel-edge); border-radius: 22px; padding: 22px 26px; text-align: center;
+    width: min(320px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
   .overlay.show .card { animation: pop .5s cubic-bezier(.3,1.6,.5,1) both; }
   @keyframes pop { from { transform: scale(.5) translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .card h2 { margin: 0 0 8px; font-size: 24px; }
+  .card h2 { margin: 0 0 8px; font: 700 26px var(--font-display); }
   .stars { display: flex; justify-content: center; gap: 10px; font-size: 40px; height: 54px; align-items: center; }
-  .stars span { color: rgba(255,255,255,.15); display: inline-block; transform: scale(.8); }
-  .stars span.on { color: var(--gold); text-shadow: 0 0 18px rgba(255,215,106,.7); animation: starPop .5s cubic-bezier(.3,1.9,.5,1) both; }
+  .stars span { color: color-mix(in srgb, var(--text) 15%, transparent); display: inline-block; transform: scale(.8); }
+  .stars span.on { color: var(--gold); text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 70%, transparent); animation: starPop .5s cubic-bezier(.3,1.9,.5,1) both; }
   @keyframes starPop { 0% { transform: scale(0) rotate(-90deg); } 60% { transform: scale(1.5) rotate(15deg); } 100% { transform: scale(1.1) rotate(0); } }
   .earn { font-size: 22px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; margin: 6px 0 2px; }
   .tip { min-height: 22px; color: var(--muted); font-size: 14px; }
   .tip.golden { color: var(--gold); font-weight: 800; animation: bump .5s cubic-bezier(.3,1.8,.5,1); }
-  #winNext { margin-top: 12px; font-size: 17px; padding: 10px 22px; border-color: var(--accent); background: linear-gradient(180deg, #7d5fd0, #5a3fa8);
+  #winNext { margin-top: 12px; font-size: 17px; padding: 10px 22px; border-color: var(--accent); background: var(--cta); color: #fff; font-weight: 600;
     animation: cta 1.4s ease-in-out infinite; }
-  @keyframes cta { 0%,100% { box-shadow: 0 0 0 0 rgba(201,167,255,.0); transform: scale(1); } 50% { box-shadow: 0 0 0 8px rgba(201,167,255,.25); transform: scale(1.04); } }
+  @keyframes cta { 0%,100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); } 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent); transform: scale(1.04); } }
   .adring { width: 64px; height: 64px; margin: 8px auto; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-weight: 800;
-    background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), rgba(255,255,255,.1) 0); }
+    background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), color-mix(in srgb, var(--text) 12%, transparent) 0); }
   .adring b { width: 50px; height: 50px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; }
 
   @media (prefers-reduced-motion: reduce) {
-    .cup::before, .cust, .progress i::after, #winNext, #vial.nudge { animation: none; }
+    .cup::before, .cust, .progress i::after, #winNext, #vial.nudge, .layer::after, .layer.surface::before, .face i, .cup.done { animation: none; }
   }
 </style>
 </head>
@@ -130,6 +252,7 @@
   <h1>🧋 Magic Boba</h1>
   <span class="devbadge dev-only">DEV</span>
   <span class="pill" id="coins" title="Coins">🪙 <span id="coinN">0</span></span>
+  <button class="icon" id="skinBtn" aria-label="Change look">🎨</button>
   <button class="icon" id="sfxBtn" aria-label="Sound effects">🔊</button>
   <button class="icon" id="musBtn" aria-label="Music">🎵</button>
   <select id="pick" aria-label="Level"></select>
@@ -140,11 +263,11 @@
 <div class="board" id="board"></div>
 <div class="legend" id="legend"></div>
 <div class="tray">
-  <button id="undo">↶ Undo</button>
-  <button id="restart">⟲ Restart</button>
+  <button id="undo" class="sq" aria-label="Undo" title="Undo">↶</button>
+  <button id="restart" class="sq" aria-label="Restart" title="Restart">⟲</button>
   <button id="vial">📺 + Vial</button>
-  <button id="hint" class="dev-only">✨ Hint</button>
-  <button id="nextBtn">Next ›</button>
+  <button id="hint" class="sq dev-only" aria-label="Hint" title="Hint">✨</button>
+  <button id="nextBtn" class="sq" aria-label="Skip level" title="Skip level">›</button>
 </div>
 
 <div class="overlay" id="win"><div class="card">
@@ -175,6 +298,35 @@ const CUSTOMERS = ['🐸','👻','🐉','🦊','🧙','🐈‍⬛','🦉','🍄'
 const PRAISE = ['Nice!', 'Sweet!', 'Yummy!', 'Boba-licious!', 'Magical!', 'Spellbinding!', 'LEGENDARY!'];
 const T = { lift: 180, unit: 110, back: 180 }; // pour timing (ms)
 
+// ---- Skins: same game, different visual designs (A/B/C test candidates) ----
+const SKINS = {
+  cafe: { name: 'Night Café', ambient: { type: 'mote', colors: ['#c9a7ff', '#ffe6a8'], count: 26 },
+    colors: { T: '#a689e0', M: '#7cc46a', G: '#f7b733', S: '#f47fa4', B: '#5b8def', R: '#a8693b', L: '#efe6cf', K: '#5a3b2e', W: '#f8f8ff', P: '#3b2621' } },
+  sakura: { name: 'Sakura Pastel', ambient: { type: 'petal', colors: ['#ffc1d6', '#ffd9e6', '#ffffff'], count: 18 },
+    colors: { T: '#b99cf5', M: '#8fd977', G: '#ffcc4d', S: '#ff8fb1', B: '#7fb2ff', R: '#c98a58', L: '#fff1d6', K: '#8a5a44', W: '#fffaf4', P: '#4a3030' } },
+  lab: { name: 'Potion Lab', ambient: { type: 'bubble', colors: ['#58ffb0', '#b26bff', '#4fb3ff'], count: 22 },
+    colors: { T: '#b46dff', M: '#3dffa0', G: '#ffb238', S: '#ff4f8b', B: '#3fb0ff', R: '#e08a3a', L: '#f0ffb8', K: '#7a4430', W: '#e6f6ff', P: '#3a2433' } },
+};
+let skin = 'cafe';
+try { if (SKINS[localStorage.getItem('boba.skin')]) skin = localStorage.getItem('boba.skin'); } catch {}
+function applySkin(name, announce) {
+  skin = name;
+  if (name === 'cafe') delete document.documentElement.dataset.skin; else document.documentElement.dataset.skin = name;
+  for (const [k, c] of Object.entries(SKINS[name].colors)) FLAVORS[k].color = c;
+  FX.setAmbient(SKINS[name].ambient);
+  try { localStorage.setItem('boba.skin', name); } catch {}
+  if (level) render();
+  if (announce) {
+    const t = document.createElement('div');
+    t.className = 'skin-toast'; t.textContent = '🎨 ' + SKINS[name].name;
+    document.body.appendChild(t);
+    t.animate([{ opacity: 0, transform: 'translate(-50%,-50%) scale(.6)' }, { opacity: 1, transform: 'translate(-50%,-50%) scale(1.08)', offset: 0.2 },
+      { opacity: 1, transform: 'translate(-50%,-50%) scale(1)', offset: 0.75 }, { opacity: 0, transform: 'translate(-50%,-60%) scale(1)' }], { duration: 1300, easing: 'ease-out' }).onfinish = () => t.remove();
+    if (!REDUCE) [...$('board').children].forEach((slot, n) => slot.animate([{ transform: 'scale(.85)', opacity: .3 }, { transform: 'scale(1.05)', offset: .6 }, { transform: 'none', opacity: 1 }],
+      { duration: 380, delay: n * 35, easing: 'ease-out', fill: 'backwards' }));
+  }
+}
+
 let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [], vialsUsed = 0, adTimer = null;
 let busy = false, streak = 0, quietMoves = 0, hiddenCup = null, flying = null, knownOpen = new Set(), lastProgress = 0;
 let coins = 0;
@@ -194,6 +346,7 @@ const syncAudioBtns = () => { $('sfxBtn').textContent = A.sfxOn ? '🔊' : '🔇
 $('sfxBtn').onclick = () => { A.setSfx(!A.sfxOn); syncAudioBtns(); A.tap(); };
 $('musBtn').onclick = () => { A.setMusic(!A.musicOn); syncAudioBtns(); A.tap(); };
 syncAudioBtns();
+$('skinBtn').onclick = () => { const names = Object.keys(SKINS); applySkin(names[(names.indexOf(skin) + 1) % names.length], true); A.tap(); };
 
 const pick = $('pick');
 LEVELS.forEach((l, i) => pick.add(new Option(`${l.id} · ${l.title}`, i)));
@@ -246,6 +399,7 @@ function layerEl(code, { ghost = false, surface = false, seam = false } = {}) {
   const d = document.createElement('div');
   d.className = 'layer ' + code + (ghost ? ' ghost' : '') + (surface ? ' surface' : '') + (seam ? ' seam' : '');
   d.style.backgroundColor = FLAVORS[code].color;
+  d.style.setProperty('--c', FLAVORS[code].color);
   d.title = FLAVORS[code].name;
   return d;
 }
@@ -306,9 +460,11 @@ function render(anim = {}) {
     const cup = document.createElement('div');
     const done = isDone(state, i);
     const isVial = i >= level.cups.length;
-    cup.className = 'cup' + (isVial ? ' vial' : '') + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '');
+    cup.className = 'cup' + (isVial ? ' vial' : '') + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '') + (c.length ? '' : ' empty') + (!done && c.length === state.cap - 1 && Boba.topRun(c) === c.length ? ' almost' : '');
     cup.style.setProperty('--gd', ((i * 0.9) % 7) + 's');
+    if (c.length) cup.style.setProperty('--glow', FLAVORS[c[c.length - 1]].color);
     fillCup(cup, c, state.caps[i]);
+    cup.insertAdjacentHTML('beforeend', '<span class="face"><i></i><i></i><b></b></span>');
     cup.onclick = () => tap(i);
     if (hiddenCup === i) cup.style.visibility = 'hidden';
     const slot = document.createElement('div');
@@ -334,6 +490,8 @@ function render(anim = {}) {
     if (anim.cup === i) animateIn(cup, anim);
   });
 
+  balanceRows();
+
   const used = new Set((level.cups.join('') + (level.orders || []).join('')).split(''));
   $('legend').innerHTML = [...used].sort().map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c === 'P' ? ' (sinks)' : ''}</span>`).join('');
   $('undo').disabled = !history.length;
@@ -344,6 +502,18 @@ function render(anim = {}) {
   const stuck = !Boba.isWon(state) && !Boba.legalMoves(state).length;
   $('vial').classList.toggle('nudge', stuck && vialsUsed < sizes.length);
 }
+
+// Spread cups evenly over rows (7 cups -> 4 + 3, never 6 + 1).
+function balanceRows() {
+  const board = $('board'), slots = [...board.children];
+  if (!slots.length) return;
+  board.style.maxWidth = '';
+  const gap = 12, w = Math.max(...slots.map((s) => s.offsetWidth)) + gap;
+  const perRowMax = Math.max(1, Math.floor((board.clientWidth + gap) / w));
+  const perRow = Math.ceil(slots.length / Math.ceil(slots.length / perRowMax));
+  board.style.maxWidth = perRow * w + 'px';
+}
+window.addEventListener('resize', () => level && balanceRows());
 
 // Layers arriving in a cup: liquids grow upward in sequence; pearls drop in and push liquid up.
 function animateIn(cup, a) {
@@ -503,6 +673,7 @@ async function pour(m) {
     const st = document.createElement('div');
     st.className = 'stream';
     Object.assign(st.style, { left: pivotX - 3 + 'px', top: pivotY + 'px', height: Math.max(10, surfaceY - pivotY) + 'px', backgroundColor: color });
+    if (skin === 'lab') st.style.setProperty('--sc', color);
     document.body.appendChild(st);
     st.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 70, fill: 'forwards' });
     st.animate([{ width: '6px', marginLeft: '0px' }, { width: '4px', marginLeft: '1px' }, { width: '7px', marginLeft: '-.5px' }, { width: '5px', marginLeft: '.5px' }],
@@ -598,7 +769,7 @@ async function celebrate() {
   await wait(slots.length * 85 + 200);
 
   A.win();
-  FX.confetti();
+  FX.confetti([...new Set(Object.values(FLAVORS).map((f) => f.color)), '#ffffff']);
   FX.shake(document.body, 5, 380);
 
   const opt = level.stats.optimal;
@@ -719,6 +890,7 @@ $('hint').onclick = () => {
   else $('meta').insertAdjacentHTML('beforeend', '<br><b style="color:var(--warn)">Stuck! Undo, restart, or grab a vial.</b>');
 };
 
+applySkin(skin, false);
 let start = 0; try { start = +localStorage.getItem('boba.level') || 0; } catch {}
 load(Math.min(start, LEVELS.length - 1));
 </script>

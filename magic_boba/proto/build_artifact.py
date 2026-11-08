@@ -20,13 +20,10 @@ def sub(old, new):
     style = style.replace(old, new)
 
 
-# Artifact page contract: dark single-theme look, safe-area side gutters, rounded display font.
-sub('--gold: #ffd76a;\n  }', '--gold: #ffd76a;\n    color-scheme: dark;\n  }')
-sub('font: 15px/1.4 ui-rounded,', 'font: 15px/1.4 "Fredoka", ui-rounded,')
+# Artifact page contract: safe-area side gutters, focus rings. Skins set their own color-scheme.
 sub('padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);',
     'padding-block: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); '
     'padding-right: max(16px, env(safe-area-inset-right, 0px));')
-sub('header h1 { font-size: 18px;', 'header h1 { font-size: 20px; font-weight: 600;')
 style += ('  button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }\n'
           '  @media (prefers-reduced-motion: reduce) { .cup { transition: none; } }\n')
 
@@ -38,7 +35,7 @@ assert '<script src=' not in body
 out = ('<title>Magic Boba</title>\n'
        '<meta name="claude:viewport-fit-sides" content="cover">\n'
        '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
-       '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap">\n'
+       '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Cinzel:wght@600;700&family=Fredoka:wght@400;600;700&display=swap">\n'
        '<style>' + style + '</style>\n' + body)
 pathlib.Path(sys.argv[1]).write_text(out)
 print(f'wrote {sys.argv[1]} ({len(out)} bytes)')

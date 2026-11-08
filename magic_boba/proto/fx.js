@@ -5,6 +5,8 @@
   let cv, cx, W = 0, H = 0, dpr = 1;
   const parts = [];
   let running = false;
+  // Ambient background particles; each skin picks a type: mote (rising dust), petal (falling, swaying), bubble (rising rings).
+  let ambient = { type: 'mote', colors: ['#c9a7ff', '#ffe6a8'], count: 26 };
 
   function setup() {
     cv = document.createElement('canvas');
@@ -15,7 +17,7 @@
     cx = cv.getContext('2d');
     resize();
     root.addEventListener('resize', resize);
-    if (!reduce) for (let i = 0; i < 26; i++) parts.push(mote(true));
+    spawnAmbient();
     kick();
   }
   function resize() {
@@ -25,8 +27,19 @@
     cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   function mote(anywhere) {
-    return { type: 'mote', x: Math.random() * W, y: anywhere ? Math.random() * H : H + 10, vx: (Math.random() - 0.5) * 6, vy: -(6 + Math.random() * 14),
-      size: 1 + Math.random() * 2.2, life: 0, max: 9 + Math.random() * 8, color: Math.random() < 0.5 ? '#c9a7ff' : '#ffe6a8', g: 0, drag: 1, tw: Math.random() * 6 };
+    const color = ambient.colors[Math.floor(Math.random() * ambient.colors.length)];
+    const base = { ambient: true, type: ambient.type, x: Math.random() * W, life: 0, color, g: 0, drag: 1, tw: Math.random() * 6, rot: Math.random() * 6 };
+    if (ambient.type === 'petal') return Object.assign(base, { y: anywhere ? Math.random() * H : -12, vx: 4 + Math.random() * 10, vy: 14 + Math.random() * 18,
+      size: 3 + Math.random() * 3, max: 14 + Math.random() * 10, vr: (Math.random() - 0.5) * 2, sway: 18, sw: 0.8 + Math.random() });
+    if (ambient.type === 'bubble') return Object.assign(base, { y: anywhere ? Math.random() * H : H + 10, vx: 0, vy: -(10 + Math.random() * 22),
+      size: 1.5 + Math.random() * 3.5, max: 10 + Math.random() * 10, sway: 6, sw: 1.5 + Math.random() * 2 });
+    return Object.assign(base, { type: 'mote', y: anywhere ? Math.random() * H : H + 10, vx: (Math.random() - 0.5) * 6, vy: -(6 + Math.random() * 14),
+      size: 1 + Math.random() * 2.2, max: 9 + Math.random() * 8 });
+  }
+  function spawnAmbient() {
+    for (let i = parts.length - 1; i >= 0; i--) if (parts[i].ambient) parts.splice(i, 1);
+    if (!reduce) for (let i = 0; i < ambient.count; i++) parts.push(mote(true));
+    kick();
   }
 
   function add(p) {
@@ -43,12 +56,12 @@
       const p = parts[i];
       p.life += dt;
       if (p.life >= p.max) {
-        if (p.type === 'mote') parts[i] = mote(false); else parts.splice(i, 1);
+        if (p.ambient) parts[i] = mote(false); else parts.splice(i, 1);
         continue;
       }
       p.vx *= Math.pow(p.drag, dt * 60); p.vy *= Math.pow(p.drag, dt * 60);
       p.vy += p.g * dt;
-      p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+      p.x += p.vx * dt + (p.sway ? Math.sin(p.life * p.sw + p.tw) * p.sway * dt : 0); p.y += p.vy * dt; p.rot += (p.vr || 0) * dt;
       draw(p);
     }
     if (parts.length) requestAnimationFrame(frame); else running = false;
@@ -56,7 +69,7 @@
 
   function draw(p) {
     const k = p.life / p.max;
-    const alpha = p.type === 'mote' ? Math.sin(Math.PI * k) * (0.35 + 0.25 * Math.sin(p.life * 3 + p.tw)) : k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+    const alpha = p.ambient ? Math.sin(Math.PI * k) * (0.35 + 0.25 * Math.sin(p.life * 3 + p.tw)) : k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
     cx.save();
     cx.globalAlpha = Math.max(0, alpha);
     cx.translate(p.x, p.y);
@@ -67,6 +80,16 @@
       case 'mote':
         cx.shadowColor = p.color; cx.shadowBlur = 8;
         cx.beginPath(); cx.arc(0, 0, s, 0, 7); cx.fill(); break;
+      case 'petal':
+        cx.globalAlpha = Math.min(1, alpha * 1.6);
+        cx.scale(1, Math.abs(Math.cos(p.life * 1.7 + p.tw)) * 0.6 + 0.4);
+        cx.beginPath(); cx.ellipse(0, 0, s * 1.4, s * 0.8, 0, 0, 7); cx.fill();
+        cx.fillStyle = 'rgba(255,255,255,.45)'; cx.beginPath(); cx.ellipse(-s * 0.4, -s * 0.2, s * 0.5, s * 0.25, 0, 0, 7); cx.fill(); break;
+      case 'bubble':
+        cx.globalAlpha = Math.min(1, alpha * 1.5);
+        cx.strokeStyle = p.color; cx.lineWidth = 1;
+        cx.beginPath(); cx.arc(0, 0, s, 0, 7); cx.stroke();
+        cx.fillStyle = p.color; cx.globalAlpha *= 0.5; cx.beginPath(); cx.arc(-s * 0.35, -s * 0.35, s * 0.25, 0, 7); cx.fill(); break;
       case 'dot':
       case 'pearl':
         cx.beginPath(); cx.arc(0, 0, s, 0, 7); cx.fill();
@@ -119,8 +142,8 @@
       for (let i = 0; i < n; i++) setTimeout(() => add({ type: 'pearl', x: x + rnd(-3, 3), y: y0, vx: rnd(-10, 10), vy: 80, g: 1800, drag: 1,
         size: rnd(3.5, 5), color: '#3a2626', max: Math.sqrt((2 * Math.max(10, y1 - y0)) / 1800) + 0.02 }), (i / n) * dur);
     },
-    confetti() {
-      const colors = ['#a689e0', '#7cc46a', '#f7b733', '#f47fa4', '#5b8def', '#ffe6a8', '#ffffff'];
+    setAmbient(opts) { Object.assign(ambient, opts); if (cv) spawnAmbient(); },
+    confetti(colors = ['#a689e0', '#7cc46a', '#f7b733', '#f47fa4', '#5b8def', '#ffe6a8', '#ffffff']) {
       const n = reduce ? 20 : 140;
       for (let i = 0; i < n; i++) {
         const left = i % 2 === 0;
