@@ -39,3 +39,36 @@ Edit the `PACK` array in `generate.js` to add or tune levels. Each level gets:
 - **Sort mode:** win when every cup is full of one ingredient.
 - **Orders mode:** customers wait at the counter (`slots` at a time). Pour into an order cup only the
   ingredient its recipe needs next (bottom → top). Finished orders leave; win when everyone is served.
+
+## Feel: animation & audio (`fx.js`, `audio.js`)
+
+Everything is generated in code: no image or sound files.
+
+**Pour choreography.** The cup lifts, flies over the target and tips about its lip. A wobbling
+stream falls, the source drains layer by layer while the target fills, splash droplets land, and
+the cup swings home. Input reopens as soon as the liquid lands, so fast players are never held up
+by the return trip. Pearls fall as particles and drop in under the liquid, which rises to make room.
+
+**Reward ladder** (each step bigger than the one before):
+
+| Moment | Visual | Sound |
+|---|---|---|
+| Select | Springy lift, liquid sloshes | Glass clink, pitched by how full the cup is |
+| Pour | Stream, splash, fill | Stream noise that rises as the cup fills, glugs, bubbles, a plucked note per layer climbing the scale |
+| Wrong move | Target cup shakes | Soft muted "bonk" (never a buzzer) |
+| Cup complete | Lid and straw drop on, cup squashes, star burst, shockwave, praise text | Lid pop and a 3-note chime that climbs with the streak |
+| Order served | Customer hops, hearts, slides away; the next one walks in | Bell "ding-ding" and a happy chirp; a door chime for the new customer |
+| Streak | "Nice! → Sweet! → … → LEGENDARY!", bigger each time | Chimes climb the scale; a whoosh |
+| Win | Victory lap (cups hop in a wave), confetti, stars pop in one by one, coins count up | Fanfare, a rising bell per star, coin ticks |
+| Random tip | 15% chance of a **golden tip** (×6 coins) | Jackpot arpeggio |
+| Ad vial | Vial spins in from above, sparkle ring | Magic harp glissando |
+
+**Audio design rules** (rationale in comments at the top of `audio.js`):
+- Every tonal sound uses the same key as the music (F-major pentatonic), so overlapping sounds stay in harmony.
+- Pour pitch follows the physics of a filling vessel: the shorter the air column, the higher the pitch.
+- Bubbles use the standard synthesized bubble: a fast upward sine chirp.
+- Clinks use inharmonic glass overtones.
+- Sounds escalate with streaks, get a little random pitch on each repeat so they don't wear thin, and keep a clear loudness order. Measured peaks: wrong move 0.25 < pour 0.26–0.36 < complete ≈ win 0.49.
+- The music ducks under big rewards. The lo-fi loop (80 BPM, swung) is scheduled with a look-ahead clock.
+- Sound effects and music each have a toggle, saved per device. Haptics use `navigator.vibrate` where the browser supports it; the iOS build would use `UIImpactFeedbackGenerator`.
+- `prefers-reduced-motion` turns off flights, shakes, confetti and ambient motion.

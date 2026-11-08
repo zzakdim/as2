@@ -7,59 +7,135 @@
 <style>
   :root {
     --bg: #1e1830; --panel: #2a2242; --text: #f3eefc; --muted: #a99cc8;
-    --accent: #c9a7ff; --glass: rgba(255,255,255,.10); --glass-edge: rgba(255,255,255,.45);
-    --good: #8ee0a6; --warn: #ffcf7a;
+    --accent: #c9a7ff; --glass: rgba(255,255,255,.08); --glass-edge: rgba(255,255,255,.42);
+    --good: #8ee0a6; --warn: #ffcf7a; --gold: #ffd76a;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: radial-gradient(120% 80% at 50% 0%, #3a2b5c 0%, var(--bg) 60%); color: var(--text);
     font: 15px/1.4 ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; }
-  body { display: flex; flex-direction: column; min-height: 100%; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom); }
-  header { display: flex; align-items: center; gap: 8px; padding: 12px 0 4px; }
-  header h1 { font-size: 18px; margin: 0; flex: 1; }
-  select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid #4a3d70; border-radius: 12px; padding: 8px 12px; }
-  button:active { transform: scale(.96); }
+  body { display: flex; flex-direction: column; min-height: 100%; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    user-select: none; -webkit-user-select: none; overflow-x: hidden; }
+
+  /* ---- header ---- */
+  header { display: flex; align-items: center; gap: 8px; padding: 12px 0 4px; flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; flex: 1; white-space: nowrap; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; background: var(--panel); border: 1px solid #4a3d70; border-radius: 999px; padding: 5px 10px;
+    font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pill.bump { animation: bump .45s cubic-bezier(.3,1.8,.5,1); }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid #4a3d70; border-radius: 12px; padding: 8px 12px; cursor: pointer;
+    transition: transform .12s cubic-bezier(.3,1.6,.5,1), filter .15s; }
+  button:active:not(:disabled) { transform: scale(.9); }
+  button:disabled { opacity: .45; cursor: default; }
+  .icon { padding: 6px 9px; }
   .meta { color: var(--muted); font-size: 13px; min-height: 2.8em; }
   .meta b { color: var(--text); }
-  .counter { display: flex; gap: 12px; justify-content: center; padding: 10px 0; flex-wrap: wrap; }
+
+  /* ---- progress ---- */
+  .progress { position: relative; height: 10px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; margin: 2px 0 6px; }
+  .progress i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, #a689e0, #f47fa4, #f7b733); transition: width .6s cubic-bezier(.3,1.3,.5,1); }
+  .progress i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
+    background-size: 200% 100%; animation: shine 2.4s linear infinite; }
+  @keyframes shine { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+  /* ---- counter / customers ---- */
+  .counter { display: flex; gap: 16px; justify-content: center; padding: 8px 0 4px; flex-wrap: wrap; }
   .counter .label { width: 100%; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-  .queue { display:flex; gap:6px; justify-content:center; width:100%; color: var(--muted); font-size: 12px; }
-  .board { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 14px 12px; padding: 12px 0; }
+  .queue { display: flex; gap: 6px; justify-content: center; width: 100%; color: var(--muted); font-size: 12px; min-height: 18px; }
+  .cust-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cust-slot.enter { animation: custIn .55s cubic-bezier(.3,1.5,.5,1) both; animation-delay: var(--d, 0ms); }
+  @keyframes custIn { from { transform: translateX(70px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  .cust { font-size: 26px; animation: bob 2.6s ease-in-out infinite; display: inline-block; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
+
+  /* ---- board & cups ---- */
+  .board { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 6px 12px; padding: 8px 0; }
+  .slot { position: relative; padding: 22px 0 16px; }
   .cup { position: relative; width: 54px; height: calc(var(--cap) * 34px + 14px); border: 2.5px solid var(--glass-edge); border-top: none;
     border-radius: 6px 6px 22px 22px; background: var(--glass); display: flex; flex-direction: column-reverse;
-    padding: 4px; gap: 2px; overflow: hidden; cursor: pointer; transition: transform .15s; }
-  .cup.sel { transform: translateY(-14px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(201,167,255,.35); }
+    padding: 4px; overflow: hidden; cursor: pointer; }
+  .cup::before { /* glass glint that sweeps across now and then */
+    content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 45%, transparent 55%); background-size: 300% 100%;
+    animation: glint 7s ease-in-out infinite; animation-delay: var(--gd, 0s); }
+  .cup::after { /* fixed glass highlight */
+    content: ""; position: absolute; top: 6px; bottom: 10px; left: 6px; width: 5px; border-radius: 4px; background: rgba(255,255,255,.16); z-index: 3; pointer-events: none; }
+  @keyframes glint { 0%, 70% { background-position: 120% 0; } 100% { background-position: -40% 0; } }
+  .cup.sel { transform: translateY(-14px); border-color: var(--accent); box-shadow: 0 10px 26px rgba(201,167,255,.4); }
   .cup.hint { border-color: var(--warn); box-shadow: 0 0 0 3px rgba(255,207,122,.4); }
-  .cup.done { border-color: var(--good); }
-  .cup.vial { width: 44px; border-color: rgba(201,167,255,.75); border-radius: 4px 4px 18px 18px; background: rgba(201,167,255,.10); }
-  .cup.vial.sel { border-color: var(--accent); }
-  .vialtag { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); }
-  .slot { position: relative; padding-top: 18px; }
-  #vial { border-color: var(--accent); }
+  .cup.done { border-color: var(--good); box-shadow: 0 0 18px rgba(142,224,166,.3); }
+  .cup.vial { width: 44px; border-color: rgba(201,167,255,.8); border-radius: 4px 4px 18px 18px; background: rgba(201,167,255,.12); }
+  .order { width: 46px; height: 120px; border-style: dashed; }
+  .layer { flex: 0 0 calc(100% / var(--cap)); position: relative; transform-origin: bottom;
+    background-image: linear-gradient(90deg, rgba(255,255,255,.22) 0 10%, transparent 30% 72%, rgba(0,0,0,.14)); }
+  .layer.seam { box-shadow: inset 0 2px 0 rgba(0,0,0,.18); }
+  .layer.surface { box-shadow: inset 0 3px 0 rgba(255,255,255,.38); border-radius: 2px 2px 0 0; }
+  .layer.ghost { opacity: .22; outline: 1.5px dashed rgba(255,255,255,.6); outline-offset: -2px; background-image: none; }
+  .layer.P { background-image: radial-gradient(circle at 22% 32%, rgba(255,255,255,.25) 6%, #4b3434 7% 17%, transparent 19%),
+      radial-gradient(circle at 68% 28%, rgba(255,255,255,.25) 6%, #4b3434 7% 17%, transparent 19%),
+      radial-gradient(circle at 44% 74%, rgba(255,255,255,.25) 6%, #4b3434 7% 17%, transparent 19%),
+      radial-gradient(circle at 86% 78%, rgba(255,255,255,.2) 5%, #4b3434 6% 15%, transparent 17%); }
+  .vialtag { position: absolute; bottom: 0; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); }
+  .lid { position: absolute; top: 12px; left: 50%; width: calc(100% + 8px); height: 14px; margin-left: calc(-50% - 4px); z-index: 4;
+    background: linear-gradient(180deg, #fff, #dcd3f0); border-radius: 50% 50% 4px 4px / 100% 100% 4px 4px; box-shadow: 0 2px 4px rgba(0,0,0,.25); }
+  .straw { position: absolute; bottom: 8px; left: 58%; width: 7px; height: 34px; border-radius: 4px; transform: rotate(14deg); transform-origin: bottom;
+    background: repeating-linear-gradient(180deg, #ff8fb8 0 6px, #fff 6px 10px); }
+  .flying { position: fixed !important; z-index: 40; pointer-events: none; box-shadow: 0 14px 30px rgba(0,0,0,.35); }
+  .stream { position: fixed; width: 6px; border-radius: 3px; z-index: 39; pointer-events: none; transform-origin: top;
+    background-image: linear-gradient(90deg, rgba(255,255,255,.35), transparent 60%); }
+
+  /* ---- tray & misc ---- */
+  .tray { display: flex; gap: 8px; justify-content: center; padding: 10px 0 18px; flex-wrap: wrap; }
+  #vial { border-color: var(--accent); box-shadow: 0 0 0 0 rgba(201,167,255,.6); }
+  #vial.nudge { animation: nudge 1.6s ease-in-out infinite; }
+  @keyframes nudge { 0%,100% { box-shadow: 0 0 0 0 rgba(201,167,255,.0); } 50% { box-shadow: 0 0 0 6px rgba(201,167,255,.35); } }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; color: var(--muted); font-size: 12px; padding-bottom: 6px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
   body:not(.dev) .dev-only { display: none; }
   .devbadge { font-size: 11px; color: var(--warn); border: 1px solid var(--warn); border-radius: 8px; padding: 1px 6px; }
-  .order { width: 46px; height: 120px; border-style: dashed; cursor: pointer; }
-  .layer { flex: 0 0 calc((100% - 6px) / var(--cap)); border-radius: 4px; position: relative; }
-  .layer.ghost { opacity: .22; outline: 1.5px dashed rgba(255,255,255,.6); outline-offset: -2px; }
-  .layer.P { background-image: radial-gradient(circle at 25% 35%, #4b3434 18%, transparent 20%), radial-gradient(circle at 70% 30%, #4b3434 18%, transparent 20%),
-      radial-gradient(circle at 45% 75%, #4b3434 18%, transparent 20%), radial-gradient(circle at 85% 80%, #4b3434 16%, transparent 18%); }
-  .cust { text-align: center; font-size: 22px; }
-  .tray { display: flex; gap: 8px; justify-content: center; padding: 10px 0 18px; flex-wrap: wrap; }
-  .legend { display:flex; flex-wrap:wrap; gap:6px 12px; justify-content:center; color: var(--muted); font-size: 12px; padding-bottom: 8px; }
-  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
-  .win { position: fixed; inset: 0; display: none; place-items: center; background: rgba(20,14,34,.75); backdrop-filter: blur(4px); }
-  .win.show { display: grid; }
-  .win > div { background: var(--panel); border-radius: 20px; padding: 24px 28px; text-align: center; max-width: 320px; }
-  .win h2 { margin: 0 0 6px; }
-  .stars { font-size: 28px; letter-spacing: 4px; }
+  .floaty { position: fixed; z-index: 60; pointer-events: none; font-weight: 800; white-space: nowrap; letter-spacing: .02em;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 0 14px rgba(255,255,255,.35); }
+  .floaty.big { -webkit-text-stroke: 1px rgba(0,0,0,.25); }
+
+  /* ---- overlays ---- */
+  .overlay { position: fixed; inset: 0; display: none; place-items: center; background: rgba(20,14,34,.72); backdrop-filter: blur(5px); z-index: 45; }
+  .overlay.show { display: grid; }
+  .card { background: linear-gradient(180deg, #33295a, var(--panel)); border: 1px solid #4f417d; border-radius: 22px; padding: 22px 26px; text-align: center;
+    width: min(320px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .overlay.show .card { animation: pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+  @keyframes pop { from { transform: scale(.5) translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .card h2 { margin: 0 0 8px; font-size: 24px; }
+  .stars { display: flex; justify-content: center; gap: 10px; font-size: 40px; height: 54px; align-items: center; }
+  .stars span { color: rgba(255,255,255,.15); display: inline-block; transform: scale(.8); }
+  .stars span.on { color: var(--gold); text-shadow: 0 0 18px rgba(255,215,106,.7); animation: starPop .5s cubic-bezier(.3,1.9,.5,1) both; }
+  @keyframes starPop { 0% { transform: scale(0) rotate(-90deg); } 60% { transform: scale(1.5) rotate(15deg); } 100% { transform: scale(1.1) rotate(0); } }
+  .earn { font-size: 22px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; margin: 6px 0 2px; }
+  .tip { min-height: 22px; color: var(--muted); font-size: 14px; }
+  .tip.golden { color: var(--gold); font-weight: 800; animation: bump .5s cubic-bezier(.3,1.8,.5,1); }
+  #winNext { margin-top: 12px; font-size: 17px; padding: 10px 22px; border-color: var(--accent); background: linear-gradient(180deg, #7d5fd0, #5a3fa8);
+    animation: cta 1.4s ease-in-out infinite; }
+  @keyframes cta { 0%,100% { box-shadow: 0 0 0 0 rgba(201,167,255,.0); transform: scale(1); } 50% { box-shadow: 0 0 0 8px rgba(201,167,255,.25); transform: scale(1.04); } }
+  .adring { width: 64px; height: 64px; margin: 8px auto; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-weight: 800;
+    background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), rgba(255,255,255,.1) 0); }
+  .adring b { width: 50px; height: 50px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cup::before, .cust, .progress i::after, #winNext, #vial.nudge { animation: none; }
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>🧋 Magic Boba</h1>
   <span class="devbadge dev-only">DEV</span>
+  <span class="pill" id="coins" title="Coins">🪙 <span id="coinN">0</span></span>
+  <button class="icon" id="sfxBtn" aria-label="Sound effects">🔊</button>
+  <button class="icon" id="musBtn" aria-label="Music">🎵</button>
   <select id="pick" aria-label="Level"></select>
 </header>
 <div class="meta" id="meta"></div>
+<div class="progress" aria-hidden="true"><i id="prog"></i></div>
 <div class="counter" id="counter" hidden></div>
 <div class="board" id="board"></div>
 <div class="legend" id="legend"></div>
@@ -70,62 +146,131 @@
   <button id="hint" class="dev-only">✨ Hint</button>
   <button id="nextBtn">Next ›</button>
 </div>
-<div class="win" id="win"><div>
-  <h2>Served! 🎉</h2>
-  <div class="stars" id="stars"></div>
-  <p id="winText"></p>
+
+<div class="overlay" id="win"><div class="card">
+  <h2 id="winTitle">Served!</h2>
+  <div class="stars" id="stars"><span>★</span><span>★</span><span>★</span></div>
+  <div id="winText" class="tip"></div>
+  <div class="earn">🪙 +<span id="earnN">0</span></div>
+  <div class="tip" id="tipLine"></div>
   <button id="winNext">Next level ›</button>
 </div></div>
 
-<div class="win" id="ad"><div>
+<div class="overlay" id="ad"><div class="card">
   <h2>📺 Ad break</h2>
   <p>A rewarded ad plays here.<br>Watch it to get a <b id="adSize"></b>.</p>
-  <div class="stars" id="adCount"></div>
+  <div class="adring" id="adRing"><b id="adCount"></b></div>
   <button id="adCancel">No thanks</button>
 </div></div>
 
 <script src="engine.js"></script>
 <script src="levels.js"></script>
+<script src="audio.js"></script>
+<script src="fx.js"></script>
 <script>
 const { FLAVORS } = Boba;
+const A = window.BobaAudio, FX = window.BobaFX;
+const REDUCE = FX.reduce;
 const CUSTOMERS = ['🐸','👻','🐉','🦊','🧙','🐈‍⬛','🦉','🍄'];
+const PRAISE = ['Nice!', 'Sweet!', 'Yummy!', 'Boba-licious!', 'Magical!', 'Spellbinding!', 'LEGENDARY!'];
+const T = { lift: 180, unit: 110, back: 180 }; // pour timing (ms)
+
 let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [], vialsUsed = 0, adTimer = null;
-// Bonus vial sizes, one per ad watched in a level. Tunable per level via `bonusVials`.
+let busy = false, streak = 0, quietMoves = 0, hiddenCup = null, flying = null, knownOpen = new Set(), lastProgress = 0;
+let coins = 0;
+try { coins = +localStorage.getItem('boba.coins') || 0; } catch {}
+
+const $ = (id) => document.getElementById(id);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const vialSizes = () => level.bonusVials || [2, 3, 4];
-// Dev mode (open the page with #dev): shows Hint, difficulty stats, and skips the ad wait.
 const isDev = () => location.hash === '#dev';
 const syncDev = () => document.body.classList.toggle('dev', isDev());
 window.addEventListener('hashchange', () => { syncDev(); render(); });
 syncDev();
 
-const $ = (id) => document.getElementById(id);
+// Browsers only allow audio after a gesture: unlock on the first touch.
+document.addEventListener('pointerdown', () => A.unlock(), { capture: true });
+const syncAudioBtns = () => { $('sfxBtn').textContent = A.sfxOn ? '🔊' : '🔇'; $('musBtn').style.opacity = A.musicOn ? 1 : 0.4; };
+$('sfxBtn').onclick = () => { A.setSfx(!A.sfxOn); syncAudioBtns(); A.tap(); };
+$('musBtn').onclick = () => { A.setMusic(!A.musicOn); syncAudioBtns(); A.tap(); };
+syncAudioBtns();
+
 const pick = $('pick');
 LEVELS.forEach((l, i) => pick.add(new Option(`${l.id} · ${l.title}`, i)));
 pick.onchange = () => load(+pick.value);
 
+const cupEl = (i) => $('board').children[i]?.querySelector('.cup');
+const orderEl = (k) => $('counter').querySelectorAll('.order')[k];
+const center = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, r }; };
+const isDone = (s, i) => s.mode === 'sort' && s.cups[i].length === s.cap && Boba.topRun(s.cups[i]) === s.cups[i].length;
+
+function setCoins(n, bump = true) {
+  coins = n; $('coinN').textContent = n;
+  try { localStorage.setItem('boba.coins', n); } catch {}
+  if (bump) { const p = $('coins'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
+}
+setCoins(coins, false);
+
+// ------------------------------------------------------------------------------------------
 function load(i) {
   idx = i; pick.value = i; level = LEVELS[i];
   state = Boba.initState(level); history = []; sel = null; moves = 0; hintCups = []; vialsUsed = 0;
+  streak = 0; quietMoves = 0; busy = false; lastProgress = 0;
+  finishFlight();
+  knownOpen = new Set((state.open || []).map((o) => o.i));
   $('win').classList.remove('show');
   clearInterval(adTimer); $('ad').classList.remove('show');
   try { localStorage.setItem('boba.level', i); } catch {}
   render();
+  // cups drop in, cascading
+  if (!REDUCE) [...$('board').children].forEach((slot, n) => slot.animate(
+    [{ transform: 'translateY(-40px) scale(.8)', opacity: 0 }, { transform: 'translateY(4px) scale(1.03)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }],
+    { duration: 420, delay: n * 55, easing: 'ease-out', fill: 'backwards' }));
+  [...$('board').children].forEach((_, n) => setTimeout(() => A.hop(n), n * 55 + 200));
 }
 
-function layerEl(code, ghost) {
+function progress(s) {
+  if (s.mode === 'orders') {
+    const total = s.orders.join('').length;
+    let done = s.orders.slice(0, s.next).join('').length;
+    for (const o of s.open) done -= s.orders[o.i].length - o.filled;
+    return done / total;
+  }
+  const total = s.cups.join('').length;
+  let good = 0;
+  s.cups.forEach((c) => { if (c.length && Boba.topRun(c) === c.length) good += c.length >= 2 ? c.length : 0; });
+  return good / total;
+}
+
+function layerEl(code, { ghost = false, surface = false, seam = false } = {}) {
   const d = document.createElement('div');
-  d.className = 'layer ' + code + (ghost ? ' ghost' : '');
-  d.style.backgroundColor = FLAVORS[code].color; // keep CSS background-image (pearl dots)
+  d.className = 'layer ' + code + (ghost ? ' ghost' : '') + (surface ? ' surface' : '') + (seam ? ' seam' : '');
+  d.style.backgroundColor = FLAVORS[code].color;
   d.title = FLAVORS[code].name;
   return d;
 }
 
-function render() {
+function fillCup(cup, str, cap) {
+  cup.style.setProperty('--cap', cap);
+  [...str].forEach((code, n) => cup.appendChild(layerEl(code, { surface: n === str.length - 1 && code !== 'P', seam: n > 0 && str[n - 1] !== code })));
+}
+
+// anim: { cup|slot, from, n, pearl, delay } for the pour-in; sealed: Set of newly completed cups
+function render(anim = {}) {
   const s = level.stats;
   $('meta').innerHTML = `<b>${level.world}</b> — ${level.note}<br>Moves <b>${moves}</b> · best possible <b>${s.optimal}</b>` +
     (isDev() ? ` · ${level.tier} · casual stuck ${s.casualStuckPct ?? '?'}% (random ${s.randomPlayStuckPct}%) · branching ${s.branching}` : '');
 
-  // Counter (orders mode)
+  // progress bar (+ sparkle when it grows)
+  const p = progress(state);
+  $('prog').style.width = (p * 100).toFixed(1) + '%';
+  if (p > lastProgress + 0.001 && !REDUCE) {
+    const r = $('prog').parentElement.getBoundingClientRect();
+    setTimeout(() => FX.burst(r.left + r.width * p, r.top + r.height / 2, { colors: ['#fff', '#ffe6a8'], count: 6, speed: 90, g: 120, size: [1.5, 3] }), 450);
+  }
+  lastProgress = p;
+
+  // counter
   const counter = $('counter');
   counter.hidden = state.mode !== 'orders';
   counter.innerHTML = '';
@@ -133,55 +278,131 @@ function render() {
     counter.insertAdjacentHTML('beforeend', '<div class="label">Counter</div>');
     state.open.forEach((o, k) => {
       const wrap = document.createElement('div');
+      wrap.className = 'cust-slot';
+      if (!knownOpen.has(o.i)) {
+        wrap.classList.add('enter'); wrap.style.setProperty('--d', (anim.enterDelay || 0) + 'ms');
+        knownOpen.add(o.i);
+        setTimeout(() => A.customer(), (anim.enterDelay || 0) + 150);
+      }
       wrap.innerHTML = `<div class="cust">${CUSTOMERS[o.i % CUSTOMERS.length]}</div>`;
       const cup = document.createElement('div');
       cup.className = 'cup order' + (hintCups.includes('o' + k) ? ' hint' : '');
       cup.style.setProperty('--cap', level.orders[o.i].length);
-      [...level.orders[o.i]].forEach((c, n) => cup.appendChild(layerEl(c, n >= o.filled)));
+      cup.style.setProperty('--gd', (k * 1.3) + 's');
+      [...level.orders[o.i]].forEach((c, n) => cup.appendChild(layerEl(c, { ghost: n >= o.filled, surface: n === o.filled - 1 && c !== 'P' })));
       cup.onclick = () => tap('o' + k);
       wrap.appendChild(cup);
       counter.appendChild(wrap);
+      if (anim.slot === k) animateIn(cup, anim);
     });
     const waiting = state.orders.length - state.next;
-    counter.insertAdjacentHTML('beforeend', `<div class="queue">${waiting ? 'In queue: ' + state.orders.slice(state.next).map((o,n)=>CUSTOMERS[(state.next+n)%CUSTOMERS.length]).join(' ') : 'No one else waiting'}</div>`);
+    counter.insertAdjacentHTML('beforeend', `<div class="queue">${waiting ? 'In queue: ' + state.orders.slice(state.next).map((o, n) => CUSTOMERS[(state.next + n) % CUSTOMERS.length]).join(' ') : 'No one else waiting'}</div>`);
   }
 
-  // Play cups
+  // play cups
   const board = $('board');
   board.innerHTML = '';
   state.cups.forEach((c, i) => {
     const cup = document.createElement('div');
-    const done = state.mode === 'sort' && c.length === state.cap && Boba.topRun(c) === c.length;
+    const done = isDone(state, i);
     const isVial = i >= level.cups.length;
     cup.className = 'cup' + (isVial ? ' vial' : '') + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '');
-    cup.style.setProperty('--cap', state.caps[i]);
-    [...c].forEach((code) => cup.appendChild(layerEl(code)));
+    cup.style.setProperty('--gd', ((i * 0.9) % 7) + 's');
+    fillCup(cup, c, state.caps[i]);
     cup.onclick = () => tap(i);
+    if (hiddenCup === i) cup.style.visibility = 'hidden';
     const slot = document.createElement('div');
     slot.className = 'slot';
     if (isVial) slot.insertAdjacentHTML('beforeend', `<div class="vialtag">✦ ${state.caps[i]}</div>`);
     slot.appendChild(cup);
+    if (done) {
+      const lid = document.createElement('div');
+      lid.className = 'lid';
+      lid.innerHTML = '<i class="straw"></i>';
+      slot.appendChild(lid);
+      if (anim.sealed && anim.sealed.has(i) && !REDUCE) {
+        const d = anim.sealDelay || 0;
+        lid.animate([{ transform: 'translateY(-60px) scale(1.2,.8)', opacity: 0 }, { transform: 'translateY(3px) scale(.9,1.15)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }],
+          { duration: 380, delay: d, easing: 'cubic-bezier(.3,1.4,.5,1)', fill: 'backwards' });
+        lid.firstChild.animate([{ transform: 'translateY(-40px) rotate(30deg)', opacity: 0 }, { transform: 'rotate(14deg)', opacity: 1 }],
+          { duration: 300, delay: d + 260, easing: 'cubic-bezier(.3,1.6,.5,1)', fill: 'backwards' });
+        cup.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12,.9)', offset: 0.35 }, { transform: 'scale(.95,1.06)', offset: 0.7 }, { transform: 'scale(1)' }],
+          { duration: 420, delay: d + 120 });
+      }
+    }
     board.appendChild(slot);
+    if (anim.cup === i) animateIn(cup, anim);
   });
 
-  // Legend: only ingredients in this level
   const used = new Set((level.cups.join('') + (level.orders || []).join('')).split(''));
-  $('legend').innerHTML = [...used].sort().map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c==='P'?' (sinks)':''}</span>`).join('');
+  $('legend').innerHTML = [...used].sort().map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c === 'P' ? ' (sinks)' : ''}</span>`).join('');
   $('undo').disabled = !history.length;
   const sizes = vialSizes();
   $('vial').disabled = vialsUsed >= sizes.length;
   $('vial').textContent = vialsUsed < sizes.length ? `📺 +${sizes[vialsUsed]}-layer vial` : 'No vials left';
+  // gently suggest the vial when the player has no useful moves left
+  const stuck = !Boba.isWon(state) && !Boba.legalMoves(state).length;
+  $('vial').classList.toggle('nudge', stuck && vialsUsed < sizes.length);
 }
 
-function tap(target) {
-  hintCups = [];
-  if (typeof target === 'string') { // order cup: only valid as a destination
-    if (sel !== null) tryMove([sel, target]);
-    return;
+// Layers arriving in a cup: liquids grow upward in sequence; pearls drop in and push liquid up.
+function animateIn(cup, a) {
+  if (REDUCE) return;
+  const layers = cup.querySelectorAll('.layer');
+  for (let n = 0; n < a.n; n++) {
+    const el = layers[a.from + n];
+    if (!el) continue;
+    const delay = (a.delay || 0) + n * T.unit;
+    if (a.pearl) el.animate([{ transform: 'translateY(-160%)', opacity: 0 }, { transform: 'translateY(8%) scaleY(.85)', opacity: 1, offset: 0.75 }, { transform: 'none', opacity: 1 }],
+      { duration: T.unit + 120, delay, easing: 'ease-in', fill: 'backwards' });
+    else el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1.06)', offset: 0.8 }, { transform: 'scaleY(1)' }],
+      { duration: T.unit + 20, delay, easing: 'linear', fill: 'backwards' });
   }
-  if (sel === null) { if (state.cups[target].length) sel = target; render(); return; }
-  if (sel === target) { sel = null; render(); return; }
-  if (!tryMove([sel, target])) { sel = state.cups[target].length ? target : null; render(); }
+  if (a.pearl) for (let n = a.from + a.n; n < layers.length; n++) layers[n].animate(
+    [{ transform: `translateY(${a.n * 100}%)` }, { transform: 'translateY(-6%)', offset: 0.8 }, { transform: 'none' }],
+    { duration: a.n * T.unit + 160, delay: a.delay || 0, easing: 'ease-out', fill: 'backwards' });
+}
+
+// ------------------------------------------------------------------------------------------
+function tap(target) {
+  if (busy) return;
+  hintCups = [];
+  if (typeof target === 'string') { if (sel !== null) tryMove([sel, target]); return; }
+  if (sel === null) { if (state.cups[target].length) select(target); return; }
+  if (sel === target) { deselect(); return; }
+  if (!tryMove([sel, target])) {
+    shakeCup(cupEl(target));
+    A.invalid();
+    const prev = sel; deselect(true);
+    if (state.cups[target].length && target !== prev) setTimeout(() => select(target), 60);
+  }
+}
+
+function select(i) {
+  finishFlight();
+  sel = i;
+  const el = cupEl(i);
+  el.classList.add('sel');
+  A.select(state.cups[i].length);
+  if (REDUCE) return;
+  el.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-22px) scale(.94,1.07)', offset: 0.45 }, { transform: 'translateY(-12px) scale(1.03,.97)', offset: 0.75 }, { transform: 'translateY(-14px)' }],
+    { duration: 300, easing: 'ease-out' });
+  el.querySelectorAll('.layer').forEach((l, n) => l.animate([{ transform: 'skewY(0)' }, { transform: `skewY(${7 - n}deg)` }, { transform: `skewY(${-4 + n * 0.5}deg)` }, { transform: 'skewY(2deg)' }, { transform: 'skewY(0)' }],
+    { duration: 650, easing: 'ease-out' }));
+}
+
+function deselect(silent) {
+  const el = sel !== null && cupEl(sel);
+  sel = null;
+  if (!el) return;
+  el.classList.remove('sel');
+  if (!silent) A.deselect();
+  if (!REDUCE) el.animate([{ transform: 'translateY(-14px)' }, { transform: 'translateY(3px) scale(1.04,.95)', offset: 0.6 }, { transform: 'none' }], { duration: 260, easing: 'ease-in' });
+}
+
+function shakeCup(el) {
+  if (!el || REDUCE) return;
+  el.animate([0, -7, 6, -4, 3, 0].map((x) => ({ transform: `translateX(${x}px) rotate(${x / 2}deg)` })), { duration: 320, easing: 'ease-out' });
 }
 
 function tryMove(m) {
@@ -189,52 +410,313 @@ function tryMove(m) {
   // allow "pointless" pure-cup -> empty-cup moves for the player even though the solver prunes them
   const src = state.cups[m[0]], dst = typeof m[1] === 'number' ? state.cups[m[1]] : null;
   const pointless = dst !== null && !dst.length && src.length && Boba.topRun(src) === src.length;
-  if (!legal && !pointless) { buzz(); return false; }
-  history.push(state); state = Boba.applyMove(state, m); moves++; sel = null;
-  try { navigator.vibrate && navigator.vibrate(10); } catch {}
-  render();
-  if (Boba.isWon(state)) setTimeout(win, 250);
+  if (!legal && !pointless) return false;
+  pour(m);
   return true;
 }
 
-function buzz() { const b = $('board'); b.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}], {duration:180}); }
-
-function win() {
-  const opt = level.stats.optimal;
-  const stars = moves <= opt ? 3 : moves <= Math.ceil(opt * 1.4) ? 2 : 1;
-  $('stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
-  $('winText').textContent = `${moves} moves (best possible: ${opt})` + (vialsUsed ? ` · ${vialsUsed} bonus vial${vialsUsed > 1 ? 's' : ''}` : '');
-  $('win').classList.add('show');
+// Restore the source cup if a flight is still returning.
+function finishFlight() {
+  if (!flying) return;
+  flying.clone.remove();
+  const el = cupEl(flying.i);
+  if (el) el.style.visibility = '';
+  hiddenCup = null; flying = null;
 }
 
-$('undo').onclick = () => { if (history.length) { state = history.pop(); moves--; sel = null; hintCups = []; render(); } };
-$('restart').onclick = () => load(idx);
+async function pour(m) {
+  finishFlight();
+  busy = true;
+  const before = state;
+  const after = Boba.applyMove(state, m);
+  const amount = after.lastAmount;
+  const i = m[0];
+  const t = before.cups[i].slice(-1);
+  const solid = t === 'P';
+  const toOrder = typeof m[1] === 'string';
+  const k = toOrder ? +m[1].slice(1) : -1;
+  const dstCap = toOrder ? level.orders[before.open[k].i].length : before.caps[m[1]];
+  const dstFrom = toOrder ? before.open[k].filled : before.cups[m[1]].length;
+  const srcEl = cupEl(i), dstEl = toOrder ? orderEl(k) : cupEl(m[1]);
+  const served = toOrder && !after.open.some((o) => o.i === before.open[k].i);
+  const sealed = new Set();
+  if (!toOrder && !isDone(before, m[1]) && isDone(after, m[1])) sealed.add(m[1]);
+
+  history.push(before);
+  moves++;
+  sel = null;
+
+  const r1 = srcEl.getBoundingClientRect(), r2 = dstEl.getBoundingClientRect();
+  const layerH = (r2.height - 8) / dstCap;
+  // where poured units land: liquids on top; pearls sink below liquid
+  let landFrom = dstFrom;
+  if (!toOrder && solid) { const d = before.cups[m[1]]; landFrom = 0; while (landFrom < d.length && d[landFrom] === 'P') landFrom++; }
+  const surfaceY = r2.bottom - 5 - dstFrom * layerH;
+  const pourMs = amount * T.unit + 60;
+
+  // serving: keep a copy of the customer + cup on screen while the real counter moves on
+  let servedClone = null;
+  if (served) {
+    const slotEl = dstEl.parentElement, sr = slotEl.getBoundingClientRect();
+    servedClone = slotEl.cloneNode(true);
+    servedClone.classList.remove('enter');
+    Object.assign(servedClone.style, { position: 'fixed', left: sr.left + 'px', top: sr.top + 'px', width: sr.width + 'px', margin: 0, zIndex: 41, pointerEvents: 'none' });
+    document.body.appendChild(servedClone);
+  }
+
+  if (REDUCE) {
+    state = after;
+    render({ sealed, enterDelay: 0 });
+    busy = false;
+    if (servedClone) servedClone.remove();
+    await afterMove({ sealed, served, dstEl: toOrder ? null : cupEl(m[1]), t });
+    return;
+  }
+
+  // 1) lift: the source cup flies over the target and tips, pivoting on its lip
+  const clone = srcEl.cloneNode(true);
+  clone.classList.remove('sel', 'hint');
+  clone.classList.add('flying');
+  Object.assign(clone.style, { left: r1.left + 'px', top: r1.top + 'px', width: r1.width + 'px', height: r1.height + 'px', margin: 0, transform: 'none', visibility: 'visible' });
+  document.body.appendChild(clone);
+  hiddenCup = i; srcEl.style.visibility = 'hidden';
+  const side = r2.left + r2.width / 2 >= r1.left + r1.width / 2 ? 1 : -1;
+  clone.style.transformOrigin = side === 1 ? 'top right' : 'top left';
+  const pivotX = r2.left + r2.width / 2 + side * 3;
+  const pivotY = r2.top - 22;
+  const dx = pivotX - (side === 1 ? r1.right : r1.left);
+  const dy = pivotY - r1.top;
+  const ang = side * 74;
+  flying = { clone, i };
+  await clone.animate([
+    { transform: 'translate(0,0) rotate(0deg)' },
+    { transform: `translate(${dx * 0.6}px, ${dy * 0.6 - 26}px) rotate(${ang * 0.2}deg)`, offset: 0.55 },
+    { transform: `translate(${dx}px, ${dy}px) rotate(${ang}deg)` },
+  ], { duration: T.lift, easing: 'cubic-bezier(.35,.6,.4,1)', fill: 'forwards' }).finished;
+
+  // 2) pour: stream + drain + fill, all in sync with the sound
+  A.pour(amount, dstFrom, dstCap, solid, T.unit);
+  const color = FLAVORS[t].color;
+  [...clone.querySelectorAll('.layer')].slice(-amount).reverse().forEach((el, n) =>
+    el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: T.unit, delay: n * T.unit, fill: 'forwards', easing: 'linear' }));
+  if (!solid) {
+    const st = document.createElement('div');
+    st.className = 'stream';
+    Object.assign(st.style, { left: pivotX - 3 + 'px', top: pivotY + 'px', height: Math.max(10, surfaceY - pivotY) + 'px', backgroundColor: color });
+    document.body.appendChild(st);
+    st.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 70, fill: 'forwards' });
+    st.animate([{ width: '6px', marginLeft: '0px' }, { width: '4px', marginLeft: '1px' }, { width: '7px', marginLeft: '-.5px' }, { width: '5px', marginLeft: '.5px' }],
+      { duration: 180, iterations: Infinity, direction: 'alternate' });
+    for (let u = 0; u < amount; u++) setTimeout(() => FX.burst(pivotX, surfaceY - u * layerH - 2, { colors: [color, '#ffffff'], count: 5, speed: 120, g: 900, up: 120, size: [1.5, 3], types: ['dot'], life: [0.25, 0.45] }), u * T.unit + 60);
+    setTimeout(() => {
+      st.style.transformOrigin = 'bottom';
+      st.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: 90, fill: 'forwards' }).onfinish = () => st.remove();
+    }, pourMs - 50);
+  } else {
+    FX.pearls(pivotX, pivotY, surfaceY, amount * 4, amount * T.unit);
+  }
+
+  state = after;
+  const anim = toOrder
+    ? (served ? { enterDelay: pourMs + 700 } : { slot: k, from: dstFrom, n: amount, delay: 50 })
+    : { cup: m[1], from: landFrom, n: amount, pearl: solid, delay: solid ? 140 : 50, sealed, sealDelay: pourMs + 40 };
+  render(anim);
+  if (servedClone) animateIn(servedClone.querySelector('.order'), { from: dstFrom, n: amount, delay: 50 });
+
+  await wait(pourMs);
+
+  // 3) return the cup home (input is already open again)
+  busy = false;
+  const back = clone.animate([
+    { transform: `translate(${dx}px, ${dy}px) rotate(${ang}deg)` },
+    { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - 18}px) rotate(${-ang * 0.08}deg)`, offset: 0.55 },
+    { transform: 'translate(0,0) rotate(0deg)' },
+  ], { duration: T.back, easing: 'cubic-bezier(.35,.6,.4,1)', fill: 'forwards' });
+  back.onfinish = () => {
+    if (flying && flying.clone === clone) {
+      finishFlight();
+      const el = cupEl(i);
+      if (el && !REDUCE) el.animate([{ transform: 'scale(1.06,.92)' }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
+    }
+  };
+
+  await afterMove({ sealed, served, servedClone, dstEl: toOrder ? null : cupEl(m[1]), t });
+}
+
+async function afterMove({ sealed, served, servedClone, dstEl, t }) {
+  const good = sealed.size > 0 || served;
+  if (good) { streak++; quietMoves = 0; } else if (++quietMoves >= 4) streak = 0;
+
+  if (sealed.size && dstEl) {
+    await wait(60);
+    const c = center(dstEl);
+    const color = FLAVORS[t].color;
+    A.complete(streak - 1);
+    FX.ring(c.x, c.r.top, color, 80);
+    FX.burst(c.x, c.r.top + 10, { colors: [color, '#ffffff', '#ffe6a8'], count: 26 + streak * 4, speed: 300 + streak * 30, up: 160, types: ['star', 'dot'] });
+    FX.shake($('board'), 2 + Math.min(streak, 4));
+    praise(c.x, c.r.top - 18);
+  }
+  if (served && servedClone) {
+    const cust = servedClone.querySelector('.cust');
+    const c = center(servedClone);
+    A.serve(streak - 1);
+    FX.hearts(c.x, c.r.top + 10, 7);
+    FX.burst(c.x, c.y, { colors: ['#ffffff', '#ffe6a8', '#ff9ec2'], count: 22 + streak * 4, speed: 280, up: 120 });
+    FX.ring(c.x, c.y, '#ffe6a8', 90);
+    if (cust) cust.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-22px) scale(1.35) rotate(-10deg)', offset: 0.35 }, { transform: 'translateY(0) scale(1)', offset: 0.7 }, { transform: 'translateY(-8px) scale(1.15) rotate(8deg)' }],
+      { duration: 520, easing: 'ease-out', fill: 'forwards' });
+    praise(c.x, c.r.top - 8);
+    setTimeout(() => servedClone.animate([{ transform: 'none', opacity: 1 }, { transform: 'translate(40px,-30px) scale(.7)', opacity: 0 }],
+      { duration: 420, easing: 'ease-in', fill: 'forwards' }).onfinish = () => servedClone.remove(), 520);
+  } else if (servedClone) servedClone.remove();
+
+  if (Boba.isWon(state)) await celebrate();
+}
+
+function praise(x, y) {
+  const word = PRAISE[Math.min(Math.max(streak - 1, 0), PRAISE.length - 1)];
+  const hue = ['#ffffff', '#ffe6a8', '#ff9ec2', '#c9a7ff', '#8ee0a6', '#ffd76a', '#ffd76a'][Math.min(streak - 1, 6)];
+  FX.text(x, y, word, { color: hue, size: 20 + Math.min(streak, 6) * 3, cls: streak >= 3 ? 'big' : '' });
+  if (streak >= 2) { A.praise(streak); setTimeout(() => FX.text(x, y + 24, `${streak}× streak`, { color: '#c9a7ff', size: 13, rise: 40, dur: 900 }), 120); }
+}
+
+// ------------------------------------------------------------------------------------------
+async function celebrate() {
+  busy = true;
+  await wait(380);
+  // victory lap: every cup hops in turn, climbing the scale
+  const slots = [...$('board').children];
+  slots.forEach((slot, n) => setTimeout(() => {
+    A.hop(n);
+    if (REDUCE) return;
+    slot.animate([{ transform: 'none' }, { transform: 'translateY(-18px) scale(1.06,.94)', offset: 0.4 }, { transform: 'translateY(2px) scale(.96,1.04)', offset: 0.75 }, { transform: 'none' }],
+      { duration: 380, easing: 'ease-out' });
+    const c = center(slot);
+    FX.burst(c.x, c.r.top + 20, { colors: ['#ffe6a8', '#ffffff', '#c9a7ff'], count: 8, speed: 140, up: 80, size: [1.5, 3.5] });
+  }, n * 85));
+  await wait(slots.length * 85 + 200);
+
+  A.win();
+  FX.confetti();
+  FX.shake(document.body, 5, 380);
+
+  const opt = level.stats.optimal;
+  const stars = moves <= opt ? 3 : moves <= Math.ceil(opt * 1.4) ? 2 : 1;
+  let best = 0; try { best = +localStorage.getItem('boba.best.' + level.id) || 0; } catch {}
+  try { if (stars > best) localStorage.setItem('boba.best.' + level.id, stars); } catch {}
+  const golden = Math.random() < 0.15;
+  const tip = golden ? 30 : 1 + Math.floor(Math.random() * 5);
+  const base = 10 + stars * 5;
+
+  $('winTitle').textContent = ['Served!', 'Delicious!', 'Perfect brew!'][stars - 1];
+  $('winText').textContent = `${moves} moves (best possible: ${opt})` + (vialsUsed ? ` · ${vialsUsed} bonus vial${vialsUsed > 1 ? 's' : ''}` : '') + (stars > best && best ? ' · new best!' : '');
+  $('earnN').textContent = 0;
+  $('tipLine').textContent = ''; $('tipLine').className = 'tip';
+  const starEls = [...$('stars').children];
+  starEls.forEach((s) => (s.className = ''));
+  $('win').classList.add('show');
+  await wait(420);
+
+  for (let n = 0; n < 3; n++) {
+    if (n < stars) {
+      starEls[n].className = 'on';
+      A.star(n === stars - 1 && stars === 3 ? 2 : n);
+      const c = center(starEls[n]);
+      FX.burst(c.x, c.y, { colors: ['#ffd76a', '#fff3c4', '#ffffff'], count: n === 2 ? 30 : 16, speed: n === 2 ? 320 : 220, types: ['star', 'dot'], g: 300 });
+      FX.ring(c.x, c.y, '#ffd76a', 50, 14);
+    }
+    await wait(340);
+  }
+
+  // coins count up
+  await countUp(base, 0);
+  await wait(200);
+  if (golden) {
+    $('tipLine').textContent = `✨ Golden tip! +${tip}`; $('tipLine').className = 'tip golden';
+    A.golden();
+    const c = center($('tipLine'));
+    FX.burst(c.x, c.y, { colors: ['#ffd76a', '#fff3c4'], count: 40, speed: 360, types: ['star'], g: 250 });
+  } else {
+    $('tipLine').textContent = `${CUSTOMERS[idx % CUSTOMERS.length]} left a tip: +${tip}`;
+    A.coin(12);
+  }
+  await countUp(base + tip, base);
+  setCoins(coins + base + tip);
+  const pc = center($('coins'));
+  FX.burst(pc.x, pc.y, { colors: ['#ffd76a', '#ffffff'], count: 12, speed: 150, g: 200, size: [1.5, 3] });
+  busy = false;
+}
+
+function countUp(to, from) {
+  return new Promise((res) => {
+    const steps = Math.min(20, to - from), el = $('earnN');
+    if (steps <= 0) { el.textContent = to; return res(); }
+    let n = 0;
+    const iv = setInterval(() => {
+      n++;
+      el.textContent = Math.round(from + ((to - from) * n) / steps);
+      A.coin(n);
+      if (n >= steps) { clearInterval(iv); res(); }
+    }, 38);
+  });
+}
+
+// ------------------------------------------------------------------------------------------
+$('undo').onclick = () => {
+  if (busy || !history.length) return;
+  finishFlight();
+  const prev = state;
+  state = history.pop(); moves--; sel = null; hintCups = []; streak = 0; quietMoves = 0;
+  if (state.open) knownOpen = new Set([...knownOpen, ...state.open.map((o) => o.i)]);
+  A.undo();
+  render();
+  if (!REDUCE) state.cups.forEach((c, n) => {
+    if (c !== prev.cups[n]) cupEl(n)?.animate([{ transform: 'scale(.92,1.06)', filter: 'brightness(1.4)' }, { transform: 'none', filter: 'none' }], { duration: 260, easing: 'ease-out' });
+  });
+};
+$('restart').onclick = () => { if (busy) return; A.undo(); load(idx); };
+$('nextBtn').onclick = $('winNext').onclick = () => { A.tap(); load((idx + 1) % LEVELS.length); };
 
 // Rewarded-ad flow (simulated). The vial is added to every undo step too, so Undo never takes it back.
 function grantVial() {
   const size = vialSizes()[vialsUsed++];
   state = Boba.addVial(state, size);
   history = history.map((h) => Boba.addVial(h, size));
+  A.vial();
   render();
+  const el = cupEl(state.cups.length - 1);
+  if (!el) return;
+  if (!REDUCE) el.parentElement.animate([{ transform: 'translateY(-120px) rotate(-200deg) scale(.3)', opacity: 0 }, { transform: 'translateY(6px) rotate(10deg) scale(1.08)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }],
+    { duration: 650, easing: 'cubic-bezier(.3,1.2,.5,1)' });
+  setTimeout(() => {
+    const c = center(el);
+    FX.burst(c.x, c.y, { colors: ['#c9a7ff', '#ffffff', '#ffe6a8'], count: 30, speed: 260, types: ['star', 'dot'], g: 200 });
+    FX.ring(c.x, c.y, '#c9a7ff', 90);
+  }, 450);
 }
 $('vial').onclick = () => {
-  if (vialsUsed >= vialSizes().length) return;
+  if (busy || vialsUsed >= vialSizes().length) return;
+  A.tap();
   if (isDev()) return grantVial();
   let t = 3;
   $('adSize').textContent = `${vialSizes()[vialsUsed]}-layer vial`;
-  $('adCount').textContent = t;
+  $('adCount').textContent = t; $('adRing').style.setProperty('--p', 0);
   $('ad').classList.add('show');
+  const t0 = performance.now();
   adTimer = setInterval(() => {
-    t--; $('adCount').textContent = t;
-    if (t <= 0) { clearInterval(adTimer); $('ad').classList.remove('show'); grantVial(); }
-  }, 1000);
+    const el = (performance.now() - t0) / 1000;
+    $('adRing').style.setProperty('--p', Math.min(100, (el / 3) * 100));
+    const left = Math.max(0, Math.ceil(3 - el));
+    if (left !== t) { t = left; $('adCount').textContent = t || '✓'; }
+    if (el >= 3) { clearInterval(adTimer); setTimeout(() => { $('ad').classList.remove('show'); grantVial(); }, 200); }
+  }, 30);
 };
-$('adCancel').onclick = () => { clearInterval(adTimer); $('ad').classList.remove('show'); };
-$('nextBtn').onclick = $('winNext').onclick = () => load((idx + 1) % LEVELS.length);
+$('adCancel').onclick = () => { clearInterval(adTimer); $('ad').classList.remove('show'); A.tap(); };
 $('hint').onclick = () => {
   const sol = Boba.solve(level, 200000, state);
   if (sol.solvable && sol.path.length) { hintCups = sol.path[0]; sel = null; render(); }
-  else { $('meta').insertAdjacentHTML('beforeend', '<br><b style="color:var(--warn)">Stuck! Undo or restart.</b>'); }
+  else $('meta').insertAdjacentHTML('beforeend', '<br><b style="color:var(--warn)">Stuck! Undo, restart, or grab a vial.</b>');
 };
 
 let start = 0; try { start = +localStorage.getItem('boba.level') || 0; } catch {}
