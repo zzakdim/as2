@@ -500,6 +500,13 @@
   document.querySelectorAll('#tray .slot').forEach((slot, i) => {
     slot.addEventListener('pointerdown', (e) => startDrag(e, i, slot));
   });
+  // iOS can swallow the end of a touch (a notification banner, Control Center, an incoming call), so a
+  // drag may never get its pointerup or pointercancel. Drop it as soon as anything else happens:
+  // another finger touches down, the app loses focus, or it goes to the background.
+  window.addEventListener('pointerdown', (e) => { if (drag && e.pointerId !== drag.pointerId) cancelDrag(); }, true);
+  window.addEventListener('touchcancel', () => cancelDrag());
+  window.addEventListener('blur', () => cancelDrag());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelDrag(); });
 
   function startDrag(e, i, slot) {
     if (!run || run.over) return;
@@ -508,6 +515,7 @@
     if (!piece) return;
     if (run.targeting) cancelTargeting();
     e.preventDefault();
+    cancelDrag(); // never two drags at once
     Audio.unlock(); sfx.pick(); haptic('LIGHT');
     const m = boardMetrics();
     const ghost = pieceEl(piece, m.cell, m.gap);
@@ -516,7 +524,7 @@
     slot.classList.add('dragging');
     // Lift the piece above the finger so it stays visible while dragging.
     const lift = Math.max(m.pitch * 1.4, 56);
-    drag = { i, piece, slot, ghost, m, lift, target: null, preview: [] };
+    drag = { i, piece, slot, ghost, m, lift, target: null, preview: [], pointerId: e.pointerId };
     moveDrag(e);
     window.addEventListener('pointermove', moveDrag);
     window.addEventListener('pointerup', endDrag);
@@ -529,7 +537,7 @@
   }
 
   function moveDrag(e) {
-    if (!drag) return;
+    if (!drag || e.pointerId !== drag.pointerId) return;
     const { piece, m, lift, ghost } = drag;
     const gx = e.clientX - (piece.w * m.pitch) / 2;
     const gy = e.clientY - piece.h * m.pitch - lift + m.pitch / 2;
@@ -557,10 +565,10 @@
     drag.slot.classList.remove('dragging');
   }
 
-  function cancelDrag() { if (!drag) return; detachDrag(); drag = null; }
+  function cancelDrag(e) { if (!drag || (e && e.pointerId !== undefined && e.pointerId !== drag.pointerId)) return; detachDrag(); drag = null; }
 
-  function endDrag() {
-    if (!drag) return;
+  function endDrag(e) {
+    if (!drag || e.pointerId !== drag.pointerId) return;
     const { i, target } = drag;
     detachDrag();
     drag = null;
