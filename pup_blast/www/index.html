@@ -17,8 +17,8 @@
         <button id="btn-settings" class="icon-btn" type="button" aria-label="Settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
         </button>
-        <button id="btn-boards" class="icon-btn" type="button" aria-label="Leaderboards">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v4M8.5 20h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <button id="btn-boards" class="icon-btn labeled" type="button" aria-label="Leaderboards">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v4M8.5 20h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Ranks</span>
         </button>
       </div>
       <div class="bones-pill"><svg class="bone" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 4.5a2.6 2.6 0 0 0-2.4 3.6A2.6 2.6 0 1 0 8 12.3l3.7 3.7a2.6 2.6 0 1 0 4.2 2.9 2.6 2.6 0 1 0 3-4.2l-3.7-3.7a2.6 2.6 0 1 0-4.3-2.9 2.6 2.6 0 0 0-3.4-3.6z" fill="currentColor"/></svg><span data-bones>0</span></div>
@@ -63,6 +63,7 @@
     <div id="tray" class="tray">
       <div class="slot"></div><div class="slot"></div><div class="slot"></div>
     </div>
+    <div id="stuck-bar" class="stuck-bar" hidden><span>No room! Use your power, or</span><button id="btn-giveup" class="btn ghost small" type="button">End game</button></div>
     <div class="buddy-bar">
       <div id="game-buddy" class="buddy-face"></div>
       <div class="buddy-info"><b id="game-buddy-name"></b><span id="game-buddy-perk"></span></div>

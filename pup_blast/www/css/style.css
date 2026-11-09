@@ -63,6 +63,9 @@ button { font: inherit; color: inherit; }
   background: var(--panel); display: grid; place-items: center; cursor: pointer;
 }
 .icon-btn svg { width: 22px; height: 22px; }
+.icon-btn.labeled { width: auto; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px 0 10px; color: var(--ink); font: 700 15px var(--display); }
+.stuck-bar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; text-align: center; font-weight: 800; color: var(--ink); }
+.stuck-bar[hidden] { display: none; }
 .bones-pill {
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--panel); border-radius: 999px; padding: 6px 14px 6px 10px;

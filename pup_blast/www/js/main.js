@@ -461,6 +461,7 @@
   function renderBuddyBar() {
     const { pup, level, charges } = run;
     const power = powerOf(pup);
+    $('#stuck-bar').hidden = !(run.stuckWithPower && !run.tut); // a clear way out when only a power could help
     $('#game-buddy').innerHTML = Pups.renderPup(pup);
     { const nm = document.createElement('span'), lv = document.createElement('span');
       nm.className = 'bb-nm'; nm.textContent = pup.name; lv.className = 'bb-lv';
@@ -799,6 +800,7 @@
       $('#btn-power').classList.add('nudge');
       toast(`No room! Try ${run.pup.name}'s ${powerOf(run.pup).name}`);
       run.stuckWithPower = true;
+      renderBuddyBar();
       return;
     }
     sfx.gameOver(); haptic('HEAVY');
@@ -810,7 +812,7 @@
     // Giving up ends the run but keeps unused charges, in case the player revives.
     if (run && run.stuckWithPower && Core.isGameOver(run.game)) {
       if (run.targeting) cancelTargeting();
-      run.gaveUp = true; renderBuddyBar(); handleStuck(); return true;
+      run.gaveUp = true; run.stuckWithPower = false; renderBuddyBar(); handleStuck(); return true;
     }
     return false;
   }
@@ -846,12 +848,14 @@
         ${run.doubled || bones <= 0 || !state.tutorial.done ? '' : `<button type="button" class="btn ad alt" data-act="double"><span class="ad-chip">AD</span>Double to ${(bones * 2).toLocaleString()} bones</button>`}
         ${lvl ? '<button type="button" class="btn" data-act="collect">Collect</button>'
     : `<button type="button" class="btn" data-act="again">Collect &amp; play again</button>
-        <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>`}
+        <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>
+        ${boards.kind === 'gamecenter' ? '<button type="button" class="btn ghost small" data-act="boards">See the leaderboard</button>' : ''}`}
       </div>`, { cls: 'gameover' });
     sheet.onclick = async (e) => {
       const act = e.target.closest('[data-act]');
       if (!act) return;
       const a = act.dataset.act;
+      if (a === 'boards') { track('leaderboard_open', { from: 'gameover' }); boards.show('weekly'); return; }
       if (a === 'revive') {
         track('ad_rewarded_request', { placement: 'revive' });
         act.disabled = true; // one ad, one revive, however fast the button is tapped
@@ -1233,6 +1237,7 @@
       };
   }
 
+  $('#btn-giveup').addEventListener('click', () => { track('gave_up', {}); giveUpIfStuck(); });
   $('#btn-quit').addEventListener('click', () => {
     if (!run) { show('home'); return; }
     if (run.over) return; // the game-over sheet is about to open
