@@ -54,6 +54,7 @@
   const ALLOW_DEV = !native || window.PB_DEBUG_BUILD === true;
   // Public web pages, linked from Settings (Apple requires the privacy policy inside the app too).
   // Links stay hidden until filled in.
+  const UNDOS_PER_RUN = 3; // ad-paid undos per run (see the undo button)
   const LINKS = { privacy: 'https://zzakdim.github.io/pupblast/privacy.html', support: 'https://zzakdim.github.io/pupblast/support.html' };
   const dev = () => ALLOW_DEV && state.settings.dev;
   // Tester builds start with dev mode on, so a wiped save (new device, cleared browser data) never hides the tools.
@@ -316,6 +317,7 @@
       charges: Pups.chargesFor(pup, level),
       revived: false, doubled: false, over: false, targeting: false, aim: null,
       starsShown: 0, giftResult: null,
+      undosLeft: UNDOS_PER_RUN,
     };
     if (lvl) mapWorld = lvl.world;
     const thisRun = run;
@@ -461,7 +463,14 @@
   function renderBuddyBar() {
     const { pup, level, charges } = run;
     const power = powerOf(pup);
-    $('#stuck-bar').hidden = !(run.stuckWithPower && !run.tut); // a clear way out when only a power could help
+    $('#stuck-bar').hidden = !(run.stuckWithPower && !run.tut); // a clear way out when only a power or an undo could help
+    const helps = stuckPowerHelps(), undoable = canUndo();
+    $('#stuck-text').textContent = run.stuckLeft ? `No room! Undo your move? ${run.stuckLeft}`
+      : `No room! ${helps && undoable ? 'Use your power, undo, or' : helps ? 'Use your power, or' : 'Undo your move, or'}`;
+    const undo = $('#btn-undo');
+    undo.hidden = !!run.tut || run.undosLeft <= 0;
+    undo.disabled = !canUndo();
+    undo.classList.toggle('nudge', !!run.stuckWithPower && undoable && !helps);
     $('#game-buddy').innerHTML = Pups.renderPup(pup);
     { const nm = document.createElement('span'), lv = document.createElement('span');
       nm.className = 'bb-nm'; nm.textContent = pup.name; lv.className = 'bb-lv';
@@ -794,12 +803,13 @@
       }, 500);
       return;
     }
-    if (!run.gaveUp && run.charges > 0 && Powers.mayUnstick(run.pup.power, run.game)) {
-      // Let the player try their buddy's power before calling the run.
+    if (!run.gaveUp && (stuckPowerHelps() || undoAvailable())) {
+      // Let the player try their buddy's power, or undo the move, before calling the run.
       run.over = false;
-      $('#btn-power').classList.add('nudge');
-      toast(`No room! Try ${run.pup.name}'s ${powerOf(run.pup).name}`);
+      if (stuckPowerHelps()) { $('#btn-power').classList.add('nudge'); toast(`No room! Try ${run.pup.name}'s ${powerOf(run.pup).name}`); }
       run.stuckWithPower = true;
+      // Only an ad could help: count down and end the game on its own, so nobody has to tap through every game over.
+      if (!stuckPowerHelps()) startStuckCountdown();
       renderBuddyBar();
       return;
     }
@@ -812,6 +822,7 @@
     // Giving up ends the run but keeps unused charges, in case the player revives.
     if (run && run.stuckWithPower && Core.isGameOver(run.game)) {
       if (run.targeting) cancelTargeting();
+      stopStuckCountdown();
       run.gaveUp = true; run.stuckWithPower = false; renderBuddyBar(); handleStuck(); return true;
     }
     return false;
@@ -1238,6 +1249,55 @@
   }
 
   $('#btn-giveup').addEventListener('click', () => { track('gave_up', {}); giveUpIfStuck(); });
+
+  // ---- Undo: watch an ad to take back your last move, up to UNDOS_PER_RUN times a run.
+  // It reuses the one-step history the Do-Over power uses, so anything Do-Over can't undo
+  // (a power, a revive, freeing a pup) can't be undone here either.
+  const UNDO_COUNTDOWN = 6; // seconds the "Undo your move?" offer stays up before the game ends
+  function startStuckCountdown() {
+    const thisRun = run;
+    stopStuckCountdown();
+    run.stuckLeft = UNDO_COUNTDOWN;
+    run.stuckTick = setInterval(() => {
+      if (run !== thisRun || !run.stuckWithPower) { clearInterval(thisRun.stuckTick); thisRun.stuckLeft = 0; return; }
+      if ($('#btn-undo').disabled && run.undoPending) return; // an ad is playing: wait for it
+      run.stuckLeft--;
+      if (run.stuckLeft > 0) { renderBuddyBar(); return; }
+      stopStuckCountdown();
+      giveUpIfStuck();
+    }, 1000);
+  }
+  function stopStuckCountdown() { if (!run) return; clearInterval(run.stuckTick); run.stuckLeft = 0; }
+  // undoAvailable: the move could be undone; canUndo: and the button may be pressed right now (not after game over).
+  function undoAvailable() { return !!run && !run.tut && run.undosLeft > 0 && !!run.game.history; }
+  function canUndo() { return undoAvailable() && !run.over; }
+  function stuckPowerHelps() { return !!run && !run.gaveUp && run.charges > 0 && Powers.mayUnstick(run.pup.power, run.game); }
+  $('#btn-undo').addEventListener('click', async () => {
+    if (!canUndo() || $('#btn-undo').disabled) return;
+    const thisRun = run;
+    $('#btn-undo').disabled = true; // one ad, one undo, however fast it's tapped
+    run.undoPending = true; // holds the game-over countdown while the ad plays
+    track('ad_rewarded_request', { placement: 'undo' });
+    const ok = await ads.rewarded();
+    thisRun.undoPending = false;
+    if (run !== thisRun) return;
+    if (ok && canUndo()) {
+      if (run.targeting) cancelTargeting();
+      clearTimeout(run.stuckTimer);
+      Core.restore(run.game, run.game.history);
+      stopStuckCountdown();
+      run.undosLeft--;
+      run.over = false; run.stuckWithPower = false; run.gaveUp = false;
+      $('#btn-power').classList.remove('nudge');
+      if (run.lvl) run.starsShown = Math.min(run.starsShown, Levels.starsForScore(run.lvl, run.game.score));
+      state.ads.rewardedToday++;
+      sfx.pick(); haptic('LIGHT');
+      renderBoard(); renderTray(); renderScore();
+      floatText(run.undosLeft ? `Undone! ${run.undosLeft} left` : 'Undone!', 'praise');
+      track('ad_rewarded_granted', { placement: 'undo' });
+    }
+    renderBuddyBar();
+  });
   $('#btn-quit').addEventListener('click', () => {
     if (!run) { show('home'); return; }
     if (run.over) return; // the game-over sheet is about to open
@@ -1801,7 +1861,8 @@
   }
 
   // Fills the board so every row and column has exactly one hole, then deals pieces that can't fit.
-  function devForceStuck() {
+  // `oneMove`: leave a single dot to place first, so the stuck board can be undone.
+  function devForceStuck(oneMove) {
     const g = run.game;
     for (let r = 0; r < Core.SIZE; r++) {
       for (let c = 0; c < Core.SIZE; c++) {
@@ -1810,7 +1871,7 @@
         g.treats[Core.idx(r, c)] = 0;
       }
     }
-    g.tray = [0, 1, 2].map(() => Core.makePiece(g, Core.SHAPE_BY_ID.o2));
+    g.tray = [0, 1, 2].map((k) => Core.makePiece(g, Core.SHAPE_BY_ID[oneMove && k === 0 ? 'dot' : 'o2']));
     g.history = null;
     refreshAll();
     if (Core.isGameOver(g)) handleStuck();
@@ -1845,6 +1906,7 @@
         <button type="button" class="btn ghost small" data-dev="newtray">New pieces</button>
         <button type="button" class="btn ghost small" data-dev="clear">Clear board</button>
         <button type="button" class="btn ghost small" data-dev="stuck">Get stuck now</button>
+        <button type="button" class="btn ghost small" data-dev="stuck1">Stuck after 1 move</button>
         <button type="button" class="btn ghost small" data-dev="score">+1,000 score</button>
       </div>` : ''}
       <div class="stack"><button type="button" class="btn" data-act="close">Done</button></div>`, { cls: 'dev' });
@@ -1876,7 +1938,7 @@
         if (act === 'newtray') { Core.dealTray(run.game); msg = 'New pieces'; }
         if (act === 'clear') { run.game.board.fill(0); run.game.treats.fill(0); run.game.history = null; msg = 'Board cleared'; }
         if (act === 'score') { run.game.score += 1000; msg = '+1,000 score'; }
-        if (act === 'stuck') { save(); closeModal(); devForceStuck(); return; }
+        if (act === 'stuck' || act === 'stuck1') { save(); closeModal(); devForceStuck(act === 'stuck1'); return; }
       }
       save(); refreshAll(); if (msg) toast(msg);
     };

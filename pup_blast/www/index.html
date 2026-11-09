@@ -63,10 +63,11 @@
     <div id="tray" class="tray">
       <div class="slot"></div><div class="slot"></div><div class="slot"></div>
     </div>
-    <div id="stuck-bar" class="stuck-bar" hidden><span>No room! Use your power, or</span><button id="btn-giveup" class="btn ghost small" type="button">End game</button></div>
+    <div id="stuck-bar" class="stuck-bar" hidden><span id="stuck-text">No room!</span><button id="btn-giveup" class="btn ghost small" type="button">End game</button></div>
     <div class="buddy-bar">
       <div id="game-buddy" class="buddy-face"></div>
       <div class="buddy-info"><b id="game-buddy-name"></b><span id="game-buddy-perk"></span></div>
+      <button id="btn-undo" class="icon-btn undo" type="button" aria-label="Undo your last move (watch an ad)" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4V2M4.6 7A8 8 0 1 1 4 13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="undo-ad">AD</span></button>
       <button id="btn-power" class="btn power" type="button">Power</button>
     </div>
   </section>
