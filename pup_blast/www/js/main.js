@@ -45,6 +45,10 @@
     Audio.setHaptics(state.settings.haptics);
   }
   applySettings();
+  // Text appears in the phone's language (or the one picked in Settings); see i18n.js.
+  const I18N = window.PB.I18N;
+  I18N.start(state.settings.lang, document);
+  document.documentElement.style.setProperty('--buddy-word', JSON.stringify(I18N.t('Buddy'))); // the Kennel badge is CSS text
 
   // ---- Release settings ----
   // Dev mode is a tester tool: on in the browser preview and in Xcode Debug runs. AppViewController sets
@@ -1234,7 +1238,7 @@
     openModal(`<p class="eyebrow">Level ${lvl.n}</p>
       <h3 class="ls-name">${lvl.name}</h3>
       <div class="mini-board" data-world="${lvl.world}" aria-label="Starting board">${mini}</div>
-      ${NOTE_HELP[lvl.note] ? `<p class="go-sub ls-note">New: <b>${lvl.note}</b>. ${NOTE_HELP[lvl.note]}</p>` : ''}
+      ${NOTE_HELP[lvl.note] ? `<p class="go-sub ls-note">New: <b>${lvl.note}</b>. <span>${NOTE_HELP[lvl.note]}</span></p>` : ''}
       <div class="ls-stars">${t.map((v, k) => `<div><span>${'★'.repeat(k + 1)}</span><b>${v.toLocaleString()}</b></div>`).join('')}</div>
       ${giftLine}
       ${bondOf(state.buddy) > 1 ? `<p class="go-sub">${Pups.BY_ID[state.buddy].name}'s bond: <b>${pct(Pups.bondBonus(bondOf(state.buddy)))} score</b></p>` : ''}
@@ -1640,6 +1644,10 @@
       <div class="settings">
         <label class="switch"><span>Sound</span><input id="set-sound" type="checkbox" ${s.sound ? 'checked' : ''}></label>
         <label class="switch"><span>Vibration</span><input id="set-haptics" type="checkbox" ${s.haptics ? 'checked' : ''}></label>
+        <label class="switch"><span>Language</span><select id="set-lang" class="lang-select">
+          <option value="auto" data-no-i18n>${I18N.t('Automatic')}</option>
+          ${Object.entries(I18N.LANGS).map(([code, name]) => `<option value="${code}" data-no-i18n ${s.lang === code ? 'selected' : ''}>${name}</option>`).join('')}
+        </select></label>
         ${ALLOW_DEV ? `<label class="switch"><span>Developer mode</span><input id="set-dev" type="checkbox" ${s.dev ? 'checked' : ''}></label>` : ''}
       </div>
       <div class="stack">
@@ -1653,6 +1661,8 @@
       <p class="fine">${gachaName()} odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better at least once every ${Gacha.PITY_EPIC} ${verb().toLowerCase()}s; Legendary at least once every ${Gacha.PITY_LEGENDARY}.</p>`);
     sheet.querySelector('#set-sound').onchange = (e) => { s.sound = e.target.checked; Audio.setSound(s.sound); save(); };
     sheet.querySelector('#set-haptics').onchange = (e) => { s.haptics = e.target.checked; Audio.setHaptics(s.haptics); save(); };
+    // A new language reloads the page, so every screen is drawn fresh in it.
+    sheet.querySelector('#set-lang').onchange = (e) => { s.lang = e.target.value; save(); track('language_set', { lang: s.lang }); location.reload(); };
     const devBox = sheet.querySelector('#set-dev');
     if (devBox) devBox.onchange = (e) => { s.dev = e.target.checked; save(); renderDevButton(); if (s.dev) toast('Developer mode on. Tap DEV for tools.'); };
     sheet.onclick = (e) => {
@@ -1682,7 +1692,7 @@
       if (act === 'reset') {
         if (a.dataset.armed) {
           // Keeps what isn't progress: a bought Remove Ads, and dev mode in tester builds.
-          const keep = { noAds: s.noAds, dev: s.dev, sound: s.sound, haptics: s.haptics, artStyle: s.artStyle, pullStyle: s.pullStyle, devSkipAds: s.devSkipAds };
+          const keep = { noAds: s.noAds, dev: s.dev, sound: s.sound, haptics: s.haptics, artStyle: s.artStyle, pullStyle: s.pullStyle, devSkipAds: s.devSkipAds, lang: s.lang };
           state = State.freshState();
           Object.assign(state.settings, keep);
           State.rollDaily(state, Date.now()); State.rollWeekly(state, Date.now());

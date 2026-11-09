@@ -18,9 +18,10 @@
 
   --common: #9fdcb4; --rare: #62bdff; --epic: #c38cff; --legend: #ffd04a;
 
-  --display: 'Fredoka', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  /* Japanese and Korean have no glyphs in the bundled fonts, so they fall through to the phone's own rounded fonts. */
+  --display: 'Fredoka', 'Arial Rounded MT Bold', 'Trebuchet MS', 'Hiragino Maru Gothic ProN', 'Apple SD Gothic Neo', system-ui, sans-serif;
   --logo: 'Gluten', 'Fredoka', 'Arial Rounded MT Bold', system-ui, sans-serif; /* hand-lettered, for the logo only */
-  --body: 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --body: 'Nunito', ui-rounded, 'Hiragino Maru Gothic ProN', 'Apple SD Gothic Neo', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   color-scheme: dark;
 }
@@ -245,7 +246,7 @@ a.btn { text-decoration: none; text-align: center; }
 .card-meta { margin: 0; font-size: 12px; color: var(--muted); }
 .card.locked { opacity: .7; }
 .card.is-buddy::after {
-  content: 'Buddy'; position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+  content: var(--buddy-word, 'Buddy'); position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
   background: var(--accent); color: #2a1630; font-size: 11px; font-weight: 800; border-radius: 999px; padding: 2px 8px;
 }
 .card.big { width: min(64vw, 230px); padding: 12px; cursor: default; }
@@ -282,6 +283,7 @@ a.btn { text-decoration: none; text-align: center; }
 .detail-stats dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .detail-stats small { color: var(--muted); font-size: 12px; display: block; }
 .settings { width: 100%; display: grid; gap: 8px; }
+.lang-select { flex: none; max-width: 60%; padding: 6px 10px; border-radius: 10px; border: 0; background: #1a1640; color: var(--ink); font: 700 15px var(--body); }
 .switch { display: flex; justify-content: space-between; align-items: center; background: var(--well); border-radius: 12px; padding: 12px 14px; font-weight: 700; }
 .switch input { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 50px; height: 30px; margin: 0; border-radius: 999px; background: #1a1640; cursor: pointer; transition: background .2s; }
 .switch input::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--muted); box-shadow: 0 2px 4px #0006; transition: transform .2s cubic-bezier(.3, 1.4, .5, 1), background .2s; }
