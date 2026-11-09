@@ -141,6 +141,16 @@ npx cap open ios
    - Fill in the App Store privacy labels for ads, tracking, purchases and Game Center.
    - Answer the age rating questionnaire as in `store/LISTING.md` (expected 4+) and do **not** choose "Made for Kids". The Kids category forbids most ad networks. A cute art style is fine, but the audience should be general.
 
+## Languages
+
+The game is written in English and shows in the phone's language when it's one of: Spanish, Portuguese (Brazil), German, French, Japanese, Korean or Indonesian. Players can also pick a language in Settings.
+
+- `www/js/i18n.js` swaps English text for the translation as it appears on screen, so game code stays in English (and so do analytics). Composed lines use patterns like `"Find {0} {1} more {2}"`.
+- `www/js/lang/<code>.js` holds each language's translations, keyed by the English text.
+- **Adding or changing text:** run `node scripts/i18n-extract.mjs` to refresh `i18n/catalog.json`, then `npm test`. The test lists any string a language is missing. Text that isn't for players (dev tools, IDs) goes in `i18n/ignore.json`; small words the extractor can't see (like `uses`) go in `i18n/extra.json`.
+- **iOS:** `scripts/ios-setup.mjs` lists the languages in Info.plist and adds the translated tracking prompt (`native/ios/lproj`). Without that list, iOS reports English to the game whatever the phone's language.
+- Japanese and Korean use the phone's own rounded fonts; the bundled fonts only cover Latin letters.
+
 ## Store listing
 
 `store/` has everything App Store Connect needs: the 1024px icon, 6.9" iPhone screenshots, and `LISTING.md` with the name, description, keywords, in-app purchase, leaderboard and privacy answers, plus reviewer notes. `privacy-policy.md` and `support.md` are page texts to publish on the web. Regenerate the art with `node store/make-icon.cjs` and `node store/make-screenshots.cjs` (Playwright).

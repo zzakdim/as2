@@ -118,5 +118,16 @@
 	<true/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>de</string>
+		<string>en</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>id</string>
+		<string>ja</string>
+		<string>ko</string>
+		<string>pt-BR</string>
+	</array>
 </dict>
 </plist>

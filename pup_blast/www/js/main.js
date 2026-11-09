@@ -65,7 +65,7 @@
   if (ALLOW_DEV && firstBoot) { state.settings.dev = true; save(); }
 
   // Anonymous play statistics (TelemetryDeck). Browser previews and developer mode count as test data.
-  const APP_VERSION = '1.0';
+  const APP_VERSION = '1.1';
   const analytics = Analytics.create({
     version: APP_VERSION,
     testMode: () => !native || dev(),
@@ -231,7 +231,7 @@
     $('#home-buddy').innerHTML = Pups.renderPup(pup);
     $('#home-buddy').className = 'buddy-stage r-' + pup.rarity;
     const n = Pups.chargesFor(pup, lvl);
-    $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> ${stars(pup.rarity)}<br><span><b class="perk">${powerOf(pup).name}</b> · ${n} ${chargeWord(n, pup)} per game</span><br><span class="bond-line">♥ ${bondText(pup.id)}</span>`;
+    $('#home-buddy-caption').innerHTML = `<b>${pup.name}</b> ${stars(pup.rarity)}<br><span><b class="perk">${powerOf(pup).name}</b> · ${n} ${chargeWord(n, pup)} per game</span><br><span class="bond-line">♥ <span>${bondText(pup.id)}</span></span>`;
     $('#home-best').textContent = state.best.toLocaleString();
     const nextLvl = nextLevel();
     $('#play-sub').textContent = nextLvl ? `${Levels.WORLDS.find((w) => w.id === nextLvl.world).name} ${nextLvl.n} · ${nextLvl.name}` : 'All levels cleared';

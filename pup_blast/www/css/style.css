@@ -211,8 +211,9 @@ a.btn { text-decoration: none; text-align: center; }
 .buddy-face svg { width: 100%; height: 100%; }
 .buddy-info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
 .buddy-info b { font-family: var(--display); font-size: 17px; white-space: nowrap; display: flex; min-width: 0; }
-.buddy-info b .bb-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.buddy-info b .bb-lv { flex: none; }
+/* The name wins the space; the level and bond shrink first (long power names in some languages crowd this bar). */
+.buddy-info b .bb-nm { flex: 0 0 auto; max-width: 70%; overflow: hidden; text-overflow: ellipsis; }
+.buddy-info b .bb-lv { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .buddy-info span { color: var(--muted); font-size: 13px; }
 .btn.power { --b: var(--legend); --bd: #c99a12; font-size: 16px; min-height: 46px; padding: 8px 14px; }
 .btn.power.armed { --b: var(--c4); --bd: #2e9a59; }

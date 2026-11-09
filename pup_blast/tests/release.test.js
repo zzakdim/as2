@@ -33,3 +33,15 @@ test('the iOS project ships the privacy manifest, Game Center entitlement and re
   const store = fs.readFileSync(path.join(__dirname, '../store/icon-1024.png'));
   assert.ok(icon.equals(store), 'the app icon is the Pup Blast icon');
 });
+
+test('iOS declares the game languages, and the tracking prompt is translated for each', () => {
+  const fs = require('node:fs');
+  const plist = fs.readFileSync(require('node:path').join(__dirname, '../ios/App/App/Info.plist'), 'utf8');
+  const I18N = require('../www/js/i18n.js');
+  for (const code of Object.keys(I18N.LANGS)) {
+    const ios = code === 'pt' ? 'pt-BR' : code;
+    assert.ok(plist.includes(`<string>${ios}</string>`), `CFBundleLocalizations lists ${ios}`);
+    const strings = fs.readFileSync(require('node:path').join(__dirname, `../native/ios/lproj/${ios}.lproj/InfoPlist.strings`), 'utf8');
+    assert.match(strings, /"NSUserTrackingUsageDescription" = ".+";/);
+  }
+});

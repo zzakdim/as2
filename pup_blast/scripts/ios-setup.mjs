@@ -4,7 +4,7 @@
 // adds the Game Center entitlement and the privacy manifest, makes the app iPhone-only and portrait-only,
 // and sets the Info.plist keys AdMob, App Tracking Transparency and the status bar need. Safe to run twice.
 // What it can't do (Xcode project settings) is printed at the end.
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
@@ -122,6 +122,40 @@ pbx = pbx.replace(/(\n(\t+)INFOPLIST_FILE = App\/Info\.plist;\n)(?![\s\S]{0,400}
 pbx = pbx.replace(/TARGETED_DEVICE_FAMILY = "1,2";/g, 'TARGETED_DEVICE_FAMILY = 1;');
 writeFileSync(pbxPath, pbx);
 console.log('Xcode project: Game Center entitlement, privacy manifest, iPhone only');
+
+// 5b. Languages. iOS only reports the phone's language to an app that says it supports it, so the game's
+//     languages are listed in Info.plist (CFBundleLocalizations), and the tracking prompt gets an
+//     InfoPlist.strings per language (native/ios/lproj), added to the App target as one localized file.
+const LANGS = readdirSync(join('native', 'ios', 'lproj')).filter((d) => d.endsWith('.lproj')).map((d) => d.replace('.lproj', '')).sort();
+for (const code of LANGS) {
+  mkdirSync(join(app, `${code}.lproj`), { recursive: true });
+  copyFileSync(join('native', 'ios', 'lproj', `${code}.lproj`, 'InfoPlist.strings'), join(app, `${code}.lproj`, 'InfoPlist.strings'));
+}
+plist = readFileSync(plistPath, 'utf8');
+const locs = arr('CFBundleLocalizations', LANGS);
+const locRe = /<key>CFBundleLocalizations<\/key>\s*<array>[\s\S]*?<\/array>/;
+plist = locRe.test(plist) ? plist.replace(locRe, locs) : plist.replace(/<\/dict>\s*<\/plist>\s*$/, `\t${locs}\n</dict>\n</plist>\n`);
+writeFileSync(plistPath, plist);
+pbx = readFileSync(pbxPath, 'utf8');
+const q = (v) => (/^[\w./]+$/.test(v) ? v : `"${v}"`); // Xcode quotes values with a dash (pt-BR)
+const VG = xid('variant:InfoPlist.strings'), VB = xid('build:InfoPlist.strings');
+for (const code of LANGS) {
+  const ref = xid('lproj:' + code);
+  if (pbx.includes(`${ref} /* ${code} */`)) continue;
+  pbx = pbx.replace(/(\t*\w{24} \/\* AppDelegate\.swift \*\/ = \{isa = PBXFileReference;[^\n]*\n)/, `$1\t\t${ref} /* ${code} */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ${q(code)}; path = ${q(code + '.lproj/InfoPlist.strings')}; sourceTree = "<group>"; };\n`);
+}
+const kids = LANGS.map((code) => `\t\t\t\t${xid('lproj:' + code)} /* ${code} */,\n`).join('');
+const group = `\t\t${VG} /* InfoPlist.strings */ = {\n\t\t\tisa = PBXVariantGroup;\n\t\t\tchildren = (\n${kids}\t\t\t);\n\t\t\tname = InfoPlist.strings;\n\t\t\tsourceTree = "<group>";\n\t\t};\n`;
+const groupRe = new RegExp(`\\t*${VG} /\\* InfoPlist\\.strings \\*/ = \\{\\n[\\s\\S]*?\\n\\t*\\};\\n`);
+pbx = groupRe.test(pbx) ? pbx.replace(groupRe, group) : pbx.replace('/* End PBXVariantGroup section */', `${group}/* End PBXVariantGroup section */`);
+if (!pbx.includes(`${VB} /* InfoPlist.strings in Resources */`)) {
+  pbx = pbx.replace(/(\t*\w{24} \/\* LaunchScreen\.storyboard in Resources \*\/ = \{isa = PBXBuildFile;[^\n]*\n)/, `$1\t\t${VB} /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = ${VG} /* InfoPlist.strings */; };\n`);
+  pbx = pbx.replace(/(\n(\t+)\w{24} \/\* LaunchScreen\.storyboard in Resources \*\/,\n)/, `$1$2${VB} /* InfoPlist.strings in Resources */,\n`);
+  pbx = pbx.replace(/(\n(\t+)\w{24} \/\* AppDelegate\.swift \*\/,\n)/, `$1$2${VG} /* InfoPlist.strings */,\n`);
+}
+pbx = pbx.replace(/knownRegions = \([\s\S]*?\);/, `knownRegions = (\n${['en', 'Base', ...LANGS.filter((c) => c !== 'en')].map((c) => `\t\t\t\t${q(c)},`).join('\n')}\n\t\t\t);`);
+writeFileSync(pbxPath, pbx);
+console.log(`languages: ${LANGS.join(', ')} (Info.plist and the tracking prompt)`);
 
 // 5. Launch screen: the game's night color instead of white behind the splash.
 const lsPath = join(app, 'Base.lproj', 'LaunchScreen.storyboard');
