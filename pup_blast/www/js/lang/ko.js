@@ -342,6 +342,7 @@ PB.I18N.add('ko', {
   "Mittens": "벙어리장갑",
   "Moon Tide": "달의 조수",
   "Mountain Hut": "산장",
+  "Music": "음악",
   "Mud": "진흙",
   "Mud Kitchen": "진흙 부엌",
   "Mud Season": "진흙 철",

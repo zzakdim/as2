@@ -342,6 +342,7 @@ PB.I18N.add('id', {
   "Mittens": "Sarung Tangan",
   "Moon Tide": "Pasang Bulan",
   "Mountain Hut": "Pondok Gunung",
+  "Music": "Musik",
   "Mud": "Lumpur",
   "Mud Kitchen": "Dapur Lumpur",
   "Mud Season": "Musim Lumpur",

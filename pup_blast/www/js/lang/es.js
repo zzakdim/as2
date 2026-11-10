@@ -342,6 +342,7 @@ PB.I18N.add('es', {
   "Mittens": "Mitones",
   "Moon Tide": "Marea de luna",
   "Mountain Hut": "Cabaña de montaña",
+  "Music": "Música",
   "Mud": "Lodo",
   "Mud Kitchen": "Cocina de lodo",
   "Mud Season": "Temporada de lodo",

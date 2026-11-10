@@ -342,6 +342,7 @@ PB.I18N.add('ja', {
   "Mittens": "ミトン",
   "Moon Tide": "月の潮",
   "Mountain Hut": "山小屋",
+  "Music": "音楽",
   "Mud": "泥",
   "Mud Kitchen": "泥んこキッチン",
   "Mud Season": "泥んこの季節",

@@ -42,6 +42,7 @@
   function applySettings() {
     window.PB.artStyle = state.settings.artStyle || 'bean';
     Audio.setSound(state.settings.sound);
+    Audio.setMusic(state.settings.music !== false);
     Audio.setHaptics(state.settings.haptics);
   }
   applySettings();
@@ -87,9 +88,11 @@
     if (!adsStarted) { adsStarted = adProvider.init().catch(() => {}); adsStarted.then(startedAds); }
     return adsStarted;
   };
+  // The game's own sound stops while an ad is on screen.
+  const quietly = (showAd) => { Audio.setPaused(true); return showAd().finally(() => Audio.setPaused(document.hidden)); };
   const ads = {
-    interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.interstitial())),
-    rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => adProvider.rewarded()).then((ok) => {
+    interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => quietly(() => adProvider.interstitial()))),
+    rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => quietly(() => adProvider.rewarded())).then((ok) => {
       // Say so when there was nothing to watch, instead of the button silently doing nothing.
       if (!ok && adProvider.lastFailed()) { toast('No video ready right now. Try again in a bit!'); track('ad_unavailable', { kind: 'rewarded' }); }
       return ok;
@@ -134,6 +137,8 @@
   function show(name) {
     screens.forEach((s) => { $('#screen-' + s).hidden = s !== name; });
     if (state.tutorial.done && coachOpts) coachHide(); // the goodbye bubble doesn't follow you around
+    // Music follows the place: each world has its own tune, everywhere else plays the home one.
+    Audio.setTheme(name === 'map' ? mapWorld : name === 'game' && run && run.lvl ? run.lvl.world : 'home');
     const el = $('#screen-' + name);
     el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
     if (name === 'home') renderHome();
@@ -256,6 +261,12 @@
   $('#btn-kennel').addEventListener('click', () => { Audio.unlock(); show('kennel'); });
   $('#btn-settings').addEventListener('click', openSettings);
   $('#btn-boards').addEventListener('click', () => { track('leaderboard_open', {}); boards.show(); });
+  // Every button gives a soft tap (and wakes the audio on the first touch). Buttons with their own sound keep it.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.btn, .icon-btn, .lv, .world-card, .card, .chip');
+    if (!b || b.disabled || b.id === 'btn-power' || b.id === 'btn-undo') return;
+    Audio.unlock(); sfx.tap();
+  }, true);
   document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => show(b.dataset.back || 'home')));
 
   // ---------------------------------------------------------------- game
@@ -1643,6 +1654,7 @@
     const sheet = openModal(`<p class="eyebrow">Settings</p>
       <div class="settings">
         <label class="switch"><span>Sound</span><input id="set-sound" type="checkbox" ${s.sound ? 'checked' : ''}></label>
+        <label class="switch"><span>Music</span><input id="set-music" type="checkbox" ${s.music !== false ? 'checked' : ''}></label>
         <label class="switch"><span>Vibration</span><input id="set-haptics" type="checkbox" ${s.haptics ? 'checked' : ''}></label>
         <label class="switch"><span>Language</span><select id="set-lang" class="lang-select">
           <option value="auto" data-no-i18n>${I18N.t('Automatic')}</option>
@@ -1660,6 +1672,7 @@
       ${LINKS.privacy || LINKS.support ? `<div class="pull-row">${LINKS.privacy ? `<a class="btn ghost small" href="${LINKS.privacy}" target="_blank" rel="noopener">Privacy policy</a>` : ''}${LINKS.support ? `<a class="btn ghost small" href="${LINKS.support}" target="_blank" rel="noopener">Support</a>` : ''}</div>` : ''}
       <p class="fine">${gachaName()} odds: Common 62%, Rare 27%, Epic 9%, Legendary 2%. Epic or better at least once every ${Gacha.PITY_EPIC} ${verb().toLowerCase()}s; Legendary at least once every ${Gacha.PITY_LEGENDARY}.</p>`);
     sheet.querySelector('#set-sound').onchange = (e) => { s.sound = e.target.checked; Audio.setSound(s.sound); save(); };
+    sheet.querySelector('#set-music').onchange = (e) => { s.music = e.target.checked; Audio.setMusic(s.music); save(); };
     sheet.querySelector('#set-haptics').onchange = (e) => { s.haptics = e.target.checked; Audio.setHaptics(s.haptics); save(); };
     // A new language reloads the page, so every screen is drawn fresh in it.
     sheet.querySelector('#set-lang').onchange = (e) => { s.lang = e.target.value; save(); track('language_set', { lang: s.lang }); location.reload(); };
@@ -1692,7 +1705,7 @@
       if (act === 'reset') {
         if (a.dataset.armed) {
           // Keeps what isn't progress: a bought Remove Ads, and dev mode in tester builds.
-          const keep = { noAds: s.noAds, dev: s.dev, sound: s.sound, haptics: s.haptics, artStyle: s.artStyle, pullStyle: s.pullStyle, devSkipAds: s.devSkipAds, lang: s.lang };
+          const keep = { noAds: s.noAds, dev: s.dev, sound: s.sound, music: s.music, haptics: s.haptics, artStyle: s.artStyle, pullStyle: s.pullStyle, devSkipAds: s.devSkipAds, lang: s.lang };
           state = State.freshState();
           Object.assign(state.settings, keep);
           State.rollDaily(state, Date.now()); State.rollWeekly(state, Date.now());
@@ -1965,6 +1978,7 @@
 
   // Phones resume apps from the background for days: roll the day and week over on resume too.
   document.addEventListener('visibilitychange', () => {
+    Audio.setPaused(document.hidden); // no music from a backgrounded app
     if (document.hidden) return;
     const bonus = State.rollDaily(state, Date.now());
     const week = State.rollWeekly(state, Date.now());

@@ -200,6 +200,10 @@ a.btn { text-decoration: none; text-align: center; }
 
 .tray { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-height: 124px; flex: 1; }
 .slot { display: grid; place-items: center; touch-action: none; cursor: grab; border-radius: 16px; }
+/* Each piece sits on a soft pad, so the tray reads as three places to grab from rather than pieces floating in space. */
+.tray { align-items: center; }
+.slot { height: min(100%, 132px); background: linear-gradient(#ffffff0d, #ffffff05); box-shadow: inset 0 0 0 1.5px #ffffff10; }
+.slot:empty { background: none; box-shadow: inset 0 0 0 1.5px #ffffff0a; }
 .slot.dragging .piece { opacity: 0; }
 .piece { display: grid; }
 .piece .cell { border-radius: 5px; }

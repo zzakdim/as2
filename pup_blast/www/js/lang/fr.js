@@ -342,6 +342,7 @@ PB.I18N.add('fr', {
   "Mittens": "Moufles",
   "Moon Tide": "Marée de lune",
   "Mountain Hut": "Refuge",
+  "Music": "Musique",
   "Mud": "Boue",
   "Mud Kitchen": "Cuisine de boue",
   "Mud Season": "Saison de la boue",

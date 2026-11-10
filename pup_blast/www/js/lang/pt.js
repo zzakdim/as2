@@ -342,6 +342,7 @@ PB.I18N.add('pt', {
   "Mittens": "Luvas",
   "Moon Tide": "Maré da lua",
   "Mountain Hut": "Cabana na montanha",
+  "Music": "Música",
   "Mud": "Lama",
   "Mud Kitchen": "Cozinha de lama",
   "Mud Season": "Temporada de lama",

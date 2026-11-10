@@ -342,6 +342,7 @@ PB.I18N.add('de', {
   "Mittens": "Fäustlinge",
   "Moon Tide": "Mondflut",
   "Mountain Hut": "Berghütte",
+  "Music": "Musik",
   "Mud": "Matsch",
   "Mud Kitchen": "Matschküche",
   "Mud Season": "Matschzeit",
