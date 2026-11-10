@@ -33,16 +33,20 @@
   }
 
   function unlock() {
-    if (ctx) { if (ctx.state === 'suspended' && !paused) ctx.resume(); startMusic(); return; }
+    // Any touch wakes the audio again, also after iOS interrupts it (a call, Siri) and leaves it 'interrupted'.
+    if (ctx) { if (ctx.state !== 'running' && live()) ctx.resume().catch(() => {}); startMusic(); return; }
     const AC = root.AudioContext || root.webkitAudioContext;
     if (!AC) return;
     ctx = new AC();
+    ctx.onstatechange = () => { if (ctx.state === 'running') startMusic(); };
     build();
     startMusic();
   }
 
+  // Nothing is queued while the audio is stopped (an ad, the background): it would all play at once on return.
+  const audible = () => ctx && enabled && !paused && ctx.state === 'running';
   function tone(freq, start, dur, type, gain, slideTo) {
-    if (!ctx || !enabled) return;
+    if (!audible()) return;
     const t = ctx.currentTime + start;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -58,7 +62,7 @@
   }
 
   function noise(start, dur, gain, freq) {
-    if (!ctx || !enabled) return;
+    if (!audible()) return;
     const len = Math.floor(ctx.sampleRate * dur);
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
     const d = buf.getChannelData(0);
@@ -199,16 +203,29 @@
     fade(0, 0.4);
   }
   // Ads and a backgrounded app go quiet: the whole audio clock stops, so nothing plays over a video.
-  function setPaused(on) {
-    paused = !!on;
+  // Two separate reasons ('ad', 'hidden'): coming back to the app mid-ad must not restart the sound.
+  const reasons = { ad: false, hidden: false };
+  let suspendTimer = 0;
+  const live = () => enabled && !paused;
+  function sync() {
     if (!ctx) return;
-    if (paused) { stopMusic(); ctx.suspend(); } else { ctx.resume(); startMusic(); }
+    clearTimeout(suspendTimer);
+    if (!live()) {
+      stopMusic();
+      // A beat later, so the tap that opened the ad is heard before the clock stops.
+      suspendTimer = setTimeout(() => { if (!live()) ctx.suspend().catch(() => {}); }, 90);
+    } else { ctx.resume().catch(() => {}); startMusic(); }
+  }
+  function setPaused(reason, on) {
+    reasons[reason] = !!on;
+    paused = reasons.ad || reasons.hidden;
+    sync();
   }
 
   root.PB = root.PB || {};
   root.PB.Audio = {
     unlock, sfx, haptic,
-    setSound(on) { enabled = on; if (on) startMusic(); else stopMusic(); },
+    setSound(on) { enabled = on; sync(); }, // off also stops the audio clock, to save battery
     setMusic(on) { musicOn = on; if (on) startMusic(); else stopMusic(); },
     // Which place the music is for: 'home' or a world id. The next bar plays in its key and tempo.
     setTheme(name) { theme = THEMES[name] ? name : 'home'; },

@@ -89,7 +89,13 @@
     return adsStarted;
   };
   // The game's own sound stops while an ad is on screen.
-  const quietly = (showAd) => { Audio.setPaused(true); return showAd().finally(() => Audio.setPaused(document.hidden)); };
+  // If an ad never reports back, sound returns after 3 minutes anyway.
+  const quietly = (showAd) => {
+    Audio.setPaused('ad', true);
+    const back = () => { clearTimeout(safety); Audio.setPaused('ad', false); };
+    const safety = setTimeout(back, 180000);
+    return Promise.resolve().then(showAd).finally(back);
+  };
   const ads = {
     interstitial: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => quietly(() => adProvider.interstitial()))),
     rewarded: () => (dev() && state.settings.devSkipAds ? Promise.resolve(true) : startAds().then(() => quietly(() => adProvider.rewarded())).then((ok) => {
@@ -271,6 +277,7 @@
   // Every button gives a soft tap (and wakes the audio on the first touch). Buttons with their own sound keep it.
   document.addEventListener('click', (e) => {
     const b = e.target.closest('.btn, .icon-btn, .lv, .world-card, .card, .chip');
+    if (!e.isTrusted) return; // a click the game made itself (reopening a sheet) is silent
     if (!b || b.disabled || b.id === 'btn-power' || b.id === 'btn-undo') return;
     Audio.unlock(); sfx.tap();
   }, true);
@@ -2033,7 +2040,7 @@
 
   // Phones resume apps from the background for days: roll the day and week over on resume too.
   document.addEventListener('visibilitychange', () => {
-    Audio.setPaused(document.hidden); // no music from a backgrounded app
+    Audio.setPaused('hidden', document.hidden); // no music from a backgrounded app
     if (document.hidden) return;
     const bonus = State.rollDaily(state, Date.now());
     const week = State.rollWeekly(state, Date.now());
