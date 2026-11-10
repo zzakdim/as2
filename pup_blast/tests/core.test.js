@@ -108,3 +108,17 @@ test('a full random game never places illegally and ends', () => {
   }
   assert.ok(g.score > 0);
 });
+
+test('undo puts the dice back: the same move after a restore deals the same next tray', () => {
+  const Core = require('../www/js/core.js');
+  const g = Core.createGame(4242);
+  const firstFit = () => { for (let i = 0; i < 3; i++) { const p = g.tray[i]; if (!p) continue; for (let r = 0; r < Core.SIZE; r++) for (let c = 0; c < Core.SIZE; c++) if (Core.canPlace(g.board, p, r, c)) return [i, r, c]; } return null; };
+  // Place two pieces, then the third (which deals a new tray), twice over.
+  Core.placePiece(g, ...firstFit()); Core.placePiece(g, ...firstFit());
+  const move = firstFit();
+  Core.placePiece(g, ...move);
+  const dealt = JSON.stringify(g.tray);
+  Core.restore(g, g.history);
+  Core.placePiece(g, ...move);
+  assert.strictEqual(JSON.stringify(g.tray), dealt);
+});

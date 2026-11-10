@@ -116,6 +116,8 @@
         return r.earned;
       },
       lastFailed: () => lastFailed,
+      // False when ads can't run at all this session (offline at start, or consent declined).
+      rewardedReady: () => ready,
       privacyOptionsRequired: () => privacyRequired,
       async showPrivacyOptions() {
         try { await AdMob.showPrivacyOptionsForm(); } catch (e) { /* form unavailable */ }
@@ -164,6 +166,7 @@
       interstitial: () => show('interstitial', 3),
       rewarded: () => show('rewarded', 4),
       lastFailed: () => false,
+      rewardedReady: () => true,
       privacyOptionsRequired: () => false,
       async showPrivacyOptions() {},
     };

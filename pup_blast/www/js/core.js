@@ -37,13 +37,17 @@
 
   function mulberry32(seed) {
     let a = seed >>> 0;
-    return function () {
+    const next = function () {
       a = (a + 0x6d2b79f5) >>> 0;
       let t = a;
       t = Math.imul(t ^ (t >>> 15), t | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+    // The generator's position, so an undo can put the dice back too.
+    next.get = () => a;
+    next.set = (v) => { a = v >>> 0; };
+    return next;
   }
 
   // [id, rows, weight]. Weights tune how often a shape is dealt.
@@ -261,6 +265,8 @@
       tray: game.tray.map((p) => (p ? Object.assign({}, p) : null)),
       score: game.score, combo: game.combo, movesSinceClear: game.movesSinceClear,
       placements: game.placements, linesCleared: game.linesCleared, treatsCollected: game.treatsCollected,
+      // Undoing a move replays the same luck: the next tray, squirrel hops and gusts can't be rerolled.
+      rngAt: game.rng.get ? game.rng.get() : null,
     };
   }
   function restore(game, snap) {
@@ -269,6 +275,8 @@
       buried: snap.buried.slice(), armor: snap.armor.slice(), squirrels: snap.squirrels.map((q) => Object.assign({}, q)),
       blower: snap.blower ? Object.assign({}, snap.blower) : null,
     });
+    if (snap.rngAt != null && game.rng.set) game.rng.set(snap.rngAt);
+    delete game.rngAt;
     game.history = null;
   }
 

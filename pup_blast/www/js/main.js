@@ -513,7 +513,8 @@
       btn.disabled = true;
     } else {
       btn.textContent = run.targeting ? 'Cancel' : `${power.name} ×${charges}`;
-      btn.disabled = charges <= 0 || (!run.targeting && !Powers.canUse(pup.power, run.game));
+      // While stuck, a power that can't make room stays off: using it would only throw away the undo offer.
+      btn.disabled = charges <= 0 || (!run.targeting && !Powers.canUse(pup.power, run.game)) || (!!run.stuckWithPower && !helps);
     }
     btn.classList.toggle('armed', run.targeting);
     boardEl.classList.toggle('dig-mode', run.targeting);
@@ -862,6 +863,8 @@
 
   function handleStuck() {
     run.over = true;
+    cancelDrag(); // a piece in hand goes back to the tray
+    renderBuddyBar(); // undo and the power go dark at once
     const thisRun = run; // the timers below must not act on a run the player has since left
     if (powerOf(run.pup).passive && run.charges > 0) {
       if (!(dev() && state.settings.devInfinite)) run.charges--;
@@ -873,6 +876,7 @@
         powerFx(run.pup.power, []);
         floatText(`${run.pup.name} saved you!`, 'praise');
         renderBoard(); renderTray(); renderBuddyBar();
+        if (Core.isGameOver(run.game)) handleStuck(); // the save didn't make room after all
       }, 500);
       return;
     }
@@ -938,6 +942,7 @@
       </div>`, { cls: 'gameover' });
     if (!recount) countUp(sheet.querySelector('.go-score'), g.score);
     { const b = sheet.querySelector('.go-bones span'); if (b) countUp(b, bones, (v) => `+${v.toLocaleString()}`, () => { if (!recount) sfx.coin(); }); }
+    const thisRun = run; // an ad's reward only ever lands on the run it was asked for
     sheet.onclick = async (e) => {
       const act = e.target.closest('[data-act]');
       if (!act) return;
@@ -946,9 +951,11 @@
       if (a === 'revive') {
         track('ad_rewarded_request', { placement: 'revive' });
         act.disabled = true; // one ad, one revive, however fast the button is tapped
+        sheet.classList.add('busy'); // nothing else on the sheet can be tapped while the ad loads
         const ok = await ads.rewarded();
+        sheet.classList.remove('busy');
         act.disabled = false;
-        if (ok && run && !run.revived) {
+        if (ok && run === thisRun && !run.revived) {
           state.ads.rewardedToday++;
           run.revived = true; run.over = false; run.stuckWithPower = false; run.gaveUp = false;
           clearAim(); run.targeting = false;
@@ -962,9 +969,11 @@
       } else if (a === 'double') {
         track('ad_rewarded_request', { placement: 'double' });
         act.disabled = true;
+        sheet.classList.add('busy');
         const ok = await ads.rewarded();
+        sheet.classList.remove('busy');
         act.disabled = false;
-        if (ok && run && !run.doubled) {
+        if (ok && run === thisRun && !run.doubled) {
           state.ads.rewardedToday++;
           run.doubleBonus = Core.bonesForRun(run.game);
           run.doubled = true;
@@ -1085,7 +1094,7 @@
     countUp(sheet.querySelector('.go-score'), score);
     sheet.querySelectorAll('.result-stars span').forEach((el, k) => {
       el.classList.remove('on');
-      if (k < sum.got) setTimeout(() => { el.classList.add('on', 'pop'); sfx.ding(k + 2); haptic('LIGHT'); }, 350 + k * 320);
+      if (k < sum.got) setTimeout(() => { if (!el.isConnected) return; el.classList.add('on', 'pop'); sfx.ding(k + 2); haptic('LIGHT'); }, 350 + k * 320);
     });
     sheet.onclick = (e) => {
       const a = e.target.closest('[data-act]');
@@ -1346,7 +1355,8 @@
   }
   function stopStuckCountdown() { if (!run) return; clearInterval(run.stuckTick); run.stuckLeft = 0; }
   // undoAvailable: the move could be undone; canUndo: and the button may be pressed right now (not after game over).
-  function undoAvailable() { return !!run && !run.tut && run.undosLeft > 0 && !!run.game.history; }
+  const adsCanPlay = () => (dev() && state.settings.devSkipAds) || !adsStarted || adProvider.rewardedReady();
+  function undoAvailable() { return !!run && !run.tut && run.undosLeft > 0 && !!run.game.history && adsCanPlay(); }
   function canUndo() { return undoAvailable() && !run.over; }
   function stuckPowerHelps() { return !!run && !run.gaveUp && run.charges > 0 && Powers.mayUnstick(run.pup.power, run.game); }
   $('#btn-undo').addEventListener('click', async () => {
