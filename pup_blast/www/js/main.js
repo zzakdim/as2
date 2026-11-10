@@ -254,6 +254,13 @@
     Audio.unlock(); sfx.woof(); haptic('LIGHT');
     const el = $('#home-buddy');
     el.classList.remove('boop'); void el.offsetWidth; el.classList.add('boop');
+    // A heart floats up from the boop.
+    const heart = document.createElement('span');
+    heart.className = 'boop-heart'; heart.textContent = '♥';
+    const r = el.getBoundingClientRect(), host = $('#screen-home').getBoundingClientRect();
+    heart.style.left = r.left - host.left + r.width / 2 + 'px'; heart.style.top = r.top - host.top + $('#screen-home').scrollTop + r.height * 0.2 + 'px';
+    heart.style.setProperty('--dx', Math.round(Math.random() * 60 - 30) + 'px');
+    $('#screen-home').appendChild(heart); setTimeout(() => heart.remove(), 950);
   });
   $('#btn-play').addEventListener('click', () => { Audio.unlock(); const n = nextLevel(); if (n) mapWorld = n.world; show('worlds'); });
   $('#btn-endless').addEventListener('click', () => { Audio.unlock(); startRun(); });
@@ -487,6 +494,7 @@
     undo.disabled = !canUndo();
     undo.classList.toggle('nudge', !!run.stuckWithPower && undoable && !helps);
     $('#game-buddy').innerHTML = Pups.renderPup(pup);
+    $('#game-buddy').classList.toggle('worried', buddyWorried());
     { const nm = document.createElement('span'), lv = document.createElement('span');
       nm.className = 'bb-nm'; nm.textContent = pup.name; lv.className = 'bb-lv';
       lv.textContent = ` · Lv ${level}${run.bond > 1 ? ` · ♥${run.bond} ${pct(Pups.bondBonus(run.bond))}` : ''}`;
@@ -649,7 +657,50 @@
     setTimeout(() => el.remove(), 1200);
   }
 
+  // A beam across each cleared row and column, and a bump of the whole board on bigger clears.
+  function lineFx(res) {
+    if (reducedMotion()) return;
+    const fx = $('#fx'), N = Core.SIZE, step = 100 / N;
+    const beam = (cls, css, k) => { const el = document.createElement('div'); el.className = 'beam ' + cls; el.style.cssText = css; el.style.animationDelay = k * 55 + 'ms'; fx.appendChild(el); setTimeout(() => el.remove(), 600 + k * 55); };
+    (res.rows || []).forEach((r, k) => beam('row', `left:0;right:0;top:${r * step}%;height:${step}%`, k));
+    (res.cols || []).forEach((c, k) => beam('col', `top:0;bottom:0;left:${c * step}%;width:${step}%`, k + (res.rows || []).length));
+    const big = res.lines >= 3 || res.combo >= 4 || res.boardClear;
+    if (res.lines >= 2 || res.combo >= 2 || big) { const w = $('.board-wrap'); w.classList.remove('bump', 'big'); void w.offsetWidth; w.classList.add('bump'); if (big) w.classList.add('big'); }
+  }
+  // The buddy in the bottom bar reacts: 'hop' on a clear, 'cheer' on a star.
+  function buddyReact(kind) {
+    const el = $('#game-buddy');
+    el.classList.remove('bb-hop', 'bb-cheer'); void el.offsetWidth;
+    el.classList.add(kind === 'cheer' ? 'bb-cheer' : 'bb-hop');
+  }
+  // Nearly out of room: at most one tray piece still fits, or the board is two-thirds full.
+  function buddyWorried() {
+    const g = run.game;
+    if (run.over) return false;
+    const fits = g.tray.filter((p) => p && Core.fitsAnywhere(g.board, p)).length;
+    const left = g.tray.filter(Boolean).length;
+    let open = 0, filled = 0;
+    for (const v of g.board) { if (v === 0) open++; else if (v !== Core.HOLE_COLOR && v !== Core.POST_COLOR) filled++; }
+    return (left > 0 && fits <= 1 && filled > 12) || filled / Math.max(1, open + filled) >= 0.66;
+  }
+  // Counts a number up inside `el` (results sheets), ticking as it goes. `fmt` wraps the number.
+  function countUp(el, to, fmt, done) {
+    const show = (v) => { el.textContent = fmt ? fmt(v) : v.toLocaleString(); };
+    if (!el || reducedMotion() || to <= 0) { if (el) show(to); if (done) done(); return; }
+    const ms = Math.min(1100, 350 + to * 2), t0 = performance.now();
+    let lastTick = 0;
+    (function frame(now) {
+      if (!el.isConnected) return;
+      const k = Math.min(1, (now - t0) / ms), eased = 1 - Math.pow(1 - k, 3);
+      show(Math.round(to * eased));
+      if (now - lastTick > 70 && k < 1) { sfx.tick(); lastTick = now; }
+      if (k < 1) requestAnimationFrame(frame);
+      else { el.classList.add('count-done'); if (done) done(); }
+    })(t0);
+  }
+
   function celebrate(res) {
+    lineFx(res); buddyReact('hop');
     sfx.clear(res.lines || 1, res.combo || 0);
     haptic(res.lines >= 2 ? 'HEAVY' : 'MEDIUM');
     const word = res.boardClear ? 'Squeaky clean! +300' : PRAISE[Math.min(res.lines - 1 + Math.floor(res.combo / 3), PRAISE.length - 1)];
@@ -704,7 +755,7 @@
     while (run.starsShown < n) {
       run.starsShown++;
       const k = run.starsShown;
-      setTimeout(() => { floatText(k === 1 ? 'Level clear! Keep going' : `${'★'.repeat(k)}!`, 'combo'); sfx.ding(k + 2); haptic('MEDIUM'); }, 400 + k * 150);
+      setTimeout(() => { floatText(k === 1 ? 'Level clear! Keep going' : `${'★'.repeat(k)}!`, 'combo'); sfx.ding(k + 2); haptic('MEDIUM'); if (run) buddyReact('cheer'); }, 400 + k * 150);
     }
   }
 
@@ -850,7 +901,8 @@
     return `<p class="result-stars" aria-label="${n} of 3 stars">${[1, 2, 3].map((k) => `<span class="${k <= n ? 'on' : ''}">★</span>`).join('')}</p>`;
   }
 
-  function showGameOver() {
+  // `recount`: the sheet is being redrawn (bones doubled), so the score doesn't count up again.
+  function showGameOver(recount) {
     const g = run.game;
     const lvl = run.lvl;
     const isBest = !lvl && g.score > state.best;
@@ -877,6 +929,8 @@
         <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>
         ${boards.kind === 'gamecenter' ? '<button type="button" class="btn ghost small" data-act="boards">See the leaderboard</button>' : ''}`}
       </div>`, { cls: 'gameover' });
+    if (!recount) countUp(sheet.querySelector('.go-score'), g.score);
+    { const b = sheet.querySelector('.go-bones span'); if (b) countUp(b, bones, (v) => `+${v.toLocaleString()}`, () => { if (!recount) sfx.coin(); }); }
     sheet.onclick = async (e) => {
       const act = e.target.closest('[data-act]');
       if (!act) return;
@@ -909,7 +963,7 @@
           run.doubled = true;
           sfx.coin();
           track('ad_rewarded_granted', { placement: 'double' });
-          showGameOver();
+          showGameOver(true);
         }
       } else {
         await finishRun(a);
@@ -1021,6 +1075,7 @@
         ${sum.got && nxt ? '<button type="button" class="btn" data-act="next">Next level</button>' : ''}
         <div class="pull-row"><button type="button" class="btn ${sum.got && nxt ? 'ghost' : ''}" data-act="retry">Retry</button><button type="button" class="btn ghost" data-act="map">Map</button></div>`}
       </div>`, { cls: 'gameover level-result' });
+    countUp(sheet.querySelector('.go-score'), score);
     sheet.querySelectorAll('.result-stars span').forEach((el, k) => {
       el.classList.remove('on');
       if (k < sum.got) setTimeout(() => { el.classList.add('on', 'pop'); sfx.ding(k + 2); haptic('LIGHT'); }, 350 + k * 320);

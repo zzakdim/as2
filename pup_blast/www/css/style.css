@@ -194,7 +194,7 @@ a.btn { text-decoration: none; text-align: center; }
 
 .fx { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 5; }
 .float { position: absolute; transform: translate(-50%, -50%); font-family: var(--display); font-weight: 800; white-space: nowrap; animation: rise 1.1s ease-out forwards; }
-.float.praise { left: 50%; top: 42%; font-size: 40px; color: var(--ink); text-shadow: 0 4px 0 var(--accent-deep), 0 0 18px rgba(0, 0, 0, .4); }
+.float.praise { left: 50%; top: 42%; font-size: clamp(24px, 8.6vw, 40px); color: var(--ink); text-shadow: 0 4px 0 var(--accent-deep), 0 0 18px rgba(0, 0, 0, .4); }
 .float.combo { left: 50%; top: 56%; font-size: 26px; color: var(--legend); text-shadow: 0 3px 0 #9a6f00; }
 .float.treat { font-size: 20px; color: var(--bone); text-shadow: 0 2px 0 #7a4f2a; }
 
@@ -213,6 +213,45 @@ a.btn { text-decoration: none; text-align: center; }
 .buddy-bar { display: flex; align-items: center; gap: 10px; background: var(--panel); border-radius: 18px; padding: 8px 8px 8px 10px; }
 .buddy-face { width: 52px; height: 52px; flex: none; }
 .buddy-face svg { width: 100%; height: 100%; }
+/* The buddy reacts to the game: a hop on a clear, a spin-jump on a star, a nervous shiver when the board is nearly full. */
+.buddy-face { position: relative; transform-origin: 50% 100%; }
+.buddy-face.bb-hop { animation: hopUp .45s cubic-bezier(.3, 1.6, .5, 1); }
+.buddy-face.bb-cheer { animation: bbCheer .8s cubic-bezier(.3, 1.4, .5, 1); }
+.buddy-face.worried svg { animation: bbShiver .28s linear infinite; }
+.buddy-face.worried::after { content: ""; position: absolute; right: 2px; top: 6px; width: 7px; height: 10px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; background: #8fd3ff; box-shadow: inset -1px -1px 0 #4aa3df; animation: bbSweat 1.3s ease-in infinite; }
+@keyframes bbCheer { 0%, 100% { transform: none; } 30% { transform: translateY(-34%) rotate(-14deg) scale(1.08); } 55% { transform: translateY(-34%) rotate(14deg) scale(1.08); } 80% { transform: translateY(0) scale(1.1, .9); } }
+@keyframes bbShiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.2px); } 75% { transform: translateX(1.2px); } }
+@keyframes bbSweat { 0% { transform: translateY(-3px) scale(.6); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(12px) scale(1); opacity: 0; } }
+/* Line clears: a bright beam sweeps each cleared row or column, and bigger clears bump the whole board. */
+.beam { position: absolute; border-radius: 10px; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(90deg, transparent, #fff 20%, #fff7c4 50%, #fff 80%, transparent); animation: beamRow .42s ease-out forwards; }
+.beam.col { background: linear-gradient(180deg, transparent, #fff 20%, #fff7c4 50%, #fff 80%, transparent); animation-name: beamCol; }
+@keyframes beamRow { 0% { opacity: .95; transform: scaleX(.15) scaleY(1.25); } 45% { opacity: .85; transform: scaleX(1.04) scaleY(1); } 100% { opacity: 0; transform: scaleX(1.08) scaleY(.2); } }
+@keyframes beamCol { 0% { opacity: .95; transform: scaleY(.15) scaleX(1.25); } 45% { opacity: .85; transform: scaleY(1.04) scaleX(1); } 100% { opacity: 0; transform: scaleY(1.08) scaleX(.2); } }
+.board-wrap.bump { animation: boardBump .32s cubic-bezier(.3, 1.5, .5, 1); }
+.board-wrap.bump.big { animation-name: boardBumpBig; }
+@keyframes boardBump { 0%, 100% { transform: none; } 35% { transform: scale(1.018); } }
+@keyframes boardBumpBig { 0%, 100% { transform: none; } 20% { transform: scale(1.04) rotate(-.6deg); } 55% { transform: scale(.992) rotate(.4deg); } }
+/* Results: numbers count up; the last tick lands with a little punch. */
+.count-done { animation: countPunch .35s cubic-bezier(.3, 1.6, .5, 1); display: inline-block; }
+p.count-done { display: block; }
+@keyframes countPunch { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
+/* Home: fireflies drift over the yard, a shooting star crosses now and then, the buddy looks around and loves a boop. */
+.home-life { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.home > :not(.home-life):not(.boop-heart) { position: relative; z-index: 1; }
+.home-life i { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #f6ffa8; box-shadow: 0 0 8px 3px #e8ff7a88; opacity: 0; animation: firefly 9s ease-in-out infinite; }
+.home-life i:nth-child(1) { left: 12%; top: 72%; animation-delay: -1s; }
+.home-life i:nth-child(2) { left: 78%; top: 66%; animation-delay: -4s; animation-duration: 11s; }
+.home-life i:nth-child(3) { left: 40%; top: 84%; animation-delay: -6.5s; animation-duration: 8s; }
+.home-life i:nth-child(4) { left: 88%; top: 86%; animation-delay: -2.5s; animation-duration: 12s; }
+.home-life i:nth-child(5) { left: 24%; top: 58%; animation-delay: -8s; animation-duration: 10s; }
+.home-life i:nth-child(6) { left: 62%; top: 78%; animation-delay: -5s; animation-duration: 13s; }
+@keyframes firefly { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: .9; } 35% { transform: translate(22px, -26px); opacity: .25; } 55% { transform: translate(-8px, -44px); opacity: .95; } 80% { transform: translate(-30px, -18px); opacity: .3; } 100% { transform: translate(0, 0); opacity: 0; } }
+.home-life b { position: absolute; left: 70%; top: 9%; width: 70px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #fff, transparent); opacity: 0; transform: rotate(-24deg); animation: shootingStar 17s linear 4s infinite; }
+@keyframes shootingStar { 0%, 93% { opacity: 0; transform: translate(60px, -26px) rotate(-24deg) scaleX(.3); } 95% { opacity: .9; } 100% { opacity: 0; transform: translate(-150px, 66px) rotate(-24deg) scaleX(1); } }
+.buddy-stage svg { transform-origin: 50% 88%; animation: lookAround 8s ease-in-out 2s infinite; }
+@keyframes lookAround { 0%, 62%, 100% { transform: none; } 68% { transform: rotate(-5deg); } 76% { transform: rotate(-5deg); } 84% { transform: rotate(5deg); } 92% { transform: rotate(5deg) translateY(-2px); } }
+.boop-heart { position: absolute; z-index: 3; pointer-events: none; font-size: 26px; color: var(--accent); text-shadow: 0 2px 0 var(--accent-deep); animation: boopHeart .9s ease-out forwards; }
+@keyframes boopHeart { 0% { transform: translate(-50%, 0) scale(.4); opacity: 0; } 20% { opacity: 1; transform: translate(-50%, -14px) scale(1.15); } 100% { transform: translate(calc(-50% + var(--dx, 0px)), -90px) scale(.9); opacity: 0; } }
 .buddy-info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
 .buddy-info b { font-family: var(--display); font-size: 17px; white-space: nowrap; display: flex; min-width: 0; }
 /* The name wins the space; the level and bond shrink first (long power names in some languages crowd this bar). */
