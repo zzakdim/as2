@@ -35,7 +35,7 @@
     --bar: linear-gradient(90deg, #a689e0, #f47fa4, #f7b733);
     color-scheme: dark;
   }
-  html[data-skin="sakura"] {
+  html[data-family="sakura"] { /* Sakura Pastel (and base for its toned-down variants) */
     --bg: #ffeef3;
     --bg-image: radial-gradient(circle, rgba(255,255,255,.75) 2px, transparent 2.5px) 0 0 / 26px 26px,
                 radial-gradient(60% 40% at 15% 0%, rgba(255,200,220,.7), transparent 70%),
@@ -57,6 +57,51 @@
     --overlay: rgba(255,220,232,.7); --card: linear-gradient(180deg, #ffffff, #fff1f6);
     --bar: linear-gradient(90deg, #ffb3cc, #ff7fa8, #ffc94d);
     color-scheme: light;
+  }
+
+  /* Sakura family, toned down. Same cups, faces and petals; calmer backgrounds. */
+  html[data-skin="dusk"] {
+    --bg: #b58b9d;
+    --bg-image: radial-gradient(circle, rgba(255,255,255,.10) 1.5px, transparent 2px) 0 0 / 26px 26px,
+                radial-gradient(60% 40% at 15% 0%, rgba(255,214,200,.30), transparent 70%),
+                radial-gradient(50% 40% at 90% 18%, rgba(190,170,230,.28), transparent 70%),
+                linear-gradient(180deg, #c49aab 0%, #a17890 100%);
+    --panel: #f6e6ea; --panel-edge: #e2bfca; --text: #3f2733; --muted: #6e4a5b;
+    --accent: #e85f8c; --gold: #f2a51c;
+    --cup-bg: rgba(255,255,255,.28); --cup-edge: #fff4f7;
+    --cup-rim: inset 0 4px 0 #fff4f7, 0 6px 16px rgba(80,30,55,.25);
+    --shelf: linear-gradient(180deg, #f1cfd9, #d9a7b8); --shelf-shadow: 0 5px 10px rgba(80,30,55,.25);
+    --contact: rgba(70,25,50,.35);
+    --btn-bg: linear-gradient(180deg, #fbf1f3, #eedbe1); --cta: linear-gradient(180deg, #f07ea3, #d9577f);
+    --overlay: rgba(70,35,55,.55); --card: linear-gradient(180deg, #fbf1f3, #f0dde3);
+    --ink-empty: #4a2c3a;
+  }
+  html[data-skin="twilight"] {
+    --bg: #2a1b2c;
+    --bg-image: radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,240,250,.7), transparent),
+                radial-gradient(1px 1px at 33% 9%, rgba(255,240,250,.55), transparent),
+                radial-gradient(1.4px 1.4px at 58% 22%, rgba(255,240,250,.6), transparent),
+                radial-gradient(1px 1px at 81% 7%, rgba(255,240,250,.5), transparent),
+                radial-gradient(1.2px 1.2px at 92% 31%, rgba(255,240,250,.55), transparent),
+                radial-gradient(1px 1px at 6% 44%, rgba(255,240,250,.4), transparent),
+                radial-gradient(circle, rgba(255,200,225,.05) 1.5px, transparent 2px) 0 0 / 26px 26px,
+                radial-gradient(60% 40% at 15% 0%, rgba(255,150,190,.20), transparent 70%),
+                radial-gradient(50% 40% at 90% 18%, rgba(170,150,255,.16), transparent 70%),
+                radial-gradient(80% 50% at 50% 110%, rgba(255,170,200,.12), transparent 70%),
+                linear-gradient(180deg, #3b263c 0%, #1f1422 100%);
+    --panel: #3a2639; --panel-edge: #5e3f5a; --text: #fbe9f0; --muted: #c9a2b5;
+    --accent: #ff8fb3; --good: #7fe0a4; --gold: #ffcf5a;
+    --cup-bg: rgba(255,230,240,.15); --cup-edge: rgba(255,236,244,.85);
+    --face-halo: rgba(255,240,246,.9);
+    --cup-rim: inset 0 4px 0 rgba(255,236,244,.85), 0 6px 18px rgba(0,0,0,.35);
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.35) 0 10%, transparent 30% 74%, rgba(60,10,40,.16));
+    --shelf: linear-gradient(180deg, #e8a9c0, #b97391); --shelf-shadow: 0 6px 12px rgba(0,0,0,.45);
+    --contact: rgba(0,0,0,.45);
+    --btn-bg: linear-gradient(180deg, #442c43, #372337); --cta: linear-gradient(180deg, #ff9fc0, #e8608f);
+    --overlay: rgba(20,10,22,.68); --card: linear-gradient(180deg, #4a3048, #382437);
+    --bar: linear-gradient(90deg, #ffb3cc, #ff7fa8, #ffcf5a);
+    --ink-empty: #fbe9f0;
+    color-scheme: dark;
   }
   html[data-skin="lab"] {
     --bg: #071315;
@@ -182,17 +227,19 @@
   html[data-skin="lab"] .lid { width: calc(var(--cup-w) - 12px); margin-left: calc(var(--cup-w) / -2 + 6px); height: 18px; top: 8px; border-radius: 4px 4px 2px 2px;
     background: var(--lid), repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px); background-blend-mode: multiply; }
   html[data-skin="lab"] .straw { display: none; }
-  html[data-skin="sakura"] .lid::after { content: "♥"; position: absolute; left: 0; right: 0; top: -2px; text-align: center; font-size: 10px; color: #fff; }
+  html[data-family="sakura"] .lid::after { content: "♥"; position: absolute; left: 0; right: 0; top: -2px; text-align: center; font-size: 10px; color: #fff; }
 
   /* sakura: cups have faces that react */
-  .face { display: var(--face, none); position: absolute; left: 0; right: 0; top: 40%; z-index: 5; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
-  .face i { width: 6px; height: 8px; border-radius: 50%; background: #4a2c34; animation: blink 4.5s infinite; animation-delay: var(--gd, 0s); }
-  .face b { position: absolute; top: 9px; left: 50%; width: 9px; height: 5px; margin-left: -4.5px; border: 2px solid #4a2c34; border-top: none; border-radius: 0 0 9px 9px; }
+  .face { filter: drop-shadow(0 0 1px var(--face-halo, transparent)) drop-shadow(0 0 2px var(--face-halo, transparent));
+    display: var(--face, none); position: absolute; left: 0; right: 0; top: 40%; z-index: 5; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
+  .face i { width: 6px; height: 8px; border-radius: 50%; background: var(--ink, #4a2c34); animation: blink 4.5s infinite; animation-delay: var(--gd, 0s); }
+  .face b { position: absolute; top: 9px; left: 50%; width: 9px; height: 5px; margin-left: -4.5px; border: 2px solid var(--ink, #4a2c34); border-top: none; border-radius: 0 0 9px 9px; }
   @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
   .cup.sel .face i { width: 8px; height: 9px; }
-  .cup.sel .face b { width: 7px; height: 7px; margin-left: -3.5px; border: 2px solid #4a2c34; border-radius: 50%; }
-  .cup.empty .face i { height: 2px; border-radius: 2px; animation: none; }
-  .cup.done .face i { height: 5px; background: none; border: 2px solid #4a2c34; border-bottom: none; border-radius: 6px 6px 0 0; animation: none; }
+  .cup.sel .face b { width: 7px; height: 7px; margin-left: -3.5px; border: 2px solid var(--ink, #4a2c34); border-radius: 50%; }
+  .cup.empty .face i { height: 2px; border-radius: 2px; animation: none; background: var(--ink-empty, var(--ink, #4a2c34)); }
+  .cup.empty .face b { border-color: var(--ink-empty, var(--ink, #4a2c34)); }
+  .cup.done .face i { height: 5px; background: none; border: 2px solid var(--ink, #4a2c34); border-bottom: none; border-radius: 6px 6px 0 0; animation: none; }
   .cup.done .face b { width: 11px; height: 6px; margin-left: -5.5px; background: #ff7f9e; }
   .cup.done .face::before, .cup.done .face::after { content: ""; position: absolute; top: 6px; width: 9px; height: 5px; border-radius: 50%; background: rgba(255,120,160,.55); }
   .cup.done .face::before { left: 6px; } .cup.done .face::after { right: 6px; }
@@ -300,21 +347,25 @@ const T = { lift: 180, unit: 110, back: 180 }; // pour timing (ms)
 
 // ---- Skins: same game, different visual designs (A/B/C test candidates) ----
 const SKINS = {
+  twilight: { name: 'Sakura Twilight', family: 'sakura', ambient: { type: 'petal', colors: ['#ffb7cf', '#ffd6e4', '#d9c6ff'], count: 14 },
+    colors: { T: '#bfa2ff', M: '#95e07d', G: '#ffd056', S: '#ff94b6', B: '#86b8ff', R: '#d39461', L: '#fff1d6', K: '#9a6750', W: '#fffaf4', P: '#4a3030' } },
   cafe: { name: 'Night Café', ambient: { type: 'mote', colors: ['#c9a7ff', '#ffe6a8'], count: 26 },
     colors: { T: '#a689e0', M: '#7cc46a', G: '#f7b733', S: '#f47fa4', B: '#5b8def', R: '#a8693b', L: '#efe6cf', K: '#5a3b2e', W: '#f8f8ff', P: '#3b2621' } },
-  sakura: { name: 'Sakura Pastel', ambient: { type: 'petal', colors: ['#ffc1d6', '#ffd9e6', '#ffffff'], count: 18 },
+  sakura: { name: 'Sakura Pastel', family: 'sakura', ambient: { type: 'petal', colors: ['#ffc1d6', '#ffd9e6', '#ffffff'], count: 18 },
     colors: { T: '#b99cf5', M: '#8fd977', G: '#ffcc4d', S: '#ff8fb1', B: '#7fb2ff', R: '#c98a58', L: '#fff1d6', K: '#8a5a44', W: '#fffaf4', P: '#4a3030' } },
   lab: { name: 'Potion Lab', ambient: { type: 'bubble', colors: ['#58ffb0', '#b26bff', '#4fb3ff'], count: 22 },
     colors: { T: '#b46dff', M: '#3dffa0', G: '#ffb238', S: '#ff4f8b', B: '#3fb0ff', R: '#e08a3a', L: '#f0ffb8', K: '#7a4430', W: '#e6f6ff', P: '#3a2433' } },
 };
-let skin = 'cafe';
-try { if (SKINS[localStorage.getItem('boba.skin')]) skin = localStorage.getItem('boba.skin'); } catch {}
+let skin = 'twilight'; // default look
+try { if (SKINS[localStorage.getItem('boba.skin2')]) skin = localStorage.getItem('boba.skin2'); } catch {}
 function applySkin(name, announce) {
   skin = name;
-  if (name === 'cafe') delete document.documentElement.dataset.skin; else document.documentElement.dataset.skin = name;
+  const root = document.documentElement;
+  if (name === 'cafe') delete root.dataset.skin; else root.dataset.skin = name;
+  root.dataset.family = SKINS[name].family || name;
   for (const [k, c] of Object.entries(SKINS[name].colors)) FLAVORS[k].color = c;
   FX.setAmbient(SKINS[name].ambient);
-  try { localStorage.setItem('boba.skin', name); } catch {}
+  try { localStorage.setItem('boba.skin2', name); } catch {}
   if (level) render();
   if (announce) {
     const t = document.createElement('div');

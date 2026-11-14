@@ -80,7 +80,8 @@ the flavour palette and the background particles change. Your choice is remember
 
 | Skin | Mood | Signature details |
 |---|---|---|
-| **Night Café** (default) | Cozy, witchy, dark | Warm lamp glow, wooden shelf, white dome lid + pink straw, rising dust motes |
+| **Sakura Twilight** (default) | Cute and cozy, low glare | Sakura's faces, petals and pastel drinks on a dark rose-plum evening sky with faint stars. Faces get a soft halo so they read over empty glass. |
+| **Night Café** | Cozy, witchy, dark | Warm lamp glow, wooden shelf, white dome lid + pink straw, rising dust motes |
 | **Sakura Pastel** | Cute, light, casual-friendly | Cups have faces: they blink, look surprised when lifted, sleep when empty and beam with blush when done. Falling petals, pink lid with a heart. |
 | **Potion Lab** | Mystical, glowing, striking | Test tubes on a brass rack, neon liquids, corks instead of lids, finished potions pulse with light, rising bubbles |
 
@@ -88,4 +89,6 @@ Shared polish: shelf planks and contact shadows (the shadow shrinks when a cup l
 liquid surface, fizz, a selection glow in the liquid's colour, an "almost done" pulse when a cup is
 one layer from finished, rows balanced so no cup sits alone, and a themed counter for customers.
 
-Comparison screenshots are in `magic_boba/design/` (`skins-play.jpg`, `skins-orders.jpg`, `skins-win.jpg`).
+Comparison screenshots are in `magic_boba/design/` (`skins-play.jpg`, `skins-orders.jpg`, `skins-win.jpg`,
+`sakura-variants.jpg` for Pastel vs Dusk vs Twilight, and `twilight.jpg`). Sakura Dusk, a mid-tone mauve, was tried and
+dropped because it looked muddy; its CSS is kept for reference but it isn't in the 🎨 rotation.
