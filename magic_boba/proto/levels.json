@@ -1,27 +1,28 @@
 [
   {
     "id": "1-1",
-    "world": "Cozy Corner",
     "title": "First Pour",
-    "note": "Tutorial: 3 flavours, 2 spare cups.",
+    "note": "Tap a cup, then tap where to pour.",
+    "world": "Cozy Corner",
     "tier": "easy",
+    "tutorial": "basics",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "GGMM",
-      "MTTG",
-      "TTGM",
+      "GGTT",
+      "TGGM",
+      "MMMT",
       "",
       ""
     ],
     "stats": {
-      "optimal": 6,
-      "target": 6,
-      "branching": 3.63,
-      "statesSearched": 61,
+      "optimal": 5,
+      "target": 5,
+      "branching": 3.17,
+      "statesSearched": 33,
       "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
-      "seed": 6
+      "seed": 19
     },
     "solution": [
       [
@@ -29,20 +30,16 @@
         3
       ],
       [
-        1,
-        0
-      ],
-      [
         2,
         3
       ],
       [
-        2,
-        0
+        1,
+        2
       ],
       [
         1,
-        2
+        0
       ],
       [
         1,
@@ -52,130 +49,112 @@
   },
   {
     "id": "1-2",
+    "title": "Warm Up",
+    "note": "Same flavour on same flavour.",
     "world": "Cozy Corner",
-    "title": "Busy Morning",
-    "note": "4 flavours.",
+    "tier": "easy",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "TGGM",
+      "TTMM",
+      "GTMG",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 7,
+      "target": 7,
+      "branching": 3.73,
+      "statesSearched": 99,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 0,
+      "seed": 3
+    },
+    "solution": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  {
+    "id": "1-3",
+    "title": "Morning Rush",
+    "note": "Four flavours now.",
+    "world": "Cozy Corner",
     "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "MTGG",
-      "SMMG",
-      "TSSG",
-      "TTMS",
+      "GMMG",
+      "TTGT",
+      "SMGM",
+      "TSSS",
       "",
       ""
     ],
     "stats": {
       "optimal": 9,
       "target": 9,
-      "branching": 3.55,
-      "statesSearched": 302,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 4,
-      "seed": 5
-    },
-    "solution": [
-      [
-        0,
-        4
-      ],
-      [
-        1,
-        4
-      ],
-      [
-        2,
-        4
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        3,
-        1
-      ],
-      [
-        0,
-        3
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        1
-      ],
-      [
-        2,
-        3
-      ]
-    ]
-  },
-  {
-    "id": "1-3",
-    "world": "Cozy Corner",
-    "title": "Five Teas",
-    "note": "5 flavours.",
-    "tier": "normal",
-    "mode": "sort",
-    "cap": 4,
-    "cups": [
-      "MSSM",
-      "MTMB",
-      "BGTT",
-      "GGST",
-      "SBBG",
-      "",
-      ""
-    ],
-    "stats": {
-      "optimal": 12,
-      "target": 12,
-      "branching": 3.15,
-      "statesSearched": 806,
+      "branching": 3.46,
+      "statesSearched": 317,
       "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
-      "seed": 34
+      "seed": 38
     },
     "solution": [
       [
         2,
-        5
-      ],
-      [
-        3,
-        5
-      ],
-      [
-        4,
-        2
-      ],
-      [
-        1,
         4
       ],
       [
         0,
-        1
+        2
       ],
       [
-        3,
+        0,
+        4
+      ],
+      [
+        2,
         0
       ],
       [
         2,
-        3
+        4
       ],
       [
-        4,
+        3,
         2
       ],
       [
-        0,
-        4
+        1,
+        3
       ],
       [
         1,
@@ -183,126 +162,33 @@
       ],
       [
         1,
-        5
-      ],
-      [
-        0,
-        1
+        3
       ]
     ]
   },
   {
     "id": "1-4",
+    "title": "Tidy Shelf",
+    "note": "Keep an empty cup for later.",
     "world": "Cozy Corner",
-    "title": "Full Menu",
-    "note": "6 flavours — first real think.",
     "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "RRGG",
-      "TMSB",
-      "BGMT",
-      "MSSB",
-      "SGMR",
-      "BTTR",
+      "TSTM",
+      "GSSM",
+      "GGGS",
+      "TMTM",
       "",
       ""
     ],
     "stats": {
-      "optimal": 15,
-      "target": 15,
-      "branching": 3.27,
-      "statesSearched": 1749,
+      "optimal": 11,
+      "target": 11,
+      "branching": 3.86,
+      "statesSearched": 386,
       "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
-      "seed": 18
-    },
-    "solution": [
-      [
-        0,
-        6
-      ],
-      [
-        4,
-        0
-      ],
-      [
-        5,
-        0
-      ],
-      [
-        2,
-        5
-      ],
-      [
-        2,
-        4
-      ],
-      [
-        2,
-        6
-      ],
-      [
-        1,
-        2
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        1,
-        3
-      ],
-      [
-        4,
-        1
-      ],
-      [
-        4,
-        6
-      ],
-      [
-        3,
-        4
-      ],
-      [
-        1,
-        3
-      ],
-      [
-        5,
-        1
-      ],
-      [
-        2,
-        5
-      ]
-    ]
-  },
-  {
-    "id": "1-5",
-    "world": "Cozy Corner",
-    "title": "One Spare Cup",
-    "note": "Hard level: only 1 empty cup.",
-    "tier": "hard",
-    "mode": "sort",
-    "cap": 4,
-    "cups": [
-      "GMGM",
-      "SGMS",
-      "TTST",
-      "GTSM",
-      ""
-    ],
-    "stats": {
-      "optimal": 12,
-      "target": 12,
-      "branching": 1.51,
-      "statesSearched": 54,
-      "casualStuckPct": 51,
-      "randomPlayStuckPct": 48,
       "seed": 10
     },
     "solution": [
@@ -311,44 +197,40 @@
         4
       ],
       [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        1,
+        2
+      ],
+      [
         3,
         4
       ],
       [
-        1,
+        0,
         3
       ],
       [
-        1,
-        4
-      ],
-      [
         0,
-        1
+        5
       ],
       [
-        0,
-        4
-      ],
-      [
-        1,
+        3,
         0
       ],
       [
         3,
-        1
-      ],
-      [
-        2,
-        3
-      ],
-      [
-        2,
-        1
-      ],
-      [
-        3,
-        2
+        4
       ],
       [
         0,
@@ -357,28 +239,487 @@
     ]
   },
   {
-    "id": "2-1",
-    "world": "Pearl Grotto",
-    "title": "Sinking Feeling",
-    "note": "Pearls added as a 4th \"flavour\". They sink under liquid.",
+    "id": "1-5",
+    "title": "First Customers",
+    "note": "Customers want full cups. Pour what their cup needs next.",
+    "orders": [
+      "TTTT",
+      "MMMM",
+      "GGGG"
+    ],
+    "slots": 2,
+    "world": "Cozy Corner",
     "tier": "easy",
+    "tutorial": "counter",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "GGGM",
+      "MMMT",
+      "TTTG"
+    ],
+    "stats": {
+      "optimal": 6,
+      "target": 6,
+      "branching": 2.35,
+      "statesSearched": 38,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 0,
+      "seed": 50
+    },
+    "solution": [
+      [
+        0,
+        "o1"
+      ],
+      [
+        1,
+        "o0"
+      ],
+      [
+        1,
+        "o1"
+      ],
+      [
+        0,
+        "o1"
+      ],
+      [
+        2,
+        "o1"
+      ],
+      [
+        2,
+        "o0"
+      ]
+    ]
+  },
+  {
+    "id": "1-6",
+    "title": "Five Teas",
+    "note": "Five flavours.",
+    "world": "Cozy Corner",
+    "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "PPMT",
-      "TTMT",
-      "PPMM",
+      "SBSB",
+      "STTS",
+      "MMGG",
+      "MMBT",
+      "TBGG",
       "",
       ""
     ],
     "stats": {
-      "optimal": 7,
-      "target": 7,
-      "branching": 7.86,
-      "statesSearched": 388,
+      "optimal": 12,
+      "target": 12,
+      "branching": 3.53,
+      "statesSearched": 663,
       "casualStuckPct": 0,
-      "randomPlayStuckPct": 27,
-      "seed": 5
+      "randomPlayStuckPct": 0,
+      "seed": 33
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  {
+    "id": "1-7",
+    "title": "Rainbow Row",
+    "note": "Plan two pours ahead.",
+    "world": "Cozy Corner",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "GTTS",
+      "BMBM",
+      "TMMT",
+      "GSSB",
+      "SGBG",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 14,
+      "target": 14,
+      "branching": 3.24,
+      "statesSearched": 1295,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 4,
+      "seed": 4
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  },
+  {
+    "id": "1-8",
+    "title": "Busy Counter",
+    "note": "Four regulars at once.",
+    "orders": [
+      "TTTT",
+      "MMMM",
+      "GGGG",
+      "SSSS"
+    ],
+    "slots": 2,
+    "world": "Cozy Corner",
+    "tier": "normal",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "TGGG",
+      "TSSS",
+      "",
+      "TGMT",
+      "SMMM"
+    ],
+    "stats": {
+      "optimal": 10,
+      "target": 8,
+      "branching": 4.71,
+      "statesSearched": 613,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 0,
+      "seed": 80
+    },
+    "solution": [
+      [
+        3,
+        "o0"
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
+        4,
+        "o1"
+      ],
+      [
+        0,
+        "o1"
+      ],
+      [
+        0,
+        "o0"
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        "o0"
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
+        3,
+        "o0"
+      ],
+      [
+        4,
+        "o0"
+      ]
+    ]
+  },
+  {
+    "id": "1-9",
+    "title": "Full Menu",
+    "note": "Six flavours. Take your time.",
+    "world": "Cozy Corner",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "SGGT",
+      "BRGG",
+      "RSBM",
+      "TTBM",
+      "TBSS",
+      "MRRM",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 15,
+      "target": 15,
+      "branching": 3.24,
+      "statesSearched": 1579,
+      "casualStuckPct": 26,
+      "randomPlayStuckPct": 33,
+      "seed": 30
+    },
+    "solution": [
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        5,
+        7
+      ]
+    ]
+  },
+  {
+    "id": "1-10",
+    "title": "One Spare Cup",
+    "note": "Boss level: only one empty cup.",
+    "world": "Cozy Corner",
+    "tier": "hard",
+    "tutorial": "vial",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "SMST",
+      "GTGM",
+      "MGTM",
+      "GSST",
+      ""
+    ],
+    "stats": {
+      "optimal": 12,
+      "target": 12,
+      "branching": 1.49,
+      "statesSearched": 39,
+      "casualStuckPct": 52,
+      "randomPlayStuckPct": 54,
+      "seed": 1
+    },
+    "solution": [
+      [
+        0,
+        4
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        1,
+        3
+      ]
+    ]
+  },
+  {
+    "id": "2-1",
+    "title": "Sinking Feeling",
+    "note": "Pearls sink under any drink.",
+    "world": "Pearl Grotto",
+    "tier": "easy",
+    "tutorial": "pearls",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PPPM",
+      "TMTT",
+      "PTMM",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 6,
+      "target": 6,
+      "branching": 8.02,
+      "statesSearched": 583,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 14,
+      "seed": 2
     },
     "solution": [
       [
@@ -386,16 +727,12 @@
         3
       ],
       [
-        0,
-        4
-      ],
-      [
-        1,
+        2,
         3
       ],
       [
         1,
-        4
+        2
       ],
       [
         1,
@@ -403,7 +740,7 @@
       ],
       [
         2,
-        4
+        1
       ],
       [
         0,
@@ -413,37 +750,332 @@
   },
   {
     "id": "2-2",
+    "title": "Bubble Bed",
+    "note": "Pearls can pour into any cup.",
     "world": "Pearl Grotto",
-    "title": "Pearl Diver",
-    "note": "Pearls + 4 flavours.",
     "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
+      "PGGG",
       "PTMG",
-      "MGGS",
-      "PPMM",
-      "GTST",
-      "PTSS",
+      "PPTT",
+      "TMMM",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 8,
+      "target": 8,
+      "branching": 7.45,
+      "statesSearched": 1761,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 14,
+      "seed": 86
+    },
+    "solution": [
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  },
+  {
+    "id": "2-3",
+    "title": "Pearl Diver",
+    "note": "Dig the pearls out from below.",
+    "world": "Pearl Grotto",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PPTG",
+      "PPSM",
+      "SSTG",
+      "MMGS",
+      "TTGM",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 11,
+      "branching": 6.41,
+      "statesSearched": 13206,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 28,
+      "seed": 113
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  {
+    "id": "2-4",
+    "title": "Pearl Milk Tea",
+    "note": "Pearls go in first.",
+    "orders": [
+      "PTTT",
+      "PMMM",
+      "GGGG"
+    ],
+    "slots": 2,
+    "world": "Pearl Grotto",
+    "tier": "normal",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "GG",
+      "MTT",
+      "GMMT",
+      "PPG"
+    ],
+    "stats": {
+      "optimal": 9,
+      "target": 8,
+      "branching": 3.8,
+      "statesSearched": 363,
+      "casualStuckPct": 8,
+      "randomPlayStuckPct": 48,
+      "seed": 6
+    },
+    "solution": [
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        "o0"
+      ],
+      [
+        1,
+        "o0"
+      ],
+      [
+        0,
+        "o1"
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        "o0"
+      ],
+      [
+        2,
+        "o0"
+      ],
+      [
+        2,
+        "o0"
+      ]
+    ]
+  },
+  {
+    "id": "2-5",
+    "title": "Double Pearls",
+    "note": "Two cups of pearls hide everywhere.",
+    "world": "Pearl Grotto",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "MGMM",
+      "PPPT",
+      "PTGG",
+      "PGTT",
+      "PPPM",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 11,
+      "branching": 11.19,
+      "statesSearched": 48936,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 14,
+      "seed": 4
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        3,
+        4
+      ]
+    ]
+  },
+  {
+    "id": "2-6",
+    "title": "Grotto Glow",
+    "note": "Six ingredients.",
+    "world": "Pearl Grotto",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "TBST",
+      "GTTB",
+      "SSSB",
+      "MMBG",
+      "PPMG",
+      "PPGM",
       "",
       ""
     ],
     "stats": {
       "optimal": 13,
       "target": 13,
-      "branching": 6.62,
-      "statesSearched": 26920,
+      "branching": 6.18,
+      "statesSearched": 48793,
       "casualStuckPct": 0,
-      "randomPlayStuckPct": 17,
-      "seed": 2
+      "randomPlayStuckPct": 22,
+      "seed": 22
     },
     "solution": [
       [
         1,
-        5
+        6
       ],
       [
         0,
+        1
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
         1
       ],
       [
@@ -451,189 +1083,31 @@
         6
       ],
       [
-        3,
-        5
+        4,
+        1
       ],
       [
-        3,
-        6
-      ],
-      [
-        1,
+        4,
         3
       ],
       [
-        0,
-        1
-      ],
-      [
-        0,
-        6
-      ],
-      [
-        2,
-        1
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        4,
-        5
-      ],
-      [
-        4,
-        6
-      ],
-      [
-        2,
-        4
-      ]
-    ]
-  },
-  {
-    "id": "2-3",
-    "world": "Pearl Grotto",
-    "title": "Double Pearls",
-    "note": "Two cups worth of pearls buried everywhere.",
-    "tier": "normal",
-    "mode": "sort",
-    "cap": 4,
-    "cups": [
-      "PPPM",
-      "PPTM",
-      "PMGT",
-      "PPGG",
-      "TMGT",
-      "",
-      ""
-    ],
-    "stats": {
-      "optimal": 12,
-      "target": 12,
-      "branching": 11.1,
-      "statesSearched": 48818,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 15,
-      "seed": 15
-    },
-    "solution": [
-      [
-        0,
-        5
-      ],
-      [
-        1,
-        5
-      ],
-      [
-        3,
-        6
-      ],
-      [
-        4,
-        1
-      ],
-      [
-        4,
-        6
-      ],
-      [
-        4,
-        5
-      ],
-      [
-        1,
-        4
-      ],
-      [
-        1,
+        5,
         3
       ],
       [
-        2,
-        4
+        5,
+        1
       ],
       [
-        2,
-        6
-      ],
-      [
-        2,
+        4,
         5
-      ],
-      [
-        0,
-        2
       ]
     ]
   },
   {
-    "id": "C-1",
-    "world": "The Counter",
-    "title": "First Customers",
-    "note": "Orders mode: pour into the order cup what it needs next. 2 customers at a time.",
-    "orders": [
-      "TTTT",
-      "MMMM",
-      "GGGG"
-    ],
-    "slots": 2,
-    "tier": "easy",
-    "mode": "orders",
-    "cap": 4,
-    "cups": [
-      "MMGG",
-      "TTGG",
-      "MMTT"
-    ],
-    "stats": {
-      "optimal": 7,
-      "target": 6,
-      "branching": 2.61,
-      "statesSearched": 22,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 0,
-      "seed": 15
-    },
-    "solution": [
-      [
-        2,
-        "o0"
-      ],
-      [
-        2,
-        "o1"
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        0,
-        "o1"
-      ],
-      [
-        1,
-        2
-      ],
-      [
-        1,
-        "o0"
-      ],
-      [
-        2,
-        "o0"
-      ]
-    ]
-  },
-  {
-    "id": "C-2",
-    "world": "The Counter",
-    "title": "Pearl Milk Tea",
-    "note": "Recipes with pearls on the bottom.",
-    "tier": "normal",
+    "id": "2-7",
+    "title": "Tapioca Time",
+    "note": "A queue of pearl lovers.",
     "orders": [
       "PTTT",
       "PMMM",
@@ -641,34 +1115,224 @@
       "PSSS"
     ],
     "slots": 2,
+    "world": "Pearl Grotto",
+    "tier": "normal",
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "GS",
-      "MTSS",
-      "PGG",
-      "PPTT",
-      "MMG"
+      "PPGG",
+      "PM",
+      "SMMT",
+      "TTS",
+      "GGS"
     ],
     "stats": {
       "optimal": 12,
       "target": 9,
-      "branching": 5.99,
-      "statesSearched": 2493,
-      "casualStuckPct": 1,
-      "randomPlayStuckPct": 63,
-      "seed": 60
+      "branching": 5.73,
+      "statesSearched": 2413,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 56,
+      "seed": 24
+    },
+    "solution": [
+      [
+        3,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        "o0"
+      ],
+      [
+        3,
+        "o0"
+      ],
+      [
+        0,
+        "o1"
+      ],
+      [
+        0,
+        "o0"
+      ],
+      [
+        2,
+        "o0"
+      ],
+      [
+        0,
+        "o1"
+      ],
+      [
+        2,
+        "o1"
+      ],
+      [
+        4,
+        "o1"
+      ],
+      [
+        4,
+        "o0"
+      ]
+    ]
+  },
+  {
+    "id": "2-8",
+    "title": "Deep Pearls",
+    "note": "Lots of buried pearls.",
+    "world": "Pearl Grotto",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PTGG",
+      "PTSS",
+      "PPTS",
+      "GGMS",
+      "PMMM",
+      "PPPT",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 13,
+      "target": 13,
+      "branching": 9.74,
+      "statesSearched": 126800,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 17,
+      "seed": 24
     },
     "solution": [
       [
         1,
-        0
+        6
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        6
       ],
       [
         3,
         1
       ],
       [
+        0,
+        3
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        4,
+        5
+      ]
+    ]
+  },
+  {
+    "id": "2-9",
+    "title": "Moon Milk Tea",
+    "note": "Layered drinks: black tea under moon milk.",
+    "orders": [
+      "KKWW",
+      "PKKK",
+      "WWWW",
+      "PKWW"
+    ],
+    "slots": 2,
+    "world": "Pearl Grotto",
+    "tier": "normal",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "WWKK",
+      "KKK",
+      "PW",
+      "PWKW",
+      "WWW"
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 11,
+      "branching": 9.65,
+      "statesSearched": 4734,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 55,
+      "seed": 8
+    },
+    "solution": [
+      [
+        0,
+        "o0"
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        4,
+        "o0"
+      ],
+      [
+        2,
+        "o1"
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
+        2,
+        "o1"
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
+        3,
+        4
+      ],
+      [
         3,
         "o0"
       ],
@@ -677,73 +1341,300 @@
         "o0"
       ],
       [
-        2,
-        "o1"
-      ],
-      [
-        2,
-        "o0"
-      ],
-      [
-        1,
-        "o0"
-      ],
-      [
         4,
-        "o1"
-      ],
-      [
-        4,
-        "o0"
-      ],
-      [
-        3,
-        "o1"
-      ],
-      [
-        0,
-        "o1"
-      ],
-      [
-        0,
         "o0"
       ]
     ]
   },
   {
-    "id": "C-3",
-    "world": "The Counter",
-    "title": "Moon Milk Tea",
-    "note": "Layered recipes: black tea under moon milk.",
+    "id": "2-10",
+    "title": "Pearl Boss",
+    "note": "Boss level: one empty cup.",
+    "world": "Pearl Grotto",
+    "tier": "hard",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PPMG",
+      "MGGG",
+      "PTMT",
+      "PTMT",
+      ""
+    ],
+    "stats": {
+      "optimal": 12,
+      "target": 12,
+      "branching": 3.24,
+      "statesSearched": 167,
+      "casualStuckPct": 22,
+      "randomPlayStuckPct": 37,
+      "seed": 1
+    },
+    "solution": [
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  {
+    "id": "3-1",
+    "title": "Fizzy Hello",
+    "note": "Sparkle soda floats to the top.",
+    "world": "Fizz Falls",
+    "tier": "easy",
+    "tutorial": "soda",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "TTMM",
+      "MTFF",
+      "TMFF",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 6,
+      "target": 6,
+      "branching": 9.76,
+      "statesSearched": 764,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 7,
+      "seed": 1
+    },
+    "solution": [
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ]
+    ]
+  },
+  {
+    "id": "3-2",
+    "title": "Float On",
+    "note": "Drinks slide under the soda.",
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "GMGF",
+      "TGFF",
+      "MMMF",
+      "TTTG",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 8,
+      "target": 8,
+      "branching": 13.46,
+      "statesSearched": 4940,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 6,
+      "seed": 12
+    },
+    "solution": [
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        1,
+        3
+      ]
+    ]
+  },
+  {
+    "id": "3-3",
+    "title": "Sink & Float",
+    "note": "Pearls sink, soda floats.",
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "MMTF",
+      "PTTF",
+      "PPMM",
+      "PTFF",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 9,
+      "target": 9,
+      "branching": 16.55,
+      "statesSearched": 23643,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 16,
+      "seed": 4
+    },
+    "solution": [
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  {
+    "id": "3-4",
+    "title": "Soda Toppers",
+    "note": "Soda goes on last.",
     "orders": [
-      "KKWW",
-      "PKKK",
-      "WWWW",
-      "PKWW",
-      "TTTT"
+      "TTTF",
+      "MMFF",
+      "GGGG"
     ],
     "slots": 2,
+    "world": "Fizz Falls",
     "tier": "normal",
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "WKKK",
-      "WTKK",
-      "PTT",
-      "TKW",
-      "WW",
-      "PWWW"
+      "MMGG",
+      "GTTT",
+      "G",
+      "FFF"
     ],
     "stats": {
-      "optimal": 13,
-      "target": 12,
-      "branching": 9.95,
-      "statesSearched": 57873,
-      "casualStuckPct": 3,
-      "randomPlayStuckPct": 40,
-      "seed": 63
+      "optimal": 7,
+      "target": 7,
+      "branching": 7.43,
+      "statesSearched": 963,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 7,
+      "seed": 101
     },
     "solution": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        "o1"
+      ],
       [
         1,
         "o0"
@@ -751,6 +1642,377 @@
       [
         1,
         2
+      ],
+      [
+        3,
+        "o0"
+      ],
+      [
+        2,
+        "o1"
+      ],
+      [
+        3,
+        "o0"
+      ]
+    ]
+  },
+  {
+    "id": "3-5",
+    "title": "Fizz Falls",
+    "note": "Five ingredients.",
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "GSTT",
+      "TMMF",
+      "SSMM",
+      "GTFF",
+      "SGGF",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 11,
+      "branching": 15.35,
+      "statesSearched": 92181,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 9,
+      "seed": 7
+    },
+    "solution": [
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        2,
+        4
+      ]
+    ]
+  },
+  {
+    "id": "3-6",
+    "title": "Bubble Trouble",
+    "note": "Both kinds of magic.",
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "MMMF",
+      "PPTT",
+      "MTGF",
+      "GGTF",
+      "PPGF",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 11,
+      "branching": 18.48,
+      "statesSearched": 437517,
+      "casualStuckPct": 2,
+      "randomPlayStuckPct": 19,
+      "seed": 1
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ]
+  },
+  {
+    "id": "3-7",
+    "title": "Party Order",
+    "note": "Pearls, tea and fizz.",
+    "orders": [
+      "PTTF",
+      "PMMF",
+      "SSSS",
+      "GGGF"
+    ],
+    "slots": 2,
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "PS",
+      "TS",
+      "PTGG",
+      "SSFF",
+      "MM",
+      "GF"
+    ],
+    "stats": {
+      "optimal": 13,
+      "target": 10,
+      "branching": 13.79,
+      "statesSearched": 52454,
+      "casualStuckPct": 11,
+      "randomPlayStuckPct": 35,
+      "seed": 120
+    },
+    "solution": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        "o0"
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        "o0"
+      ],
+      [
+        2,
+        "o1"
+      ],
+      [
+        4,
+        "o1"
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
+        1,
+        "o1"
+      ],
+      [
+        1,
+        "o0"
+      ],
+      [
+        5,
+        "o0"
+      ],
+      [
+        5,
+        "o1"
+      ],
+      [
+        3,
+        "o1"
+      ],
+      [
+        3,
+        "o0"
+      ]
+    ]
+  },
+  {
+    "id": "3-8",
+    "title": "Double Fizz",
+    "note": "Two cups of soda.",
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "TGTF",
+      "MGFF",
+      "TTFF",
+      "GGMF",
+      "MMFF",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 11,
+      "branching": 20.97,
+      "statesSearched": 68244,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 10,
+      "seed": 4
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        4
+      ]
+    ]
+  },
+  {
+    "id": "3-9",
+    "title": "Grand Brew",
+    "note": "Pearls, soda and three teas.",
+    "world": "Fizz Falls",
+    "tier": "normal",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "MMMF",
+      "PSTF",
+      "PPSF",
+      "PMTT",
+      "SSTF",
+      "",
+      ""
+    ],
+    "stats": {
+      "optimal": 12,
+      "target": 12,
+      "branching": 17.8,
+      "statesSearched": 414942,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 21,
+      "seed": 2
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        6
       ],
       [
         1,
@@ -758,115 +2020,105 @@
       ],
       [
         3,
-        "o0"
-      ],
-      [
-        5,
-        "o1"
-      ],
-      [
-        5,
-        "o0"
-      ],
-      [
-        0,
-        "o0"
-      ],
-      [
-        0,
-        "o0"
-      ],
-      [
-        2,
-        "o1"
-      ],
-      [
-        2,
-        "o0"
-      ],
-      [
-        3,
-        "o0"
-      ],
-      [
-        3,
-        "o1"
+        0
       ],
       [
         4,
-        "o0"
+        5
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        3
       ]
     ]
   },
   {
-    "id": "C-4",
-    "world": "The Counter",
-    "title": "Lunch Rush",
-    "note": "Long queue of customers.",
-    "tier": "hard",
+    "id": "3-10",
+    "title": "Grand Opening",
+    "note": "Finale: the whole town is here.",
     "orders": [
-      "PTTT",
-      "MMMM",
-      "PGGG",
-      "SSSS",
-      "PBBB"
+      "PTTF",
+      "MMMF",
+      "PGGF",
+      "SSSS"
     ],
     "slots": 2,
+    "world": "Fizz Falls",
+    "tier": "hard",
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "GGTT",
-      "PPGB",
-      "M",
-      "PBST",
-      "MMM",
-      "SSSB"
+      "PSM",
+      "MGGF",
+      "PTM",
+      "SSSF",
+      "TF"
     ],
     "stats": {
-      "optimal": 16,
-      "target": 14,
-      "branching": 7.49,
-      "statesSearched": 5668,
-      "casualStuckPct": 1,
-      "randomPlayStuckPct": 37,
-      "seed": 35
+      "optimal": 15,
+      "target": 12,
+      "branching": 9.97,
+      "statesSearched": 24854,
+      "casualStuckPct": 9,
+      "randomPlayStuckPct": 45,
+      "seed": 3
     },
     "solution": [
       [
-        2,
-        4
-      ],
-      [
         0,
         2
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        4,
-        "o1"
-      ],
-      [
-        1,
-        4
       ],
       [
         1,
         0
       ],
       [
-        1,
+        2,
+        "o1"
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
         "o0"
       ],
       [
         1,
+        2
+      ],
+      [
+        1,
         "o1"
+      ],
+      [
+        4,
+        "o1"
+      ],
+      [
+        4,
+        "o0"
+      ],
+      [
+        0,
+        "o0"
       ],
       [
         0,
         "o1"
+      ],
+      [
+        0,
+        "o0"
       ],
       [
         2,
@@ -878,22 +2130,6 @@
       ],
       [
         3,
-        4
-      ],
-      [
-        3,
-        "o1"
-      ],
-      [
-        4,
-        "o1"
-      ],
-      [
-        5,
-        "o1"
-      ],
-      [
-        5,
         "o0"
       ]
     ]

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generates the Magic Boba test level pack.
+// Generates the Magic Boba campaign (3 worlds × 10 levels).
 // For each level spec: deal many random seeds, solve each one, keep the seed whose
 // optimal solution length is closest to the spec's target. Every shipped level is
 // proven solvable by the BFS solver.
@@ -28,8 +28,8 @@ function shuffle(arr, r) {
   return arr;
 }
 
-// Pearls always rest at the bottom of a cup.
-const settle = (cup) => cup.replace(/[^P]/g, '') + cup.replace(/P/g, '');
+// Pearls always rest at the bottom of a cup, sparkle soda always floats on top.
+const settle = (cup) => cup.replace(/[^P]/g, '') + cup.replace(/[PF]/g, '') + cup.replace(/[^F]/g, '');
 
 function deal(tokens, cupCount, cap, r, fillEvenly) {
   const bag = shuffle(tokens.slice(), r);
@@ -71,41 +71,51 @@ function buildOrders(spec, r) {
 // with NO bonus vials. Ads should rescue frustration, never be required.
 const STUCK_CAP = { easy: 5, normal: 25, hard: 50 };
 
+const S = (id, title, note, colors, empty, target, extra = {}) => ({ id, title, note, kind: 'sort', colors, empty, target, ...extra });
+const O = (id, title, note, orders, target, extra = {}) => ({ id, title, note, kind: 'orders', orders, slots: 2, empty: 0, extraCups: 1, target, ...extra });
+const W1 = { world: 'Cozy Corner' }, W2 = { world: 'Pearl Grotto' }, W3 = { world: 'Fizz Falls' };
+const easy = { tier: 'easy' }, hard = { tier: 'hard' };
+
+// `tutorial` keys drive the in-game coach marks (see play.html).
 const PACK = [
-  // ---- World 1 · Cozy Corner — classic sort, no magic --------------------------------
-  { id: '1-1', world: 'Cozy Corner', title: 'First Pour', note: 'Tutorial: 3 flavours, 2 spare cups.',
-    kind: 'sort', colors: ['T', 'M', 'G'], empty: 2, target: 6 },
-  { id: '1-2', world: 'Cozy Corner', title: 'Busy Morning', note: '4 flavours.',
-    kind: 'sort', colors: ['T', 'M', 'G', 'S'], empty: 2, target: 9 },
-  { id: '1-3', world: 'Cozy Corner', title: 'Five Teas', note: '5 flavours.',
-    kind: 'sort', colors: ['T', 'M', 'G', 'S', 'B'], empty: 2, target: 12 },
-  { id: '1-4', world: 'Cozy Corner', title: 'Full Menu', note: '6 flavours — first real think.',
-    kind: 'sort', colors: ['T', 'M', 'G', 'S', 'B', 'R'], empty: 2, target: 15 },
-  { id: '1-5', world: 'Cozy Corner', title: 'One Spare Cup', note: 'Hard level: only 1 empty cup.', tier: 'hard',
-    kind: 'sort', colors: ['T', 'M', 'G', 'S'], empty: 1, target: 12 },
-
-  // ---- World 2 · Pearl Grotto — pearls sink to the bottom ---------------------------
-  { id: '2-1', world: 'Pearl Grotto', title: 'Sinking Feeling', note: 'Pearls added as a 4th "flavour". They sink under liquid.',
-    kind: 'sort', colors: ['P', 'T', 'M'], empty: 2, target: 7 },
-  { id: '2-2', world: 'Pearl Grotto', title: 'Pearl Diver', note: 'Pearls + 4 flavours.',
-    kind: 'sort', colors: ['P', 'T', 'M', 'G', 'S'], empty: 2, target: 13 },
-  { id: '2-3', world: 'Pearl Grotto', title: 'Double Pearls', note: 'Two cups worth of pearls buried everywhere.',
-    kind: 'sort', colors: ['P', 'P', 'T', 'M', 'G'], empty: 2, target: 12 },
-
-  // ---- Counter mode — customer orders (tests the recipe idea) -----------------------
-  { id: 'C-1', world: 'The Counter', title: 'First Customers', note: 'Orders mode: pour into the order cup what it needs next. 2 customers at a time.',
-    kind: 'orders', orders: ['TTTT', 'MMMM', 'GGGG'], slots: 2, empty: 0, extraCups: 0, target: 6 },
-  { id: 'C-2', world: 'The Counter', title: 'Pearl Milk Tea', note: 'Recipes with pearls on the bottom.', tier: 'normal',
-    kind: 'orders', orders: ['PTTT', 'PMMM', 'GGGG', 'PSSS'], slots: 2, empty: 0, extraCups: 1, target: 9 },
-  { id: 'C-3', world: 'The Counter', title: 'Moon Milk Tea', note: 'Layered recipes: black tea under moon milk.',
-    kind: 'orders', orders: ['KKWW', 'PKKK', 'WWWW', 'PKWW', 'TTTT'], slots: 2, empty: 0, extraCups: 1, target: 12 },
-  { id: 'C-4', world: 'The Counter', title: 'Lunch Rush', note: 'Long queue of customers.', tier: 'hard',
-    kind: 'orders', orders: ['PTTT', 'MMMM', 'PGGG', 'SSSS', 'PBBB'], slots: 2, empty: 0, extraCups: 1, target: 14, tries: 60 },
+  // ---- World 1 · Cozy Corner — learn to pour ------------------------------------------
+  S('1-1', 'First Pour', 'Tap a cup, then tap where to pour.', ['T', 'M', 'G'], 2, 5, { ...W1, ...easy, tutorial: 'basics' }),
+  S('1-2', 'Warm Up', 'Same flavour on same flavour.', ['T', 'M', 'G'], 2, 7, { ...W1, ...easy }),
+  S('1-3', 'Morning Rush', 'Four flavours now.', ['T', 'M', 'G', 'S'], 2, 9, { ...W1 }),
+  S('1-4', 'Tidy Shelf', 'Keep an empty cup for later.', ['T', 'M', 'G', 'S'], 2, 11, { ...W1 }),
+  O('1-5', 'First Customers', 'Customers want full cups. Pour what their cup needs next.', ['TTTT', 'MMMM', 'GGGG'], 6, { ...W1, ...easy, extraCups: 0, tutorial: 'counter' }),
+  S('1-6', 'Five Teas', 'Five flavours.', ['T', 'M', 'G', 'S', 'B'], 2, 12, { ...W1 }),
+  S('1-7', 'Rainbow Row', 'Plan two pours ahead.', ['T', 'M', 'G', 'S', 'B'], 2, 14, { ...W1 }),
+  O('1-8', 'Busy Counter', 'Four regulars at once.', ['TTTT', 'MMMM', 'GGGG', 'SSSS'], 8, { ...W1 }),
+  S('1-9', 'Full Menu', 'Six flavours. Take your time.', ['T', 'M', 'G', 'S', 'B', 'R'], 2, 15, { ...W1 }),
+  S('1-10', 'One Spare Cup', 'Boss level: only one empty cup.', ['T', 'M', 'G', 'S'], 1, 12, { ...W1, ...hard, tutorial: 'vial' }),
+  // ---- World 2 · Pearl Grotto — pearls sink ---------------------------------------------
+  S('2-1', 'Sinking Feeling', 'Pearls sink under any drink.', ['P', 'T', 'M'], 2, 6, { ...W2, ...easy, tutorial: 'pearls' }),
+  S('2-2', 'Bubble Bed', 'Pearls can pour into any cup.', ['P', 'T', 'M', 'G'], 2, 8, { ...W2 }),
+  S('2-3', 'Pearl Diver', 'Dig the pearls out from below.', ['P', 'T', 'M', 'G', 'S'], 2, 11, { ...W2 }),
+  O('2-4', 'Pearl Milk Tea', 'Pearls go in first.', ['PTTT', 'PMMM', 'GGGG'], 8, { ...W2 }),
+  S('2-5', 'Double Pearls', 'Two cups of pearls hide everywhere.', ['P', 'P', 'T', 'M', 'G'], 2, 11, { ...W2 }),
+  S('2-6', 'Grotto Glow', 'Six ingredients.', ['P', 'T', 'M', 'G', 'S', 'B'], 2, 13, { ...W2 }),
+  O('2-7', 'Tapioca Time', 'A queue of pearl lovers.', ['PTTT', 'PMMM', 'GGGG', 'PSSS'], 9, { ...W2 }),
+  S('2-8', 'Deep Pearls', 'Lots of buried pearls.', ['P', 'P', 'T', 'M', 'G', 'S'], 2, 13, { ...W2 }),
+  O('2-9', 'Moon Milk Tea', 'Layered drinks: black tea under moon milk.', ['KKWW', 'PKKK', 'WWWW', 'PKWW'], 11, { ...W2 }),
+  S('2-10', 'Pearl Boss', 'Boss level: one empty cup.', ['P', 'T', 'M', 'G'], 1, 12, { ...W2, ...hard }),
+  // ---- World 3 · Fizz Falls — soda floats ----------------------------------------------
+  S('3-1', 'Fizzy Hello', 'Sparkle soda floats to the top.', ['F', 'T', 'M'], 2, 6, { ...W3, ...easy, tutorial: 'soda' }),
+  S('3-2', 'Float On', 'Drinks slide under the soda.', ['F', 'T', 'M', 'G'], 2, 8, { ...W3 }),
+  S('3-3', 'Sink & Float', 'Pearls sink, soda floats.', ['F', 'P', 'T', 'M'], 2, 9, { ...W3 }),
+  O('3-4', 'Soda Toppers', 'Soda goes on last.', ['TTTF', 'MMFF', 'GGGG'], 7, { ...W3 }),
+  S('3-5', 'Fizz Falls', 'Five ingredients.', ['F', 'T', 'M', 'G', 'S'], 2, 11, { ...W3 }),
+  S('3-6', 'Bubble Trouble', 'Both kinds of magic.', ['F', 'P', 'T', 'M', 'G'], 2, 11, { ...W3 }),
+  O('3-7', 'Party Order', 'Pearls, tea and fizz.', ['PTTF', 'PMMF', 'SSSS', 'GGGF'], 10, { ...W3, extraCups: 2 }),
+  S('3-8', 'Double Fizz', 'Two cups of soda.', ['F', 'F', 'T', 'M', 'G'], 2, 11, { ...W3, tries: 60 }),
+  S('3-9', 'Grand Brew', 'Pearls, soda and three teas.', ['F', 'P', 'T', 'M', 'S'], 2, 12, { ...W3, tries: 60 }),
+  O('3-10', 'Grand Opening', 'Finale: the whole town is here.', ['PTTF', 'MMMF', 'PGGF', 'SSSS'], 12, { ...W3, ...hard, tries: 25 }),
 ];
 
 function generate(spec) {
   let best = null;
-  const tier = spec.tier || (/-1$/.test(spec.id) ? 'easy' : 'normal');
+  const tier = spec.tier || 'normal';
   const cap = STUCK_CAP[tier];
   for (let seed = 1; seed <= (spec.tries || 120); seed++) {
     const r = rng(seed * 7919 + spec.id.charCodeAt(0) * 31 + spec.id.charCodeAt(2));
@@ -134,10 +144,18 @@ function generate(spec) {
 
 const only = process.argv.slice(2);
 const previous = only.length ? require('./levels.json') : [];
+// Cache finished levels by their spec so reruns only redo what changed (levels.cache.json, not shipped).
+const cacheFile = path.join(__dirname, 'levels.cache.json');
+let cache = {};
+try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch {}
 const levels = PACK.map((spec) => {
+  const sig = JSON.stringify(spec);
+  if (!only.length && cache[spec.id] && cache[spec.id].sig === sig) { console.log(`${spec.id.padEnd(4)} (cached)`); return cache[spec.id].level; }
   if (only.length && !only.includes(spec.id)) return previous.find((l) => l.id === spec.id);
   const t0 = Date.now();
   const lvl = generate(spec);
+  cache[spec.id] = { sig, level: lvl };
+  fs.writeFileSync(cacheFile, JSON.stringify(cache));
   const s = lvl.stats;
   console.log(`${lvl.id.padEnd(4)} ${lvl.title.padEnd(16)} optimal=${String(s.optimal).padStart(2)} (target ${s.target})  branching=${s.branching}  casual stuck=${s.casualStuckPct}% (cap ${STUCK_CAP[lvl.tier]}%)  random stuck=${s.randomPlayStuckPct}%  [${Date.now() - t0}ms]`);
   return lvl;

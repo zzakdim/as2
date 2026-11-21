@@ -1,0 +1,62 @@
+# XcodeGen spec. Generate the Xcode project with:  xcodegen generate   (see README.md)
+name: MagicBoba
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+targets:
+  MagicBoba:
+    type: application
+    platform: iOS
+    sources:
+      - path: MagicBoba/Sources
+      - path: MagicBoba/Assets.xcassets
+      - path: MagicBoba/Web          # folder reference: copied as Web/ into the app bundle
+        type: folder
+        buildPhase: resources
+    info:
+      path: MagicBoba/Info.plist
+      properties:
+        CFBundleDisplayName: Magic Boba
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        ITSAppUsesNonExemptEncryption: false
+        # Google Mobile Ads: this is Google's public TEST app ID; replace with yours before release.
+        GADApplicationIdentifier: ca-app-pub-3940256099942544~1458002511
+        # Your rewarded ad unit (empty = Google's test unit).
+        BobaRewardedAdUnitID: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.magicboba
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""        # set your Apple team ID here or in Xcode ▸ Signing
+    preBuildScripts:
+      - name: Bundle web game
+        script: |
+          if command -v python3 >/dev/null; then python3 "${SRCROOT}/build_web.py"; fi
+        basedOnDependencyAnalysis: false
+# To turn on real ads, uncomment and re-run `xcodegen generate` (see README.md):
+# packages:
+#   GoogleMobileAds:
+#     url: https://github.com/googleads/swift-package-manager-google-mobile-ads
+#     from: 12.0.0
+# and add under targets.MagicBoba:
+#     dependencies:
+#       - package: GoogleMobileAds

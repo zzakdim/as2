@@ -2,6 +2,8 @@
 //
 // A cup is a string of ingredient codes, bottom -> top, e.g. "PTT" = pearls under two taro.
 // Codes: see FLAVORS. 'P' (tapioca pearls) is solid: it always sinks below liquid.
+// 'F' (sparkle soda) is the mirror image: it always floats on top, and other liquids poured onto
+// it slide underneath. Invariant: pearls form a run at the bottom, soda a run at the top.
 //
 // Modes
 //  - "sort":   win when every non-empty cup is full of a single ingredient.
@@ -20,9 +22,17 @@
     K: { name: 'Black Tea', color: '#5a3b2e' },
     W: { name: 'Moon Milk', color: '#f8f8ff' },
     P: { name: 'Pearls', color: '#2b1d1d', solid: true },
+    F: { name: 'Sparkle Soda', color: '#bdf2ff', floats: true },
   };
 
   const isPearl = (c) => c === 'P';
+  const isSoda = (c) => c === 'F';
+  // Index where the top soda run starts (cup.length if there is no soda).
+  function sodaStart(cup) {
+    let k = cup.length;
+    while (k > 0 && isSoda(cup[k - 1])) k--;
+    return k;
+  }
 
   // Length of the run of identical ingredients on top of a cup.
   function topRun(cup) {
@@ -36,19 +46,32 @@
   // Insert `n` of ingredient `t` into a play cup, applying sink rules.
   function addToCup(cup, t, n) {
     const add = t.repeat(n);
-    if (!isPearl(t)) return cup + add;
-    let k = 0; // pearls sink beneath all liquid, on top of existing pearls
-    while (k < cup.length && isPearl(cup[k])) k++;
+    if (isSoda(t)) return cup + add; // soda floats: always on top
+    if (isPearl(t)) {
+      let k = 0; // pearls sink beneath all liquid, on top of existing pearls
+      while (k < cup.length && isPearl(cup[k])) k++;
+      return cup.slice(0, k) + add + cup.slice(k);
+    }
+    const k = sodaStart(cup); // liquids slide under any soda
     return cup.slice(0, k) + add + cup.slice(k);
+  }
+
+  // Where newly added units of t end up (index of the first one) — used for animation.
+  function landIndex(cup, t) {
+    if (isSoda(t)) return cup.length;
+    if (isPearl(t)) { let k = 0; while (k < cup.length && isPearl(cup[k])) k++; return k; }
+    return sodaStart(cup);
   }
 
   // Can ingredient t be poured onto this play cup at all?
   function accepts(cup, t, cap) {
     if (cup.length >= cap) return false;
     if (!cup.length) return true;
-    if (isPearl(t)) return true; // pearls sink through anything
-    const top = cup[cup.length - 1];
-    return top === t || isPearl(top); // liquid sits on same liquid or on a pearl bed
+    if (isPearl(t) || isSoda(t)) return true; // pearls sink / soda floats past anything
+    const k = sodaStart(cup);
+    if (k === 0) return true; // only soda in the cup: liquid slides to the bottom
+    const below = cup[k - 1]; // what the liquid will actually rest on
+    return below === t || isPearl(below); // same liquid, or a pearl bed
   }
 
   // ---- State ---------------------------------------------------------------
@@ -249,7 +272,7 @@
     return Math.round((100 * stuck) / runs);
   }
 
-  const api = { FLAVORS, addVial, casualStuckRate, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
+  const api = { FLAVORS, addVial, landIndex, sodaStart, casualStuckRate, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Boba = api;
 })(typeof window !== 'undefined' ? window : globalThis);

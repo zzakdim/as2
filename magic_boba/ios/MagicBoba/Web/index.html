@@ -1,0 +1,2336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Magic Boba</title>
+<style>
+/* Bundled Google Fonts (SIL Open Font License): Baloo 2, Cinzel, Fredoka — latin subset. */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(fonts/Baloo2-224589.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/Baloo2-224589.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url(fonts/Baloo2-224589.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(fonts/Cinzel-30d2fd.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/Cinzel-30d2fd.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/Fredoka-849e3a.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/Fredoka-849e3a.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(fonts/Fredoka-849e3a.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+  /* ===== Skins =====================================================================
+     Every visual decision is a variable so the same game can wear different designs.
+     Default (:root) = "Night Café". html[data-skin=...] overrides for the other looks. */
+  :root {
+    --bg: #1e1830;
+    --bg-image: radial-gradient(60% 40% at 18% 8%, rgba(255,190,120,.22), transparent 70%),
+                radial-gradient(50% 35% at 85% 12%, rgba(255,140,190,.16), transparent 70%),
+                radial-gradient(18% 12% at 10% 72%, rgba(255,200,140,.10), transparent 100%),
+                radial-gradient(22% 14% at 92% 55%, rgba(201,167,255,.10), transparent 100%),
+                radial-gradient(14% 10% at 72% 92%, rgba(255,200,140,.08), transparent 100%),
+                radial-gradient(120% 80% at 50% 0%, #3d2c60 0%, #1e1830 62%);
+    --panel: #2a2242; --panel-edge: #4a3d70; --text: #f3eefc; --muted: #a99cc8;
+    --accent: #c9a7ff; --good: #8ee0a6; --warn: #ffcf7a; --gold: #ffd76a;
+    --font-display: "Fredoka", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    --font-body: "Fredoka", ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif;
+    --cup-w: 54px; --cup-unit: 34px; --cup-radius: 6px 6px 22px 22px;
+    --cup-bg: rgba(255,255,255,.07); --cup-edge: rgba(255,255,255,.45); --cup-border: 2.5px;
+    --cup-rim: inset 0 0 0 0 transparent;
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.24) 0 9%, transparent 28% 70%, rgba(0,0,0,.16));
+    --shelf: linear-gradient(180deg, #8a5a3c, #5c3a26); --shelf-h: 9px; --shelf-shadow: 0 6px 12px rgba(0,0,0,.45);
+    --contact: rgba(0,0,0,.45);
+    --lid: linear-gradient(180deg, #ffffff, #dcd3f0); --straw: repeating-linear-gradient(180deg, #ff8fb8 0 6px, #fff 6px 10px);
+    --fizz: .22; --face: none; --done-pulse: none;
+    --btn-bg: linear-gradient(180deg, #342a52, #2a2242); --cta: linear-gradient(180deg, #7d5fd0, #5a3fa8);
+    --overlay: rgba(20,14,34,.72); --card: linear-gradient(180deg, #33295a, #2a2242);
+    --bar: linear-gradient(90deg, #a689e0, #f47fa4, #f7b733);
+    color-scheme: dark;
+  }
+  html[data-family="sakura"] { /* Sakura Pastel (and base for its toned-down variants) */
+    --bg: #ffeef3;
+    --bg-image: radial-gradient(circle, rgba(255,255,255,.75) 2px, transparent 2.5px) 0 0 / 26px 26px,
+                radial-gradient(60% 40% at 15% 0%, rgba(255,200,220,.7), transparent 70%),
+                radial-gradient(50% 40% at 90% 20%, rgba(200,220,255,.55), transparent 70%),
+                linear-gradient(180deg, #fff6f0 0%, #ffe4ec 100%);
+    --panel: #ffffff; --panel-edge: #ffc7d6; --text: #5b3a44; --muted: #b07f8c;
+    --accent: #ff7fa8; --good: #5ccf8a; --warn: #f2a33a; --gold: #ffb52e;
+    --font-display: "Baloo 2", "Fredoka", ui-rounded, system-ui, sans-serif;
+    --font-body: "Baloo 2", "Fredoka", ui-rounded, system-ui, sans-serif;
+    --cup-w: 58px; --cup-unit: 33px; --cup-radius: 4px 4px 20px 20px;
+    --cup-bg: rgba(255,255,255,.55); --cup-edge: #ffffff; --cup-border: 3px;
+    --cup-rim: inset 0 4px 0 #ffffff, 0 4px 14px rgba(255,140,170,.25);
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.35) 0 10%, transparent 30% 74%, rgba(160,80,110,.10));
+    --shelf: linear-gradient(180deg, #ffd1de, #f7aec4); --shelf-h: 10px; --shelf-shadow: 0 5px 10px rgba(240,120,160,.25);
+    --contact: rgba(214,110,150,.35);
+    --lid: linear-gradient(180deg, #ffd0e0, #ff9fc0); --straw: repeating-linear-gradient(180deg, #fff 0 5px, #8fd3ff 5px 10px);
+    --fizz: .3; --face: flex; --done-pulse: none;
+    --btn-bg: linear-gradient(180deg, #ffffff, #fff1f5); --cta: linear-gradient(180deg, #ff9fc0, #ff6f9c);
+    --overlay: rgba(255,220,232,.7); --card: linear-gradient(180deg, #ffffff, #fff1f6);
+    --bar: linear-gradient(90deg, #ffb3cc, #ff7fa8, #ffc94d);
+    color-scheme: light;
+  }
+
+  /* Sakura family, toned down. Same cups, faces and petals; calmer backgrounds. */
+  html[data-skin="dusk"] {
+    --bg: #b58b9d;
+    --bg-image: radial-gradient(circle, rgba(255,255,255,.10) 1.5px, transparent 2px) 0 0 / 26px 26px,
+                radial-gradient(60% 40% at 15% 0%, rgba(255,214,200,.30), transparent 70%),
+                radial-gradient(50% 40% at 90% 18%, rgba(190,170,230,.28), transparent 70%),
+                linear-gradient(180deg, #c49aab 0%, #a17890 100%);
+    --panel: #f6e6ea; --panel-edge: #e2bfca; --text: #3f2733; --muted: #6e4a5b;
+    --accent: #e85f8c; --gold: #f2a51c;
+    --cup-bg: rgba(255,255,255,.28); --cup-edge: #fff4f7;
+    --cup-rim: inset 0 4px 0 #fff4f7, 0 6px 16px rgba(80,30,55,.25);
+    --shelf: linear-gradient(180deg, #f1cfd9, #d9a7b8); --shelf-shadow: 0 5px 10px rgba(80,30,55,.25);
+    --contact: rgba(70,25,50,.35);
+    --btn-bg: linear-gradient(180deg, #fbf1f3, #eedbe1); --cta: linear-gradient(180deg, #f07ea3, #d9577f);
+    --overlay: rgba(70,35,55,.55); --card: linear-gradient(180deg, #fbf1f3, #f0dde3);
+    --ink-empty: #4a2c3a;
+  }
+  html[data-skin="twilight"] {
+    --bg: #2a1b2c;
+    --bg-image: radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,240,250,.7), transparent),
+                radial-gradient(1px 1px at 33% 9%, rgba(255,240,250,.55), transparent),
+                radial-gradient(1.4px 1.4px at 58% 22%, rgba(255,240,250,.6), transparent),
+                radial-gradient(1px 1px at 81% 7%, rgba(255,240,250,.5), transparent),
+                radial-gradient(1.2px 1.2px at 92% 31%, rgba(255,240,250,.55), transparent),
+                radial-gradient(1px 1px at 6% 44%, rgba(255,240,250,.4), transparent),
+                radial-gradient(circle, rgba(255,200,225,.05) 1.5px, transparent 2px) 0 0 / 26px 26px,
+                radial-gradient(60% 40% at 15% 0%, rgba(255,150,190,.20), transparent 70%),
+                radial-gradient(50% 40% at 90% 18%, rgba(170,150,255,.16), transparent 70%),
+                radial-gradient(80% 50% at 50% 110%, rgba(255,170,200,.12), transparent 70%),
+                linear-gradient(180deg, #3b263c 0%, #1f1422 100%);
+    --panel: #3a2639; --panel-edge: #5e3f5a; --text: #fbe9f0; --muted: #c9a2b5;
+    --accent: #ff8fb3; --good: #7fe0a4; --gold: #ffcf5a;
+    --cup-bg: rgba(255,230,240,.15); --cup-edge: rgba(255,236,244,.85);
+    --face-halo: rgba(255,240,246,.9);
+    --cup-rim: inset 0 4px 0 rgba(255,236,244,.85), 0 6px 18px rgba(0,0,0,.35);
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.35) 0 10%, transparent 30% 74%, rgba(60,10,40,.16));
+    --shelf: linear-gradient(180deg, #e8a9c0, #b97391); --shelf-shadow: 0 6px 12px rgba(0,0,0,.45);
+    --contact: rgba(0,0,0,.45);
+    --btn-bg: linear-gradient(180deg, #442c43, #372337); --cta: linear-gradient(180deg, #ff9fc0, #e8608f);
+    --overlay: rgba(20,10,22,.68); --card: linear-gradient(180deg, #4a3048, #382437);
+    --bar: linear-gradient(90deg, #ffb3cc, #ff7fa8, #ffcf5a);
+    --ink-empty: #fbe9f0;
+    color-scheme: dark;
+  }
+  html[data-skin="lab"] {
+    --bg: #071315;
+    --bg-image: radial-gradient(70% 45% at 50% 105%, rgba(60,255,170,.18), transparent 70%),
+                radial-gradient(40% 30% at 85% 10%, rgba(180,110,255,.14), transparent 70%),
+                repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 48px),
+                repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 96px),
+                linear-gradient(180deg, #0c2226 0%, #050c0e 100%);
+    --panel: #10272a; --panel-edge: #2f5a52; --text: #e6fff4; --muted: #7fb3a3;
+    --accent: #58ffb0; --good: #58ffb0; --warn: #ffcf5a; --gold: #f4c25b;
+    --font-display: "Cinzel", Georgia, serif;
+    --font-body: "Fredoka", ui-rounded, system-ui, sans-serif;
+    --cup-w: 46px; --cup-unit: 35px; --cup-radius: 3px 3px 23px 23px;
+    --cup-bg: rgba(160,255,220,.05); --cup-edge: rgba(190,255,235,.55); --cup-border: 2px;
+    --cup-rim: inset 0 3px 0 rgba(190,255,235,.5);
+    --gloss: linear-gradient(90deg, rgba(255,255,255,.3) 0 8%, transparent 26% 72%, rgba(0,0,0,.25));
+    --shelf: linear-gradient(180deg, #e6b45a, #8c6424 70%, #5a3e14); --shelf-h: 8px; --shelf-shadow: 0 6px 14px rgba(0,0,0,.6);
+    --contact: rgba(0,0,0,.6);
+    --lid: linear-gradient(180deg, #c8945f, #8a5a32); --straw: none;
+    --fizz: .45; --face: none; --done-pulse: potion 1.8s ease-in-out infinite;
+    --btn-bg: linear-gradient(180deg, #153236, #0e2427); --cta: linear-gradient(180deg, #2fd88d, #14975c);
+    --overlay: rgba(2,10,12,.75); --card: linear-gradient(180deg, #143236, #0c2124);
+    --bar: linear-gradient(90deg, #58ffb0, #4fb3ff, #b26bff);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background-color: var(--bg); color: var(--text); font: 15px/1.4 var(--font-body); }
+  html { background-image: var(--bg-image); background-attachment: fixed; transition: background-color .4s; }
+  body { display: flex; flex-direction: column; min-height: 100%; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    user-select: none; -webkit-user-select: none; overflow-x: hidden; background: transparent; }
+
+  /* ---- header ---- */
+  header { display: flex; align-items: center; gap: 8px; padding: 12px 0 4px; flex-wrap: wrap; }
+  header h1 { font: 600 20px/1.1 var(--font-display); margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: .01em; }
+  html[data-skin="lab"] header h1 { font-size: 17px; letter-spacing: .04em; }
+  #pick { flex: 1 1 100%; max-width: 280px; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; background: var(--btn-bg); border: 1px solid var(--panel-edge); border-radius: 999px; padding: 5px 10px;
+    font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pill.bump { animation: bump .45s cubic-bezier(.3,1.8,.5,1); }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  select, button { font: inherit; color: var(--text); background: var(--btn-bg); border: 1px solid var(--panel-edge); border-radius: 12px; padding: 8px 12px; cursor: pointer;
+    box-shadow: 0 2px 0 rgba(0,0,0,.18); transition: transform .12s cubic-bezier(.3,1.6,.5,1), filter .15s; }
+  button:active:not(:disabled) { transform: scale(.9) translateY(1px); box-shadow: none; }
+  button:disabled { opacity: .45; cursor: default; }
+  .icon { padding: 6px 9px; }
+  .meta { color: var(--muted); font-size: 13px; min-height: 2.8em; }
+  .meta b { color: var(--text); }
+
+  /* ---- progress ---- */
+  .progress { position: relative; height: 10px; border-radius: 99px; background: color-mix(in srgb, var(--text) 10%, transparent); overflow: hidden; margin: 2px 0 6px; }
+  .progress i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: var(--bar); transition: width .6s cubic-bezier(.3,1.3,.5,1); }
+  .progress i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
+    background-size: 200% 100%; animation: shine 2.4s linear infinite; }
+  @keyframes shine { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+  /* ---- counter / customers ---- */
+  .counter { display: flex; gap: 16px; justify-content: center; padding: 8px 0 4px; flex-wrap: wrap; }
+  .counter .label { width: 100%; text-align: center; color: var(--muted); font: 600 12px var(--font-display); letter-spacing: .12em; text-transform: uppercase; }
+  .queue { display: flex; gap: 6px; justify-content: center; width: 100%; color: var(--muted); font-size: 12px; min-height: 18px; }
+  .cust-slot { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding-bottom: 12px; }
+  .cust-slot::after { content: ""; position: absolute; left: -10px; right: -10px; bottom: 4px; height: var(--shelf-h); background: var(--shelf); border-radius: 2px; box-shadow: var(--shelf-shadow); z-index: -1; }
+  .cust-slot.enter { animation: custIn .55s cubic-bezier(.3,1.5,.5,1) both; animation-delay: var(--d, 0ms); }
+  @keyframes custIn { from { transform: translateX(70px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  .cust { font-size: 32px; animation: bob 2.6s ease-in-out infinite; display: inline-block; filter: drop-shadow(0 3px 2px rgba(0,0,0,.2)); }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
+
+  /* ---- board, shelf, cups ---- */
+  .board { flex: 1; width: 100%; margin: 0 auto; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 4px 12px; padding: 8px 0; }
+  .slot { position: relative; padding: 22px 0 18px; }
+  .slot::after { /* shelf plank; neighbours overlap so a row reads as one shelf */
+    content: ""; position: absolute; left: -7px; right: -7px; bottom: 9px; height: var(--shelf-h); background: var(--shelf);
+    border-radius: 2px; box-shadow: var(--shelf-shadow); z-index: -1; }
+  .slot::before { /* contact shadow, shrinks when the cup lifts */
+    content: ""; position: absolute; left: 8%; right: 8%; bottom: 14px; height: 10px; z-index: 0; border-radius: 50%;
+    background: radial-gradient(closest-side, var(--contact), transparent); transition: transform .25s, opacity .25s; }
+  .slot:has(.cup.sel)::before { transform: scaleX(.6); opacity: .45; }
+  .cup { position: relative; z-index: 1; width: var(--cup-w); height: calc(var(--cap) * var(--cup-unit) + 14px);
+    border: var(--cup-border) solid var(--cup-edge); border-top: none; border-radius: var(--cup-radius); background: var(--cup-bg);
+    box-shadow: var(--cup-rim); display: flex; flex-direction: column-reverse; padding: 4px; overflow: hidden; cursor: pointer; }
+  .cup::before { /* glass glint that sweeps across now and then */
+    content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.22) 45%, transparent 55%); background-size: 300% 100%;
+    animation: glint 7s ease-in-out infinite; animation-delay: var(--gd, 0s); }
+  .cup::after { /* fixed glass highlight */
+    content: ""; position: absolute; top: 6px; bottom: 12px; left: 6px; width: 5px; border-radius: 4px; background: rgba(255,255,255,.22); z-index: 3; pointer-events: none; }
+  @keyframes glint { 0%, 70% { background-position: 120% 0; } 100% { background-position: -40% 0; } }
+  .cup.sel { transform: translateY(-14px); border-color: var(--accent);
+    box-shadow: var(--cup-rim), 0 10px 26px color-mix(in srgb, var(--glow, var(--accent)) 55%, transparent), 0 0 0 2px color-mix(in srgb, var(--glow, var(--accent)) 40%, transparent); }
+  .cup.hint { border-color: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 50%, transparent); }
+  .cup.done { border-color: var(--good); box-shadow: var(--cup-rim), 0 0 20px color-mix(in srgb, var(--glow, var(--good)) 45%, transparent); animation: var(--done-pulse); }
+  @keyframes potion { 0%,100% { box-shadow: var(--cup-rim), 0 0 14px color-mix(in srgb, var(--glow) 45%, transparent); }
+                      50% { box-shadow: var(--cup-rim), 0 0 30px color-mix(in srgb, var(--glow) 80%, transparent); } }
+  .cup.almost { animation: almost 1.6s ease-in-out infinite; }
+  @keyframes almost { 0%,100% { box-shadow: var(--cup-rim), 0 0 0 0 transparent; } 50% { box-shadow: var(--cup-rim), 0 0 16px color-mix(in srgb, var(--glow) 60%, transparent); } }
+  .cup.vial { width: calc(var(--cup-w) - 10px); border-color: color-mix(in srgb, var(--accent) 80%, transparent); border-radius: 4px 4px 18px 18px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .order { width: calc(var(--cup-w) - 8px); height: 120px; border-style: dashed; border-top-style: none; }
+  .layer { flex: 0 0 calc(100% / var(--cap)); position: relative; transform-origin: bottom; background-image: var(--gloss); }
+  .layer:not(.P)::after { /* fizz: tiny bubbles drifting up */
+    content: ""; position: absolute; inset: 0; opacity: var(--fizz); pointer-events: none;
+    background-image: radial-gradient(circle at 30% 70%, #fff 1.2px, transparent 1.8px), radial-gradient(circle at 70% 30%, #fff 1px, transparent 1.6px),
+                      radial-gradient(circle at 55% 85%, #fff .8px, transparent 1.4px);
+    background-size: 18px 22px, 22px 26px, 14px 30px; animation: fizz 3.2s linear infinite; }
+  @keyframes fizz { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 -22px, 0 -26px, 0 -30px; } }
+  .layer.seam { box-shadow: inset 0 2px 0 rgba(0,0,0,.16); }
+  .layer.surface::before { /* living surface: a gentle travelling wave on the top layer */
+    content: ""; position: absolute; left: -16px; right: -16px; top: -2px; height: 4px; z-index: 1;
+    background: radial-gradient(ellipse 9px 2.5px at 50% 100%, var(--c) 96%, transparent 100%) 0 0 / 16px 4px repeat-x;
+    animation: wave 1.4s linear infinite; }
+  .layer.surface { box-shadow: inset 0 3px 0 rgba(255,255,255,.35); }
+  @keyframes wave { from { transform: translateX(0); } to { transform: translateX(16px); } }
+  .layer.ghost { background-color: color-mix(in srgb, var(--c) 22%, transparent) !important; outline: 1.5px dashed color-mix(in srgb, var(--c) 85%, transparent); outline-offset: -3px; background-image: none; }
+  .layer.ghost.P { background-image: none; }
+  .layer.ghost::after, .layer.ghost::before { display: none; }
+  .layer.P { background-image: radial-gradient(circle at 22% 32%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
+      radial-gradient(circle at 68% 28%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
+      radial-gradient(circle at 44% 74%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
+      radial-gradient(circle at 86% 78%, rgba(255,255,255,.3) 5%, #6e4a3c 6% 15%, transparent 17%); }
+  .vialtag { position: absolute; bottom: -2px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); font-weight: 600; }
+  .lid { position: absolute; top: 12px; left: 50%; width: calc(var(--cup-w) + 8px); height: 14px; margin-left: calc(var(--cup-w) / -2 - 4px); z-index: 4;
+    background: var(--lid); border-radius: 50% 50% 4px 4px / 100% 100% 4px 4px; box-shadow: 0 2px 4px rgba(0,0,0,.25); }
+  .straw { position: absolute; bottom: 8px; left: 58%; width: 7px; height: 34px; border-radius: 4px; transform: rotate(14deg); transform-origin: bottom; background: var(--straw); }
+  html[data-skin="lab"] .lid { width: calc(var(--cup-w) - 12px); margin-left: calc(var(--cup-w) / -2 + 6px); height: 18px; top: 8px; border-radius: 4px 4px 2px 2px;
+    background: var(--lid), repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px); background-blend-mode: multiply; }
+  html[data-skin="lab"] .straw { display: none; }
+  html[data-family="sakura"] .lid::after { content: "♥"; position: absolute; left: 0; right: 0; top: -2px; text-align: center; font-size: 10px; color: #fff; }
+
+  /* sakura: cups have faces that react */
+  .face { filter: drop-shadow(0 0 1px var(--face-halo, transparent)) drop-shadow(0 0 2px var(--face-halo, transparent));
+    display: var(--face, none); position: absolute; left: 0; right: 0; top: 40%; z-index: 5; justify-content: center; align-items: center; gap: 12px; pointer-events: none; }
+  .face i { width: 6px; height: 8px; border-radius: 50%; background: var(--ink, #4a2c34); animation: blink 4.5s infinite; animation-delay: var(--gd, 0s); }
+  .face b { position: absolute; top: 9px; left: 50%; width: 9px; height: 5px; margin-left: -4.5px; border: 2px solid var(--ink, #4a2c34); border-top: none; border-radius: 0 0 9px 9px; }
+  @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+  .cup.sel .face i { width: 8px; height: 9px; }
+  .cup.sel .face b { width: 7px; height: 7px; margin-left: -3.5px; border: 2px solid var(--ink, #4a2c34); border-radius: 50%; }
+  .cup.empty .face i { height: 2px; border-radius: 2px; animation: none; background: var(--ink-empty, var(--ink, #4a2c34)); }
+  .cup.empty .face b { border-color: var(--ink-empty, var(--ink, #4a2c34)); }
+  .cup.done .face i { height: 5px; background: none; border: 2px solid var(--ink, #4a2c34); border-bottom: none; border-radius: 6px 6px 0 0; animation: none; }
+  .cup.done .face b { width: 11px; height: 6px; margin-left: -5.5px; background: #ff7f9e; }
+  .cup.done .face::before, .cup.done .face::after { content: ""; position: absolute; top: 6px; width: 9px; height: 5px; border-radius: 50%; background: rgba(255,120,160,.55); }
+  .cup.done .face::before { left: 6px; } .cup.done .face::after { right: 6px; }
+
+  .flying { position: fixed !important; z-index: 40; pointer-events: none; box-shadow: 0 14px 30px rgba(0,0,0,.35); }
+  .stream { position: fixed; width: 6px; border-radius: 3px; z-index: 39; pointer-events: none; transform-origin: top;
+    background-image: linear-gradient(90deg, rgba(255,255,255,.4), transparent 60%); box-shadow: 0 0 8px var(--sc, transparent); }
+
+  /* ---- tray & misc ---- */
+  .tray { display: flex; gap: 8px; justify-content: center; align-items: center; padding: 10px 0 18px; flex-wrap: wrap; }
+  .tray .sq { width: 46px; height: 46px; padding: 0; font-size: 20px; border-radius: 14px; }
+  #vial { height: 46px; padding: 0 16px; font-weight: 600; border-radius: 14px; }
+  #vial { border-color: var(--accent); }
+  #vial.nudge { animation: nudge 1.6s ease-in-out infinite; }
+  @keyframes nudge { 0%,100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 40%, transparent); } }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; color: var(--muted); font-size: 12px; padding-bottom: 6px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  body:not(.dev) .dev-only { display: none; }
+  .devbadge { font-size: 11px; color: var(--warn); border: 1px solid var(--warn); border-radius: 8px; padding: 1px 6px; }
+  .floaty { position: fixed; z-index: 60; pointer-events: none; font: 800 20px var(--font-display); white-space: nowrap; letter-spacing: .02em;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35), 0 0 14px rgba(255,255,255,.35); }
+  html[data-skin="sakura"] .floaty { text-shadow: 0 2px 0 #fff, 0 0 10px #fff; -webkit-text-stroke: 0; }
+  .floaty.big { -webkit-text-stroke: 1px rgba(0,0,0,.25); }
+  .skin-toast { position: fixed; left: 50%; top: 38%; z-index: 70; pointer-events: none; transform: translate(-50%,-50%);
+    font: 700 26px var(--font-display); padding: 10px 22px; border-radius: 18px; background: var(--card); border: 1px solid var(--panel-edge); color: var(--text);
+    box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+
+  /* ---- overlays ---- */
+  .overlay { position: fixed; inset: 0; display: none; place-items: center; background: var(--overlay); backdrop-filter: blur(5px); z-index: 45; }
+  .overlay.show { display: grid; }
+  .card { background: var(--card); border: 1px solid var(--panel-edge); border-radius: 22px; padding: 22px 26px; text-align: center;
+    width: min(320px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .overlay.show .card { animation: pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+  @keyframes pop { from { transform: scale(.5) translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .card h2 { margin: 0 0 8px; font: 700 26px var(--font-display); }
+  .stars { display: flex; justify-content: center; gap: 10px; font-size: 40px; height: 54px; align-items: center; }
+  .stars span { color: color-mix(in srgb, var(--text) 15%, transparent); display: inline-block; transform: scale(.8); }
+  .stars span.on { color: var(--gold); text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 70%, transparent); animation: starPop .5s cubic-bezier(.3,1.9,.5,1) both; }
+  @keyframes starPop { 0% { transform: scale(0) rotate(-90deg); } 60% { transform: scale(1.5) rotate(15deg); } 100% { transform: scale(1.1) rotate(0); } }
+  .earn { font-size: 22px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; margin: 6px 0 2px; }
+  .tip { min-height: 22px; color: var(--muted); font-size: 14px; }
+  .tip.golden { color: var(--gold); font-weight: 800; animation: bump .5s cubic-bezier(.3,1.8,.5,1); }
+  #winNext { margin-top: 12px; font-size: 17px; padding: 10px 22px; border-color: var(--accent); background: var(--cta); color: #fff; font-weight: 600;
+    animation: cta 1.4s ease-in-out infinite; }
+  @keyframes cta { 0%,100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); } 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 30%, transparent); transform: scale(1.04); } }
+  .adring { width: 64px; height: 64px; margin: 8px auto; border-radius: 50%; display: grid; place-items: center; font-size: 22px; font-weight: 800;
+    background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), color-mix(in srgb, var(--text) 12%, transparent) 0); }
+  .adring b { width: 50px; height: 50px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; }
+
+  /* ---- sparkle soda ---- */
+  .layer.F { background-image: radial-gradient(circle at 25% 30%, #fff 1.4px, transparent 2px), radial-gradient(circle at 70% 65%, #fff 1.2px, transparent 1.8px),
+      radial-gradient(circle at 45% 85%, #fff 1px, transparent 1.6px), var(--gloss); background-size: 14px 16px, 18px 20px, 12px 22px, auto; animation: soda 1.8s linear infinite; }
+  @keyframes soda { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 0 -16px, 0 -20px, 0 -22px, 0 0; } }
+
+  /* ---- full-screen menus (title, levels, shop) ---- */
+  .screen { position: fixed; inset: 0; z-index: 44; display: none; flex-direction: column; overflow-y: auto; overscroll-behavior: contain;
+    background-color: var(--bg); background-image: var(--bg-image); background-attachment: fixed;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .screen.show { display: flex; animation: screenIn .35s ease-out; }
+  @keyframes screenIn { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
+  .screen-head { display: flex; align-items: center; gap: 10px; padding: 4px 0 12px; }
+  .screen-head h2 { flex: 1; margin: 0; font: 700 24px var(--font-display); }
+  .btn { font: 600 17px var(--font-body); border-radius: 16px; padding: 12px 18px; }
+  .btn.cta { background: var(--cta); color: #fff; border-color: transparent; box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 45%, #000 30%), 0 10px 24px rgba(0,0,0,.25); }
+  .btn.cta:active { transform: translateY(4px) scale(.98); box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 45%, #000 30%); }
+
+  /* title */
+  #titleScreen { align-items: center; text-align: center; }
+  .title-top { align-self: stretch; display: flex; justify-content: space-between; align-items: center; }
+  .logo { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 340px; }
+  .logo-cup { transform: scale(1.45); margin: 52px 0 40px; animation: logoBob 3.2s ease-in-out infinite; filter: drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
+  .logo-cup .slot::after, .logo-cup .slot::before { display: none; }
+  .logo-cup .cup { cursor: default; }
+  @keyframes logoBob { 0%,100% { transform: scale(1.45) translateY(0) rotate(-3deg); } 50% { transform: scale(1.45) translateY(-6px) rotate(3deg); } }
+  .logo-text { margin: 0; font: 800 58px/0.9 var(--font-display); letter-spacing: .01em;
+    background: linear-gradient(180deg, #fff 10%, #ffc2d6 55%, #ffd56a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 0 color-mix(in srgb, var(--accent) 60%, #000 20%)) drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 45%, transparent)); }
+  html[data-skin="sakura"] .logo-text { background: linear-gradient(180deg, #ff7fa8, #c9578a); -webkit-background-clip: text; background-clip: text; }
+  .tagline { margin: 6px 0 0; color: var(--muted); font-size: 16px; }
+  .title-actions { display: grid; gap: 12px; width: min(320px, 100%); padding-bottom: 12px; }
+  .title-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #playBtn { font-size: 22px; padding: 16px; }
+  #playBtn small { display: block; font-size: 13px; font-weight: 500; opacity: .85; }
+
+  /* level map */
+  .world { margin: 6px 0 18px; }
+  .world h3 { margin: 0 0 2px; font: 700 18px var(--font-display); }
+  .world p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+  .lvl-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .lvl { aspect-ratio: 1; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0;
+    font: 700 19px var(--font-display); position: relative; }
+  .lvl .st { font-size: 10px; letter-spacing: 1px; color: var(--gold); min-height: 12px; }
+  .lvl .st i { font-style: normal; color: color-mix(in srgb, var(--text) 20%, transparent); }
+  .lvl.boss { border-color: var(--gold); }
+  .lvl.counter::after { content: "☕"; position: absolute; top: -6px; right: -4px; font-size: 13px; }
+  .lvl.current { background: var(--cta); color: #fff; border-color: transparent; animation: cta 1.6s ease-in-out infinite; }
+  .lvl:disabled { opacity: .45; }
+  .stars-total { font-weight: 700; color: var(--gold); }
+
+  /* shop */
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tabs button { flex: 1; }
+  .tabs button[aria-selected="true"] { background: var(--cta); color: #fff; border-color: transparent; }
+  .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .item { border-radius: 18px; padding: 10px; border: 1px solid var(--panel-edge); background: var(--btn-bg); display: flex; flex-direction: column; gap: 8px; text-align: center; }
+  .item .preview { height: 92px; border-radius: 12px; display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding-bottom: 12px; position: relative; overflow: hidden; }
+  .item .preview i { width: 16px; border-radius: 3px 3px 8px 8px; border: 2px solid rgba(255,255,255,.7); border-top: none; }
+  .item .preview .strawp { width: 12px; height: 70px; border-radius: 6px; border: none; transform: rotate(12deg); }
+  .item b { font: 700 15px var(--font-display); }
+  .item button { padding: 8px; font-weight: 600; }
+  .item button.owned { background: transparent; }
+  .item button.buy { background: var(--cta); color: #fff; border-color: transparent; }
+  .item.equipped { border: 2px solid var(--accent); }
+
+  /* settings */
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px; border-bottom: 1px solid color-mix(in srgb, var(--text) 10%, transparent); text-align: left; }
+  .switch { width: 52px; height: 30px; border-radius: 99px; padding: 0; position: relative; background: color-mix(in srgb, var(--text) 18%, transparent); border: none; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.3); transition: transform .2s cubic-bezier(.3,1.5,.5,1); }
+  .switch[aria-checked="true"] { background: var(--good); }
+  .switch[aria-checked="true"]::after { transform: translateX(22px); }
+  .card .actions { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .fine { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  #resetBtn.armed { background: #d9534f; color: #fff; border-color: transparent; }
+
+  /* tutorial coach */
+  #coach { position: fixed; inset: 0; z-index: 46; pointer-events: none; }
+  #coach .bubble { position: fixed; max-width: min(280px, calc(100vw - 32px)); background: var(--card); color: var(--text); border: 1px solid var(--panel-edge);
+    border-radius: 16px; padding: 10px 14px; font: 600 15px/1.35 var(--font-body); box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: center;
+    animation: pop .4s cubic-bezier(.3,1.6,.5,1) both; }
+  #coach .hand { position: fixed; font-size: 34px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); animation: point 1s ease-in-out infinite; transform-origin: 50% 0; }
+  @keyframes point { 0%,100% { transform: translate(-50%, 0) scale(1); } 50% { transform: translate(-50%, 10px) scale(.92); } }
+  .toast { position: fixed; left: 50%; bottom: max(90px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 70; pointer-events: none;
+    background: var(--card); border: 1px solid var(--panel-edge); color: var(--text); padding: 10px 16px; border-radius: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    max-width: calc(100vw - 32px); text-align: center; }
+  #lvlTitle { font-size: 17px; }
+  .legend.special span { background: color-mix(in srgb, var(--text) 8%, transparent); border-radius: 99px; padding: 3px 10px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-cup, .lvl.current, .layer.F, .cup::before, .cust, .progress i::after, #winNext, #vial.nudge, .layer::after, .layer.surface::before, .face i, .cup.done { animation: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <button class="icon" id="menuBtn" aria-label="Levels">☰</button>
+  <h1 id="lvlTitle">Magic Boba</h1>
+  <span class="devbadge dev-only">DEV</span>
+  <span class="pill" id="coins" title="Coins">🪙 <span id="coinN">0</span></span>
+  <button class="icon" id="gearBtn" aria-label="Settings">⚙️</button>
+  <button class="icon dev-only" id="skinBtn" aria-label="Cycle look">🎨</button>
+  <select id="pick" class="dev-only" aria-label="Level"></select>
+</header>
+<div class="meta" id="meta"></div>
+<div class="progress" aria-hidden="true"><i id="prog"></i></div>
+<div class="counter" id="counter" hidden></div>
+<div class="board" id="board"></div>
+<div class="legend" id="legend"></div>
+<div class="tray">
+  <button id="undo" class="sq" aria-label="Undo" title="Undo">↶</button>
+  <button id="restart" class="sq" aria-label="Restart" title="Restart">⟲</button>
+  <button id="vial">📺 + Vial</button>
+  <button id="hint" class="sq dev-only" aria-label="Hint" title="Hint">✨</button>
+  <button id="nextBtn" class="sq dev-only" aria-label="Skip level" title="Skip level">›</button>
+</div>
+
+<div class="overlay" id="win"><div class="card">
+  <h2 id="winTitle">Served!</h2>
+  <div class="stars" id="stars"><span>★</span><span>★</span><span>★</span></div>
+  <div id="winText" class="tip"></div>
+  <div class="earn">🪙 +<span id="earnN">0</span></div>
+  <div class="tip" id="tipLine"></div>
+  <button id="winNext">Next level ›</button>
+  <div><button id="winLevels" style="margin-top:10px;background:transparent;border:none;color:var(--muted)">Level map</button></div>
+</div></div>
+
+<section class="screen" id="titleScreen" aria-label="Title">
+  <div class="title-top"><span class="pill">🪙 <span class="coinN">0</span></span><button class="icon" data-open="settings" aria-label="Settings">⚙️</button></div>
+  <div class="logo">
+    <div class="logo-cup" id="logoCup" aria-hidden="true"></div>
+    <h1 class="logo-text">Magic<br>Boba</h1>
+    <p class="tagline">a cozy potion café</p>
+  </div>
+  <div class="title-actions">
+    <button class="btn cta" id="playBtn">Play<small id="playSub"></small></button>
+    <div class="row"><button class="btn" id="levelsBtn">🗺️ Levels</button><button class="btn" id="shopBtn">🛍️ Shop</button></div>
+  </div>
+</section>
+
+<section class="screen" id="levelsScreen" aria-label="Levels">
+  <div class="screen-head"><button class="icon" data-back aria-label="Back">‹</button><h2>Levels</h2><span class="stars-total" id="starsTotal"></span></div>
+  <div id="worlds"></div>
+</section>
+
+<section class="screen" id="shopScreen" aria-label="Shop">
+  <div class="screen-head"><button class="icon" data-back aria-label="Back">‹</button><h2>Shop</h2><span class="pill">🪙 <span class="coinN">0</span></span></div>
+  <div class="tabs" role="tablist"><button role="tab" data-tab="themes" aria-selected="true">Themes</button><button role="tab" data-tab="straws" aria-selected="false">Straws</button></div>
+  <div class="shop-grid" id="shopGrid"></div>
+</section>
+
+<div class="overlay" id="settings"><div class="card">
+  <h2>Settings</h2>
+  <div class="toggle"><span>Sound effects</span><button class="switch" id="sfxBtn" role="switch" aria-label="Sound effects"></button></div>
+  <div class="toggle"><span>Music</span><button class="switch" id="musBtn" role="switch" aria-label="Music"></button></div>
+  <div class="toggle"><span>Haptics</span><button class="switch" id="hapBtn" role="switch" aria-label="Haptics"></button></div>
+  <div class="actions"><button id="resetBtn">Reset progress</button><button class="cta btn" id="settingsDone" style="padding:8px 18px">Done</button></div>
+  <div class="fine" id="version"></div>
+</div></div>
+
+<div id="coach" hidden><div class="bubble"></div><div class="hand">👆</div></div>
+
+<div class="overlay" id="ad"><div class="card">
+  <h2>📺 Ad break</h2>
+  <p>A rewarded ad plays here.<br>Watch it to get a <b id="adSize"></b>.</p>
+  <div class="adring" id="adRing"><b id="adCount"></b></div>
+  <button id="adCancel">No thanks</button>
+</div></div>
+
+<script>
+// Magic Boba — rules engine + solver. Works in Node and the browser.
+//
+// A cup is a string of ingredient codes, bottom -> top, e.g. "PTT" = pearls under two taro.
+// Codes: see FLAVORS. 'P' (tapioca pearls) is solid: it always sinks below liquid.
+// 'F' (sparkle soda) is the mirror image: it always floats on top, and other liquids poured onto
+// it slide underneath. Invariant: pearls form a run at the bottom, soda a run at the top.
+//
+// Modes
+//  - "sort":   win when every non-empty cup is full of a single ingredient.
+//  - "orders": customers queue at the counter. Up to `slots` order cups are open at a time;
+//              you may pour into an order cup only the ingredient its recipe needs next.
+//              A finished order leaves and the next customer steps up. Win = all served.
+(function (root) {
+  const FLAVORS = {
+    T: { name: 'Taro', color: '#a689e0' },
+    M: { name: 'Matcha', color: '#7cc46a' },
+    G: { name: 'Mango', color: '#f7b733' },
+    S: { name: 'Strawberry', color: '#f47fa4' },
+    B: { name: 'Blueberry', color: '#5b8def' },
+    R: { name: 'Brown Sugar', color: '#a8693b' },
+    L: { name: 'Lychee', color: '#efe6cf' },
+    K: { name: 'Black Tea', color: '#5a3b2e' },
+    W: { name: 'Moon Milk', color: '#f8f8ff' },
+    P: { name: 'Pearls', color: '#2b1d1d', solid: true },
+    F: { name: 'Sparkle Soda', color: '#bdf2ff', floats: true },
+  };
+
+  const isPearl = (c) => c === 'P';
+  const isSoda = (c) => c === 'F';
+  // Index where the top soda run starts (cup.length if there is no soda).
+  function sodaStart(cup) {
+    let k = cup.length;
+    while (k > 0 && isSoda(cup[k - 1])) k--;
+    return k;
+  }
+
+  // Length of the run of identical ingredients on top of a cup.
+  function topRun(cup) {
+    if (!cup.length) return 0;
+    const t = cup[cup.length - 1];
+    let n = 0;
+    for (let i = cup.length - 1; i >= 0 && cup[i] === t; i--) n++;
+    return n;
+  }
+
+  // Insert `n` of ingredient `t` into a play cup, applying sink rules.
+  function addToCup(cup, t, n) {
+    const add = t.repeat(n);
+    if (isSoda(t)) return cup + add; // soda floats: always on top
+    if (isPearl(t)) {
+      let k = 0; // pearls sink beneath all liquid, on top of existing pearls
+      while (k < cup.length && isPearl(cup[k])) k++;
+      return cup.slice(0, k) + add + cup.slice(k);
+    }
+    const k = sodaStart(cup); // liquids slide under any soda
+    return cup.slice(0, k) + add + cup.slice(k);
+  }
+
+  // Where newly added units of t end up (index of the first one) — used for animation.
+  function landIndex(cup, t) {
+    if (isSoda(t)) return cup.length;
+    if (isPearl(t)) { let k = 0; while (k < cup.length && isPearl(cup[k])) k++; return k; }
+    return sodaStart(cup);
+  }
+
+  // Can ingredient t be poured onto this play cup at all?
+  function accepts(cup, t, cap) {
+    if (cup.length >= cap) return false;
+    if (!cup.length) return true;
+    if (isPearl(t) || isSoda(t)) return true; // pearls sink / soda floats past anything
+    const k = sodaStart(cup);
+    if (k === 0) return true; // only soda in the cup: liquid slides to the bottom
+    const below = cup[k - 1]; // what the liquid will actually rest on
+    return below === t || isPearl(below); // same liquid, or a pearl bed
+  }
+
+  // ---- State ---------------------------------------------------------------
+  // { cups: string[], caps: int[] (per-cup size), cap (standard cup size), mode,
+  //   orders?: string[], slots?, next?: int, open?: [{i, filled}] }
+
+  const capOf = (s, i) => s.caps[i];
+
+  function initState(level) {
+    const s = { cups: level.cups.slice(), cap: level.cap || 4, mode: level.mode || 'sort' };
+    s.caps = level.caps ? level.caps.slice() : s.cups.map(() => s.cap);
+    if (s.mode === 'orders') {
+      s.orders = level.orders.slice();
+      s.slots = level.slots || 2;
+      s.open = [];
+      s.next = 0;
+      refillSlots(s);
+    }
+    return s;
+  }
+
+  function refillSlots(s) {
+    while (s.open.length < s.slots && s.next < s.orders.length) s.open.push({ i: s.next++, filled: 0 });
+  }
+
+  function clone(s) {
+    const c = { ...s, cups: s.cups.slice(), caps: s.caps.slice() };
+    if (s.open) c.open = s.open.map((o) => ({ ...o }));
+    return c;
+  }
+
+  // Targets: number = play cup index; 'o0','o1'... = open order slot index.
+  function legalMoves(s) {
+    const moves = [];
+    for (let i = 0; i < s.cups.length; i++) {
+      const src = s.cups[i];
+      if (!src.length) continue;
+      const t = src[src.length - 1];
+      const run = topRun(src);
+      const uniform = run === src.length;
+      if (s.mode === 'sort' && uniform && src.length === s.cap) continue; // finished cup
+      for (let j = 0; j < s.cups.length; j++) {
+        if (i === j) continue;
+        const dst = s.cups[j];
+        if (!accepts(dst, t, capOf(s, j))) continue;
+        if (uniform && !dst.length) continue; // pointless: moving a pure cup into an empty one
+        moves.push([i, j]);
+      }
+      if (s.mode === 'orders') {
+        s.open.forEach((o, k) => {
+          const recipe = s.orders[o.i];
+          if (recipe[o.filled] === t) moves.push([i, 'o' + k]);
+        });
+      }
+    }
+    return moves;
+  }
+
+  // Returns new state (does not mutate). Also returns how many units moved.
+  function applyMove(s, [i, j]) {
+    const n = clone(s);
+    const src = n.cups[i];
+    const t = src[src.length - 1];
+    const run = topRun(src);
+    let amount;
+    if (typeof j === 'number') {
+      amount = Math.min(run, capOf(n, j) - n.cups[j].length);
+      n.cups[j] = addToCup(n.cups[j], t, amount);
+    } else {
+      const k = +j.slice(1);
+      const o = n.open[k];
+      const recipe = n.orders[o.i];
+      let need = 0;
+      while (recipe[o.filled + need] === t) need++;
+      amount = Math.min(run, need);
+      o.filled += amount;
+      if (o.filled === recipe.length) {
+        n.open.splice(k, 1);
+        refillSlots(n);
+      }
+    }
+    n.cups[i] = src.slice(0, src.length - amount);
+    n.lastAmount = amount;
+    return n;
+  }
+
+  // Sort win: every non-empty cup holds exactly one standard cup's worth (s.cap) of a single
+  // ingredient. Bonus vials smaller than s.cap must therefore end up empty.
+  function isWon(s) {
+    if (s.mode === 'orders') return s.open.length === 0 && s.next === s.orders.length;
+    return s.cups.every((c) => !c.length || (c.length === s.cap && topRun(c) === c.length));
+  }
+
+  function key(s) {
+    let k = s.cups.map((c, i) => s.caps[i] + ':' + c).sort().join('|');
+    if (s.mode === 'orders') k += '#' + s.next + ':' + s.open.map((o) => o.i + '.' + o.filled).join(',');
+    return k;
+  }
+
+  // Breadth-first search -> optimal move count. Also reports how "trappy" the level is.
+  // Pass `startState` to solve from a mid-game position (used for in-game hints).
+  function solve(level, maxStates = 400000, startState) {
+    const start = startState ? clone(startState) : initState(level);
+    if (isWon(start)) return { solvable: true, optimal: 0, path: [], states: 1 };
+    const seen = new Map([[key(start), null]]);
+    let frontier = [start];
+    const parents = new Map();
+    let depth = 0;
+    let states = 1;
+    let branchSum = 0;
+    let expanded = 0;
+    while (frontier.length) {
+      depth++;
+      const nextF = [];
+      for (const s of frontier) {
+        const moves = legalMoves(s);
+        branchSum += moves.length;
+        expanded++;
+        for (const m of moves) {
+          const n = applyMove(s, m);
+          const k = key(n);
+          if (seen.has(k)) continue;
+          seen.set(k, true);
+          parents.set(n, [s, m]);
+          states++;
+          if (isWon(n)) {
+            const path = [];
+            let cur = n;
+            while (parents.has(cur)) {
+              const [p, mv] = parents.get(cur);
+              path.unshift(mv);
+              cur = p;
+            }
+            return { solvable: true, optimal: depth, path, states, branching: +(branchSum / expanded).toFixed(2) };
+          }
+          if (states > maxStates) return { solvable: null, states, reason: 'state cap' };
+          nextF.push(n);
+        }
+      }
+      frontier = nextF;
+    }
+    return { solvable: false, states };
+  }
+
+  // Monte-Carlo "trap" estimate: % of random-ish playthroughs that get stuck (no legal moves
+  // or only revisiting states) before winning. Higher = more punishing level.
+  function trapRate(level, runs = 200, rng = Math.random) {
+    let stuck = 0;
+    for (let r = 0; r < runs; r++) {
+      let s = initState(level);
+      const seen = new Set([key(s)]);
+      let ok = false;
+      for (let step = 0; step < 200; step++) {
+        if (isWon(s)) { ok = true; break; }
+        const opts = legalMoves(s).map((m) => applyMove(s, m)).filter((n) => !seen.has(key(n)));
+        if (!opts.length) break;
+        s = opts[Math.floor(rng() * opts.length)];
+        seen.add(key(s));
+      }
+      if (!ok) stuck++;
+    }
+    return Math.round((100 * stuck) / runs);
+  }
+
+  // Bonus vial (e.g. reward for watching an ad): an extra empty cup of the given size.
+  function addVial(s, size) {
+    const n = clone(s);
+    n.cups.push('');
+    n.caps.push(size);
+    return n;
+  }
+
+  // "Casual player" model, closer to a person than pure random play:
+  //  - prefers productive pours (onto the same flavour, or into an order cup) ~75% of the time
+  //  - looks one move ahead and avoids moves that leave no fresh moves at all
+  // Returns the % of playthroughs that get stuck without any bonus vials.
+  function casualStuckRate(level, runs = 200, rng = Math.random) {
+    let stuck = 0;
+    for (let r = 0; r < runs; r++) {
+      let s = initState(level);
+      const seen = new Set([key(s)]);
+      let ok = false;
+      for (let step = 0; step < 200; step++) {
+        if (isWon(s)) { ok = true; break; }
+        let opts = legalMoves(s)
+          .map((m) => ({ m, n: applyMove(s, m) }))
+          .filter((o) => !seen.has(key(o.n)));
+        if (!opts.length) break;
+        const alive = opts.filter((o) => isWon(o.n) || legalMoves(o.n).some((m2) => !seen.has(key(applyMove(o.n, m2)))));
+        if (alive.length) opts = alive;
+        const productive = opts.filter(({ m }) => typeof m[1] === 'string' || s.cups[m[1]].length > 0);
+        const pool = productive.length && rng() < 0.75 ? productive : opts;
+        s = pool[Math.floor(rng() * pool.length)].n;
+        seen.add(key(s));
+      }
+      if (!ok) stuck++;
+    }
+    return Math.round((100 * stuck) / runs);
+  }
+
+  const api = { FLAVORS, addVial, landIndex, sodaStart, casualStuckRate, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Boba = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// Generated by generate.js — do not edit.
+window.LEVELS = [{"id":"1-1","title":"First Pour","note":"Tap a cup, then tap where to pour.","world":"Cozy Corner","tier":"easy","tutorial":"basics","mode":"sort","cap":4,"cups":["GGTT","TGGM","MMMT","",""],"stats":{"optimal":5,"target":5,"branching":3.17,"statesSearched":33,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":19},"solution":[[0,3],[2,3],[1,2],[1,0],[1,3]]},{"id":"1-2","title":"Warm Up","note":"Same flavour on same flavour.","world":"Cozy Corner","tier":"easy","mode":"sort","cap":4,"cups":["TGGM","TTMM","GTMG","",""],"stats":{"optimal":7,"target":7,"branching":3.73,"statesSearched":99,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":3},"solution":[[0,3],[1,3],[2,0],[2,3],[2,1],[0,2],[0,1]]},{"id":"1-3","title":"Morning Rush","note":"Four flavours now.","world":"Cozy Corner","tier":"normal","mode":"sort","cap":4,"cups":["GMMG","TTGT","SMGM","TSSS","",""],"stats":{"optimal":9,"target":9,"branching":3.46,"statesSearched":317,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":38},"solution":[[2,4],[0,2],[0,4],[2,0],[2,4],[3,2],[1,3],[1,0],[1,3]]},{"id":"1-4","title":"Tidy Shelf","note":"Keep an empty cup for later.","world":"Cozy Corner","tier":"normal","mode":"sort","cap":4,"cups":["TSTM","GSSM","GGGS","TMTM","",""],"stats":{"optimal":11,"target":11,"branching":3.86,"statesSearched":386,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":10},"solution":[[0,4],[1,4],[1,5],[2,5],[1,2],[3,4],[0,3],[0,5],[3,0],[3,4],[0,3]]},{"id":"1-5","title":"First Customers","note":"Customers want full cups. Pour what their cup needs next.","orders":["TTTT","MMMM","GGGG"],"slots":2,"world":"Cozy Corner","tier":"easy","tutorial":"counter","mode":"orders","cap":4,"cups":["GGGM","MMMT","TTTG"],"stats":{"optimal":6,"target":6,"branching":2.35,"statesSearched":38,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":50},"solution":[[0,"o1"],[1,"o0"],[1,"o1"],[0,"o1"],[2,"o1"],[2,"o0"]]},{"id":"1-6","title":"Five Teas","note":"Five flavours.","world":"Cozy Corner","tier":"normal","mode":"sort","cap":4,"cups":["SBSB","STTS","MMGG","MMBT","TBGG","",""],"stats":{"optimal":12,"target":12,"branching":3.53,"statesSearched":663,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":33},"solution":[[0,5],[1,0],[2,6],[3,1],[3,5],[2,3],[4,6],[4,5],[1,4],[0,1],[0,5],[0,1]]},{"id":"1-7","title":"Rainbow Row","note":"Plan two pours ahead.","world":"Cozy Corner","tier":"normal","mode":"sort","cap":4,"cups":["GTTS","BMBM","TMMT","GSSB","SGBG","",""],"stats":{"optimal":14,"target":14,"branching":3.24,"statesSearched":1295,"casualStuckPct":1,"randomPlayStuckPct":4,"seed":4},"solution":[[0,5],[1,6],[2,0],[2,6],[0,2],[4,0],[1,4],[1,6],[3,1],[3,5],[0,3],[4,1],[4,3],[4,5]]},{"id":"1-8","title":"Busy Counter","note":"Four regulars at once.","orders":["TTTT","MMMM","GGGG","SSSS"],"slots":2,"world":"Cozy Corner","tier":"normal","mode":"orders","cap":4,"cups":["TGGG","TSSS","","TGMT","SMMM"],"stats":{"optimal":10,"target":8,"branching":4.71,"statesSearched":613,"casualStuckPct":0,"randomPlayStuckPct":0,"seed":80},"solution":[[3,"o0"],[3,"o1"],[4,"o1"],[0,"o1"],[0,"o0"],[1,4],[1,"o0"],[3,"o1"],[3,"o0"],[4,"o0"]]},{"id":"1-9","title":"Full Menu","note":"Six flavours. Take your time.","world":"Cozy Corner","tier":"normal","mode":"sort","cap":4,"cups":["SGGT","BRGG","RSBM","TTBM","TBSS","MRRM","",""],"stats":{"optimal":15,"target":15,"branching":3.24,"statesSearched":1579,"casualStuckPct":26,"randomPlayStuckPct":33,"seed":30},"solution":[[1,6],[2,7],[3,7],[2,3],[4,2],[3,4],[0,3],[0,6],[2,0],[1,2],[4,1],[3,4],[5,7],[5,2],[5,7]]},{"id":"1-10","title":"One Spare Cup","note":"Boss level: only one empty cup.","world":"Cozy Corner","tier":"hard","tutorial":"vial","mode":"sort","cap":4,"cups":["SMST","GTGM","MGTM","GSST",""],"stats":{"optimal":12,"target":12,"branching":1.49,"statesSearched":39,"casualStuckPct":52,"randomPlayStuckPct":54,"seed":1},"solution":[[0,4],[3,4],[0,3],[1,0],[2,0],[2,4],[1,2],[1,4],[2,1],[0,2],[3,0],[1,3]]},{"id":"2-1","title":"Sinking Feeling","note":"Pearls sink under any drink.","world":"Pearl Grotto","tier":"easy","tutorial":"pearls","mode":"sort","cap":4,"cups":["PPPM","TMTT","PTMM","",""],"stats":{"optimal":6,"target":6,"branching":8.02,"statesSearched":583,"casualStuckPct":0,"randomPlayStuckPct":14,"seed":2},"solution":[[0,3],[2,3],[1,2],[1,3],[2,1],[0,2]]},{"id":"2-2","title":"Bubble Bed","note":"Pearls can pour into any cup.","world":"Pearl Grotto","tier":"normal","mode":"sort","cap":4,"cups":["PGGG","PTMG","PPTT","TMMM","",""],"stats":{"optimal":8,"target":8,"branching":7.45,"statesSearched":1761,"casualStuckPct":0,"randomPlayStuckPct":14,"seed":86},"solution":[[0,4],[1,4],[0,1],[1,0],[3,0],[1,3],[2,3],[1,2]]},{"id":"2-3","title":"Pearl Diver","note":"Dig the pearls out from below.","world":"Pearl Grotto","tier":"normal","mode":"sort","cap":4,"cups":["PPTG","PPSM","SSTG","MMGS","TTGM","",""],"stats":{"optimal":11,"target":11,"branching":6.41,"statesSearched":13206,"casualStuckPct":0,"randomPlayStuckPct":28,"seed":113},"solution":[[0,5],[2,5],[2,0],[3,2],[3,5],[1,3],[1,2],[4,3],[4,5],[0,4],[0,1]]},{"id":"2-4","title":"Pearl Milk Tea","note":"Pearls go in first.","orders":["PTTT","PMMM","GGGG"],"slots":2,"world":"Pearl Grotto","tier":"normal","mode":"orders","cap":4,"cups":["GG","MTT","GMMT","PPG"],"stats":{"optimal":9,"target":8,"branching":3.8,"statesSearched":363,"casualStuckPct":8,"randomPlayStuckPct":48,"seed":6},"solution":[[2,1],[3,0],[3,"o0"],[1,"o0"],[0,"o1"],[1,2],[3,"o0"],[2,"o0"],[2,"o0"]]},{"id":"2-5","title":"Double Pearls","note":"Two cups of pearls hide everywhere.","world":"Pearl Grotto","tier":"normal","mode":"sort","cap":4,"cups":["MGMM","PPPT","PTGG","PGTT","PPPM","",""],"stats":{"optimal":11,"target":11,"branching":11.19,"statesSearched":48936,"casualStuckPct":1,"randomPlayStuckPct":14,"seed":4},"solution":[[0,5],[0,6],[0,5],[1,0],[2,6],[2,0],[1,2],[3,0],[3,6],[4,5],[3,4]]},{"id":"2-6","title":"Grotto Glow","note":"Six ingredients.","world":"Pearl Grotto","tier":"normal","mode":"sort","cap":4,"cups":["TBST","GTTB","SSSB","MMBG","PPMG","PPGM","",""],"stats":{"optimal":13,"target":13,"branching":6.18,"statesSearched":48793,"casualStuckPct":0,"randomPlayStuckPct":22,"seed":22},"solution":[[1,6],[0,1],[2,6],[0,2],[0,6],[1,0],[3,1],[3,6],[4,1],[4,3],[5,3],[5,1],[4,5]]},{"id":"2-7","title":"Tapioca Time","note":"A queue of pearl lovers.","orders":["PTTT","PMMM","GGGG","PSSS"],"slots":2,"world":"Pearl Grotto","tier":"normal","mode":"orders","cap":4,"cups":["PPGG","PM","SMMT","TTS","GGS"],"stats":{"optimal":12,"target":9,"branching":5.73,"statesSearched":2413,"casualStuckPct":0,"randomPlayStuckPct":56,"seed":24},"solution":[[3,4],[2,3],[1,2],[1,"o0"],[3,"o0"],[0,"o1"],[0,"o0"],[2,"o0"],[0,"o1"],[2,"o1"],[4,"o1"],[4,"o0"]]},{"id":"2-8","title":"Deep Pearls","note":"Lots of buried pearls.","world":"Pearl Grotto","tier":"normal","mode":"sort","cap":4,"cups":["PTGG","PTSS","PPTS","GGMS","PMMM","PPPT","",""],"stats":{"optimal":13,"target":13,"branching":9.74,"statesSearched":126800,"casualStuckPct":0,"randomPlayStuckPct":17,"seed":24},"solution":[[1,6],[1,7],[2,6],[1,2],[2,7],[3,6],[3,1],[0,3],[0,7],[0,2],[4,1],[5,7],[4,5]]},{"id":"2-9","title":"Moon Milk Tea","note":"Layered drinks: black tea under moon milk.","orders":["KKWW","PKKK","WWWW","PKWW"],"slots":2,"world":"Pearl Grotto","tier":"normal","mode":"orders","cap":4,"cups":["WWKK","KKK","PW","PWKW","WWW"],"stats":{"optimal":11,"target":11,"branching":9.65,"statesSearched":4734,"casualStuckPct":1,"randomPlayStuckPct":55,"seed":8},"solution":[[0,"o0"],[0,2],[4,"o0"],[2,"o1"],[3,"o1"],[2,"o1"],[3,"o1"],[3,4],[3,"o0"],[1,"o0"],[4,"o0"]]},{"id":"2-10","title":"Pearl Boss","note":"Boss level: one empty cup.","world":"Pearl Grotto","tier":"hard","mode":"sort","cap":4,"cups":["PPMG","MGGG","PTMT","PTMT",""],"stats":{"optimal":12,"target":12,"branching":3.24,"statesSearched":167,"casualStuckPct":22,"randomPlayStuckPct":37,"seed":1},"solution":[[0,4],[1,4],[0,1],[2,0],[2,1],[0,2],[3,2],[3,1],[0,3],[2,0],[3,0],[2,3]]},{"id":"3-1","title":"Fizzy Hello","note":"Sparkle soda floats to the top.","world":"Fizz Falls","tier":"easy","tutorial":"soda","mode":"sort","cap":4,"cups":["TTMM","MTFF","TMFF","",""],"stats":{"optimal":6,"target":6,"branching":9.76,"statesSearched":764,"casualStuckPct":0,"randomPlayStuckPct":7,"seed":1},"solution":[[1,3],[2,3],[0,2],[1,0],[2,1],[0,2]]},{"id":"3-2","title":"Float On","note":"Drinks slide under the soda.","world":"Fizz Falls","tier":"normal","mode":"sort","cap":4,"cups":["GMGF","TGFF","MMMF","TTTG","",""],"stats":{"optimal":8,"target":8,"branching":13.46,"statesSearched":4940,"casualStuckPct":0,"randomPlayStuckPct":6,"seed":12},"solution":[[0,4],[1,4],[0,1],[2,4],[0,2],[1,0],[3,0],[1,3]]},{"id":"3-3","title":"Sink & Float","note":"Pearls sink, soda floats.","world":"Fizz Falls","tier":"normal","mode":"sort","cap":4,"cups":["MMTF","PTTF","PPMM","PTFF","",""],"stats":{"optimal":9,"target":9,"branching":16.55,"statesSearched":23643,"casualStuckPct":0,"randomPlayStuckPct":16,"seed":4},"solution":[[0,4],[0,5],[1,4],[1,5],[2,0],[1,2],[3,4],[3,5],[2,3]]},{"id":"3-4","title":"Soda Toppers","note":"Soda goes on last.","orders":["TTTF","MMFF","GGGG"],"slots":2,"world":"Fizz Falls","tier":"normal","mode":"orders","cap":4,"cups":["MMGG","GTTT","G","FFF"],"stats":{"optimal":7,"target":7,"branching":7.43,"statesSearched":963,"casualStuckPct":0,"randomPlayStuckPct":7,"seed":101},"solution":[[0,2],[0,"o1"],[1,"o0"],[1,2],[3,"o0"],[2,"o1"],[3,"o0"]]},{"id":"3-5","title":"Fizz Falls","note":"Five ingredients.","world":"Fizz Falls","tier":"normal","mode":"sort","cap":4,"cups":["GSTT","TMMF","SSMM","GTFF","SGGF","",""],"stats":{"optimal":11,"target":11,"branching":15.35,"statesSearched":92181,"casualStuckPct":0,"randomPlayStuckPct":9,"seed":7},"solution":[[1,5],[1,6],[0,1],[2,6],[0,2],[3,5],[3,1],[0,3],[4,5],[4,3],[2,4]]},{"id":"3-6","title":"Bubble Trouble","note":"Both kinds of magic.","world":"Fizz Falls","tier":"normal","mode":"sort","cap":4,"cups":["MMMF","PPTT","MTGF","GGTF","PPGF","",""],"stats":{"optimal":11,"target":11,"branching":18.48,"statesSearched":437517,"casualStuckPct":2,"randomPlayStuckPct":19,"seed":1},"solution":[[0,5],[1,6],[2,5],[3,5],[3,6],[2,3],[2,6],[0,2],[4,5],[4,3],[1,4]]},{"id":"3-7","title":"Party Order","note":"Pearls, tea and fizz.","orders":["PTTF","PMMF","SSSS","GGGF"],"slots":2,"world":"Fizz Falls","tier":"normal","mode":"orders","cap":4,"cups":["PS","TS","PTGG","SSFF","MM","GF"],"stats":{"optimal":13,"target":10,"branching":13.79,"statesSearched":52454,"casualStuckPct":11,"randomPlayStuckPct":35,"seed":120},"solution":[[0,1],[0,"o0"],[2,5],[2,"o0"],[2,"o1"],[4,"o1"],[3,"o1"],[1,"o1"],[1,"o0"],[5,"o0"],[5,"o1"],[3,"o1"],[3,"o0"]]},{"id":"3-8","title":"Double Fizz","note":"Two cups of soda.","world":"Fizz Falls","tier":"normal","mode":"sort","cap":4,"cups":["TGTF","MGFF","TTFF","GGMF","MMFF","",""],"stats":{"optimal":11,"target":11,"branching":20.97,"statesSearched":68244,"casualStuckPct":0,"randomPlayStuckPct":10,"seed":4},"solution":[[0,5],[1,5],[2,6],[0,2],[0,1],[0,2],[3,5],[4,6],[3,4],[1,3],[1,4]]},{"id":"3-9","title":"Grand Brew","note":"Pearls, soda and three teas.","world":"Fizz Falls","tier":"normal","mode":"sort","cap":4,"cups":["MMMF","PSTF","PPSF","PMTT","SSTF","",""],"stats":{"optimal":12,"target":12,"branching":17.8,"statesSearched":414942,"casualStuckPct":1,"randomPlayStuckPct":21,"seed":2},"solution":[[0,5],[1,5],[1,6],[2,5],[1,2],[3,6],[1,3],[3,0],[4,5],[4,6],[2,4],[2,3]]},{"id":"3-10","title":"Grand Opening","note":"Finale: the whole town is here.","orders":["PTTF","MMMF","PGGF","SSSS"],"slots":2,"world":"Fizz Falls","tier":"hard","mode":"orders","cap":4,"cups":["PSM","MGGF","PTM","SSSF","TF"],"stats":{"optimal":15,"target":12,"branching":9.97,"statesSearched":24854,"casualStuckPct":9,"randomPlayStuckPct":45,"seed":3},"solution":[[0,2],[1,0],[2,"o1"],[2,4],[2,"o0"],[1,2],[1,"o1"],[4,"o1"],[4,"o0"],[0,"o0"],[0,"o1"],[0,"o0"],[2,"o0"],[3,"o0"],[3,"o0"]]}];
+
+</script>
+<script>
+// Magic Boba — procedural audio. Every sound is synthesised live with Web Audio (no files).
+//
+// Design notes (why it sounds the way it does):
+//  * One musical key. All tonal SFX snap to F-major pentatonic (F G A C D), the same key as the
+//    music, so overlapping sounds never clash — every action "plays along" with the track.
+//  * Filling = rising pitch. A pour's resonance follows the air column left in the cup
+//    (quarter-wave: f ∝ 1 / air length), so pitch climbs as the cup fills — the sound people know
+//    from filling a bottle. Each poured layer also plucks the next note of the scale.
+//  * Bubbles use the classic synthesised bubble: a sine whose pitch sweeps up fast while it
+//    decays (cf. Minnaert resonance; A. Farnell, "Designing Sound").
+//  * Glass uses inharmonic partials (≈1, 2.76, 5.4, 8.9 × f) so clinks read as glass, not beeps.
+//  * Escalation. Consecutive successes climb the scale (the Peggle/Candy Crush trick); finishing
+//    sounds are brighter and longer than routine ones, so the big moments stand out.
+//  * Anti-fatigue. Small random pitch/time jitter on every repeat so nothing sounds copy-pasted.
+//  * Gentle failure. A wrong move is a soft muted "bonk", never a buzzer.
+//  * Mix. Compressor on the master, a generated reverb for sparkle, and the music ducks under
+//    big rewards (side-chain style) so they cut through.
+//  * Music is scheduled with a look-ahead clock (C. Wilson, "A Tale of Two Clocks") for tight
+//    timing.
+(function (root) {
+  const PENTA = [0, 2, 4, 7, 9];
+  const ROOT = 349.23; // F4
+  const hz = (step) => {
+    const o = Math.floor(step / 5), d = ((step % 5) + 5) % 5;
+    return ROOT * Math.pow(2, (PENTA[d] + 12 * o) / 12);
+  };
+  const midi = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const jitter = (c = 8) => Math.pow(2, ((Math.random() * 2 - 1) * c) / 1200);
+
+  let ctx = null, master, sfx, music, wetIn, noiseBuf, duckGain, meterNode;
+  let sfxOn = true, musicOn = true;
+  try { sfxOn = localStorage.getItem('boba.sfx') !== '0'; musicOn = localStorage.getItem('boba.music') !== '0'; } catch {}
+
+  function impulse(seconds, decay) {
+    const len = Math.floor(ctx.sampleRate * seconds);
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+
+  function init() {
+    if (ctx) return true;
+    const AC = root.AudioContext || root.webkitAudioContext;
+    if (!AC) return false;
+    ctx = new AC();
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.2;
+    master = ctx.createGain(); master.gain.value = 0.9;
+    master.connect(comp); comp.connect(ctx.destination);
+    meterNode = ctx.createAnalyser(); meterNode.fftSize = 2048; comp.connect(meterNode); // for tests / debugging
+
+    const verb = ctx.createConvolver(); verb.buffer = impulse(2.2, 3);
+    const wet = ctx.createGain(); wet.gain.value = 0.32;
+    wetIn = ctx.createGain(); wetIn.connect(verb); verb.connect(wet); wet.connect(master);
+
+    sfx = ctx.createGain(); sfx.gain.value = sfxOn ? 1 : 0; sfx.connect(master);
+    duckGain = ctx.createGain(); duckGain.gain.value = 1;
+    music = ctx.createGain(); music.gain.value = musicOn ? 0.55 : 0;
+    music.connect(duckGain); duckGain.connect(master);
+
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return true;
+  }
+
+  // ---- primitives -----------------------------------------------------------------------
+  // Plays an oscillator with an attack/exponential-decay envelope. `rev` = reverb send 0..1.
+  function tone({ f, f2, glide = 0.05, type = 'sine', t = 0, a = 0.004, dur = 0.3, g = 0.3, rev = 0.2, bus, pan = 0, detune = 0 }) {
+    const now = ctx.currentTime + t;
+    const o = ctx.createOscillator(); o.type = type; o.detune.value = detune;
+    o.frequency.setValueAtTime(f, now);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, now + glide);
+    const e = ctx.createGain();
+    e.gain.setValueAtTime(0.0001, now);
+    e.gain.exponentialRampToValueAtTime(g, now + a);
+    e.gain.exponentialRampToValueAtTime(0.0001, now + a + dur);
+    let node = e;
+    if (pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; e.connect(p); node = p; }
+    o.connect(e);
+    node.connect(bus || sfx);
+    if (rev) { const s = ctx.createGain(); s.gain.value = rev; node.connect(s); s.connect(wetIn); }
+    o.start(now); o.stop(now + a + dur + 0.05);
+  }
+
+  function noise({ t = 0, dur = 0.1, g = 0.2, type = 'bandpass', f = 1000, f2, Q = 1, a = 0.005, rev = 0, bus, shape = 'exp' }) {
+    const now = ctx.currentTime + t;
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    src.playbackRate.value = 0.8 + Math.random() * 0.4;
+    const flt = ctx.createBiquadFilter(); flt.type = type; flt.Q.value = Q;
+    flt.frequency.setValueAtTime(f, now);
+    if (f2) flt.frequency.exponentialRampToValueAtTime(f2, now + dur);
+    const e = ctx.createGain();
+    e.gain.setValueAtTime(0.0001, now);
+    e.gain.exponentialRampToValueAtTime(g, now + a);
+    if (shape === 'hold') { e.gain.setValueAtTime(g, now + dur * 0.8); e.gain.exponentialRampToValueAtTime(0.0001, now + dur); }
+    else e.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    src.connect(flt); flt.connect(e); e.connect(bus || sfx);
+    if (rev) { const s = ctx.createGain(); s.gain.value = rev; e.connect(s); s.connect(wetIn); }
+    src.start(now, Math.random() * 1.5); src.stop(now + dur + 0.05);
+  }
+
+  // Glass: inharmonic partials with faster decay up high.
+  function glass(f, t = 0, g = 0.22, rev = 0.25, pan = 0) {
+    const P = [[1, 1, 0.55], [2.76, 0.45, 0.32], [5.4, 0.22, 0.18], [8.93, 0.1, 0.1]];
+    const j = jitter(10);
+    for (const [r, gg, dd] of P) tone({ f: f * r * j, t, a: 0.002, dur: dd, g: g * gg, rev, pan });
+  }
+
+  // Bell / chime: near-harmonic partials, long tail.
+  function bell(f, t = 0, g = 0.2, dur = 1.1, rev = 0.45) {
+    tone({ f, t, a: 0.003, dur, g, rev });
+    tone({ f: f * 2.0, t, a: 0.003, dur: dur * 0.6, g: g * 0.35, rev });
+    tone({ f: f * 3.01, t, a: 0.002, dur: dur * 0.35, g: g * 0.15, rev });
+    tone({ f: f * 4.2, t, a: 0.002, dur: dur * 0.15, g: g * 0.08, rev });
+  }
+
+  function bubble(f, t = 0, g = 0.12) {
+    tone({ f, f2: f * (1.8 + Math.random() * 0.8), glide: 0.035 + Math.random() * 0.03, t, a: 0.002, dur: 0.06, g, rev: 0.1, pan: Math.random() * 0.6 - 0.3 });
+  }
+
+  function sparkle(t = 0, count = 6, base = 18, g = 0.05) {
+    for (let i = 0; i < count; i++) tone({ f: hz(base + Math.floor(Math.random() * 6)) * jitter(15), t: t + i * 0.045 + Math.random() * 0.03, a: 0.002, dur: 0.25, g, rev: 0.7, pan: Math.random() * 1.4 - 0.7 });
+  }
+
+  function duck(amount = 0.35, hold = 0.5) {
+    const now = ctx.currentTime, p = duckGain.gain;
+    p.cancelScheduledValues(now); p.setValueAtTime(p.value, now);
+    p.linearRampToValueAtTime(amount, now + 0.04);
+    p.setValueAtTime(amount, now + hold);
+    p.linearRampToValueAtTime(1, now + hold + 0.6);
+  }
+
+  // Haptics only after the first touch (browsers block it before), and only where supported.
+  const vibrate = (p) => { if (!ctx) return; try { navigator.vibrate && navigator.vibrate(p); } catch {} };
+  // Named haptics: inside the iOS app these become native Taptic Engine patterns (see BobaNative);
+  // in a browser they fall back to navigator.vibrate where supported (Android).
+  const haptic = (kind, p) => {
+    if (root.BobaHaptics && root.BobaHaptics(kind) !== false) return;
+    vibrate(p);
+  };
+  const ready = () => ctx && ctx.state === 'running';
+
+  // ---- game sounds ---------------------------------------------------------------------
+  const S = {
+    hz,
+    unlock() {
+      if (!init()) return;
+      if (ctx.state !== 'running') ctx.resume();
+      if (musicOn) Music.start();
+    },
+    // Peak output level right now (0..1) — used by automated tests to prove sound is playing.
+    meter() {
+      if (!meterNode) return 0;
+      const d = new Float32Array(meterNode.fftSize); meterNode.getFloatTimeDomainData(d);
+      return d.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    },
+    pause() { if (ctx && ctx.state === 'running') ctx.suspend(); },
+    resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); },
+    get sfxOn() { return sfxOn; },
+    get musicOn() { return musicOn; },
+    setSfx(on) {
+      sfxOn = on; try { localStorage.setItem('boba.sfx', on ? '1' : '0'); } catch {}
+      if (ctx) sfx.gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, 0.02);
+    },
+    setMusic(on) {
+      musicOn = on; try { localStorage.setItem('boba.music', on ? '1' : '0'); } catch {}
+      if (!ctx) return;
+      music.gain.setTargetAtTime(on ? 0.55 : 0, ctx.currentTime, 0.15);
+      if (on) Music.start();
+    },
+
+    select(level = 0) { // lifting a cup: glass clink pitched by how full it is
+      haptic('select', 8);
+      if (!ready()) return;
+      glass(hz(12 + level), 0, 0.2);
+      noise({ dur: 0.05, g: 0.05, type: 'highpass', f: 3000 });
+    },
+    deselect() {
+      if (!ready()) return;
+      glass(hz(9), 0, 0.12, 0.15);
+    },
+
+    // amount: layers moving. from: dest fill level before. cap: dest capacity.
+    pour(amount, from, cap, solid, unitMs) {
+      haptic('pour', [12, 30, 12]);
+      if (!ready()) return;
+      const U = unitMs / 1000;
+      const res = (lvl) => 260 * cap / Math.max(0.6, cap - lvl + 0.4);
+      if (!solid) {
+        // the stream: band-passed noise whose resonance rises as the air column shortens
+        const now = ctx.currentTime, total = amount * U + 0.08;
+        const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 6;
+        bp.frequency.setValueAtTime(res(from), now);
+        bp.frequency.exponentialRampToValueAtTime(res(from + amount), now + total);
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4500;
+        const e = ctx.createGain();
+        e.gain.setValueAtTime(0.0001, now);
+        e.gain.exponentialRampToValueAtTime(0.22, now + 0.04);
+        e.gain.setValueAtTime(0.22, now + total - 0.06);
+        e.gain.exponentialRampToValueAtTime(0.0001, now + total + 0.05);
+        src.connect(bp); bp.connect(lp); lp.connect(e); e.connect(sfx);
+        src.start(now); src.stop(now + total + 0.1);
+        // glugs + bubbles
+        for (let u = 0; u < amount; u++) {
+          const base = res(from + u + 0.5);
+          tone({ f: base * 0.5, f2: base * 0.75, glide: 0.06, t: u * U + 0.02, a: 0.005, dur: 0.07, g: 0.12, rev: 0.05 });
+          for (let b = 0; b < 4; b++) bubble(base * (1.2 + Math.random()), u * U + Math.random() * U, 0.06);
+        }
+      } else {
+        // pearls: soft rubbery plops that sink
+        for (let u = 0; u < amount; u++) for (let k = 0; k < 4; k++) {
+          const t = u * U + k * (U / 4) + Math.random() * 0.02;
+          tone({ f: 230 * jitter(80), f2: 95, glide: 0.07, t, a: 0.003, dur: 0.09, g: 0.12, rev: 0.05 });
+          noise({ t, dur: 0.02, g: 0.04, type: 'highpass', f: 2500 });
+        }
+      }
+      // the musical layer: each poured layer plucks the next note up the scale
+      for (let u = 0; u < amount; u++) {
+        const step = 5 + from + u;
+        tone({ f: hz(step), t: u * U + 0.03, type: 'triangle', a: 0.004, dur: 0.28, g: 0.13, rev: 0.3 });
+        tone({ f: hz(step) * 2, t: u * U + 0.03, a: 0.003, dur: 0.12, g: 0.04, rev: 0.3 });
+      }
+    },
+
+    // a cup becomes complete. streak climbs the scale.
+    complete(streak = 0) {
+      haptic('complete', [20, 40, 30]);
+      if (!ready()) return;
+      duck(0.4, 0.4);
+      // cork/lid pop
+      noise({ dur: 0.03, g: 0.25, type: 'bandpass', f: 1800, Q: 0.8 });
+      tone({ f: 760, f2: 240, glide: 0.06, a: 0.002, dur: 0.08, g: 0.25, rev: 0.05 });
+      const s = 10 + Math.min(streak, 8) * 2;
+      [0, 2, 4].forEach((d, i) => bell(hz(s + d), 0.07 + i * 0.075, 0.16, 0.9));
+      sparkle(0.25, 6 + streak, s + 5);
+    },
+
+    // a customer's order is finished
+    serve(streak = 0) {
+      haptic('serve', [15, 30, 15, 30, 40]);
+      if (!ready()) return;
+      duck(0.35, 0.6);
+      noise({ dur: 0.03, g: 0.2, type: 'bandpass', f: 1600, Q: 0.8 });
+      const s = 12 + Math.min(streak, 8) * 2;
+      bell(hz(s), 0.05, 0.2, 1.2);
+      bell(hz(s + 2), 0.16, 0.2, 1.4);
+      // the customer's happy "yay!"
+      tone({ f: 520, f2: 980, glide: 0.09, t: 0.25, type: 'triangle', a: 0.01, dur: 0.12, g: 0.1, rev: 0.1 });
+      tone({ f: 700, f2: 1300, glide: 0.08, t: 0.38, type: 'triangle', a: 0.01, dur: 0.14, g: 0.09, rev: 0.1 });
+      sparkle(0.3, 8, s + 6);
+    },
+
+    invalid() {
+      haptic('invalid', 30);
+      if (!ready()) return;
+      tone({ f: 150, f2: 95, glide: 0.1, a: 0.004, dur: 0.14, g: 0.17, rev: 0 });
+      tone({ f: 118, f2: 80, glide: 0.1, t: 0.09, a: 0.004, dur: 0.14, g: 0.11, rev: 0 });
+    },
+
+    undo() {
+      haptic('undo', 10);
+      if (!ready()) return;
+      noise({ dur: 0.18, g: 0.1, type: 'bandpass', f: 2600, f2: 500, Q: 2 });
+      glass(hz(7), 0.08, 0.08, 0.1);
+    },
+
+    vial() { // magic glissando
+      haptic('vial', [10, 20, 10, 20, 10, 20, 40]);
+      if (!ready()) return;
+      duck(0.3, 0.8);
+      for (let i = 0; i < 10; i++) tone({ f: hz(8 + i), t: i * 0.035, type: 'triangle', a: 0.003, dur: 0.35, g: 0.1, rev: 0.6, pan: (i / 10) * 1.2 - 0.6 });
+      noise({ t: 0, dur: 0.45, g: 0.06, type: 'highpass', f: 5000, rev: 0.6 });
+      bell(hz(18), 0.38, 0.15, 1.4);
+    },
+
+    praise(streak) { // little whoosh under the praise text
+      if (!ready()) return;
+      noise({ dur: 0.22, g: 0.05, type: 'bandpass', f: 600, f2: 3200, Q: 1.5, rev: 0.3 });
+    },
+
+    hop(i) { // victory lap: cups hop one by one up the scale
+      haptic('hop', 6);
+      if (!ready()) return;
+      tone({ f: hz(10 + i), type: 'triangle', a: 0.003, dur: 0.22, g: 0.12, rev: 0.35 });
+      glass(hz(15 + i), 0, 0.06, 0.3);
+    },
+
+    win() {
+      haptic('win', [30, 60, 30, 60, 80]);
+      if (!ready()) return;
+      duck(0.25, 2.2);
+      const chord = [0, 2, 3, 5, 7, 8, 10]; // F A C F A C F (scale steps)
+      chord.forEach((d, i) => tone({ f: hz(5 + d), t: i * 0.06, type: 'triangle', a: 0.005, dur: 0.9, g: 0.17, rev: 0.5 }));
+      chord.forEach((d, i) => bell(hz(10 + d), i * 0.06, 0.07, 0.8));
+      [0, 2, 3].forEach((d) => tone({ f: hz(d) / 2, t: 0.42, type: 'sine', a: 0.08, dur: 2.2, g: 0.16, rev: 0.4 }));
+      [0, 2, 3, 5].forEach((d) => tone({ f: hz(5 + d), t: 0.42, type: 'triangle', a: 0.12, dur: 2.0, g: 0.05, rev: 0.7, detune: (d % 2 ? 6 : -6) }));
+      noise({ t: 0.42, dur: 0.6, g: 0.05, type: 'highpass', f: 6000, rev: 0.5 });
+    },
+
+    star(n) { // n = 0,1,2 — each higher, last one biggest
+      haptic('star', n === 2 ? [30, 30, 60] : 25);
+      if (!ready()) return;
+      const s = 15 + n * 2;
+      bell(hz(s), 0, 0.22, 1.3);
+      if (n === 2) { bell(hz(s + 5), 0.06, 0.12, 1.6); sparkle(0.1, 10, s + 4, 0.06); }
+      else sparkle(0.05, 4, s + 3);
+    },
+
+    coin(i) { // count-up ticks, slowly rising
+      if (!ready()) return;
+      tone({ f: hz(15 + Math.min(i, 12)) * 2, a: 0.001, dur: 0.06, g: 0.05, rev: 0.1 });
+      tone({ f: hz(15 + Math.min(i, 12)) * 3, a: 0.001, dur: 0.04, g: 0.02, rev: 0.1 });
+    },
+
+    golden() { // rare golden tip: the jackpot sound
+      haptic('golden', [40, 40, 40, 40, 120]);
+      if (!ready()) return;
+      duck(0.2, 1.5);
+      for (let i = 0; i < 14; i++) tone({ f: hz(10 + i), t: i * 0.04, type: 'square', a: 0.003, dur: 0.1, g: 0.035, rev: 0.4 });
+      [0, 2, 4, 5].forEach((d, i) => bell(hz(18 + d), 0.55 + i * 0.09, 0.14, 1.6));
+      sparkle(0.6, 16, 20, 0.05);
+    },
+
+    tap() { // UI buttons
+      haptic('tap', 5);
+      if (!ready()) return;
+      tone({ f: hz(10), f2: hz(11), glide: 0.03, a: 0.002, dur: 0.05, g: 0.06, rev: 0 });
+    },
+
+    customer() { // a new customer arrives: little door bell
+      if (!ready()) return;
+      glass(hz(17), 0, 0.07, 0.4, 0.4);
+      glass(hz(15), 0.09, 0.06, 0.4, 0.4);
+    },
+  };
+
+  // ---- generative lo-fi music ------------------------------------------------------------
+  // 80 BPM, swung 8ths. Fmaj7 – Dm9 – Bbmaj7 – C6. Soft keys, round bass, brushed kit, vinyl dust.
+  const Music = (() => {
+    const BPM = 80, SPB = 60 / BPM, SWING = 0.58;
+    const CHORDS = [
+      { bass: 41, notes: [53, 57, 60, 64] }, // Fmaj7
+      { bass: 38, notes: [50, 53, 57, 64] }, // Dm9 (no root)
+      { bass: 46, notes: [50, 53, 57, 62] }, // Bbmaj7
+      { bass: 36, notes: [52, 55, 57, 60] }, // C6
+    ];
+    let running = false, timer = null, nextTime = 0, step = 0;
+
+    function keys(m, t, len, g) {
+      const f = midi(m);
+      for (const det of [-7, 7]) {
+        const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = f; o.detune.value = det;
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400;
+        const e = ctx.createGain();
+        e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(g, t + 0.02);
+        e.gain.exponentialRampToValueAtTime(g * 0.4, t + 0.4); e.gain.exponentialRampToValueAtTime(0.0001, t + len);
+        o.connect(lp); lp.connect(e); e.connect(music);
+        const s = ctx.createGain(); s.gain.value = 0.35; e.connect(s); s.connect(wetIn);
+        o.start(t); o.stop(t + len + 0.05);
+      }
+    }
+    function bass(m, t, len) {
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = midi(m);
+      const e = ctx.createGain();
+      e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+      e.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(e); e.connect(music); o.start(t); o.stop(t + len + 0.05);
+    }
+    function kick(t) {
+      const o = ctx.createOscillator(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+      const e = ctx.createGain(); e.gain.setValueAtTime(0.32, t); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+      o.connect(e); e.connect(music); o.start(t); o.stop(t + 0.32);
+    }
+    function hit(t, f, dur, g, type = 'highpass') {
+      const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+      const flt = ctx.createBiquadFilter(); flt.type = type; flt.frequency.value = f;
+      const e = ctx.createGain(); e.gain.setValueAtTime(g, t); e.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(flt); flt.connect(e); e.connect(music); src.start(t, Math.random()); src.stop(t + dur + 0.02);
+    }
+    // a simple melodic fragment over the loop, from the same pentatonic scale
+    const MELODY = [null, 12, null, 11, 10, null, null, null, null, 10, null, 8, 9, null, null, null,
+                    null, 13, null, 12, 11, null, 10, null, null, null, 8, null, 7, null, null, null];
+
+    function schedule(t, s) {
+      const bar = Math.floor(s / 8) % 4, beat8 = s % 8;
+      const ch = CHORDS[bar];
+      if (beat8 === 0) { ch.notes.forEach((n, i) => keys(n, t + i * 0.012, SPB * 3.6, 0.045)); bass(ch.bass, t, SPB * 1.8); }
+      if (beat8 === 5) ch.notes.slice(1).forEach((n) => keys(n, t, SPB * 1.4, 0.03));
+      if (beat8 === 4) bass(ch.bass + 7, t, SPB * 1.2);
+      if (beat8 === 0 || beat8 === 5) kick(t);
+      if (beat8 === 2 || beat8 === 6) hit(t, 1800, 0.12, 0.07, 'bandpass'); // brushed snare
+      hit(t, 7000, 0.04, beat8 % 2 ? 0.025 : 0.04); // hats
+      const mel = MELODY[s % 32];
+      if (mel !== null && Math.floor(s / 32) % 2 === 1) tone({ f: hz(mel), t: t - ctx.currentTime, type: 'sine', a: 0.01, dur: 0.5, g: 0.05, rev: 0.5, bus: music });
+      if (Math.random() < 0.3) hit(t + Math.random() * SPB, 3000 + Math.random() * 4000, 0.01, 0.012 + Math.random() * 0.01); // vinyl dust
+    }
+    function tick() {
+      while (nextTime < ctx.currentTime + 0.15) {
+        const swingOffset = step % 2 ? (SWING - 0.5) * SPB : 0;
+        schedule(nextTime + swingOffset, step);
+        nextTime += SPB / 2;
+        step++;
+      }
+    }
+    return {
+      start() {
+        if (running || !ctx) return;
+        running = true; nextTime = ctx.currentTime + 0.1; step = 0;
+        timer = setInterval(tick, 25);
+      },
+    };
+  })();
+
+  // Silence everything when the app goes to the background or the tab is hidden.
+  document.addEventListener('visibilitychange', () => (document.hidden ? S.pause() : S.resume()));
+  root.BobaAudio = S;
+})(window);
+
+</script>
+<script>
+// Magic Boba — visual effects: one full-screen canvas for particles + DOM floating text.
+// Particles: dot, star, heart, confetti, pearl, ring (shockwave), mote (ambient magic dust).
+(function (root) {
+  const reduce = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cv, cx, W = 0, H = 0, dpr = 1;
+  const parts = [];
+  let running = false;
+  // Ambient background particles; each skin picks a type: mote (rising dust), petal (falling, swaying), bubble (rising rings).
+  let ambient = { type: 'mote', colors: ['#c9a7ff', '#ffe6a8'], count: 26 };
+
+  function setup() {
+    cv = document.createElement('canvas');
+    cv.id = 'fx';
+    cv.setAttribute('aria-hidden', 'true');
+    Object.assign(cv.style, { position: 'fixed', inset: '0', width: '100%', height: '100%', pointerEvents: 'none', zIndex: 50 });
+    document.body.appendChild(cv);
+    cx = cv.getContext('2d');
+    resize();
+    root.addEventListener('resize', resize);
+    spawnAmbient();
+    kick();
+  }
+  function resize() {
+    dpr = Math.min(2, root.devicePixelRatio || 1);
+    W = root.innerWidth; H = root.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function mote(anywhere) {
+    const color = ambient.colors[Math.floor(Math.random() * ambient.colors.length)];
+    const base = { ambient: true, type: ambient.type, x: Math.random() * W, life: 0, color, g: 0, drag: 1, tw: Math.random() * 6, rot: Math.random() * 6 };
+    if (ambient.type === 'petal') return Object.assign(base, { y: anywhere ? Math.random() * H : -12, vx: 4 + Math.random() * 10, vy: 14 + Math.random() * 18,
+      size: 3 + Math.random() * 3, max: 14 + Math.random() * 10, vr: (Math.random() - 0.5) * 2, sway: 18, sw: 0.8 + Math.random() });
+    if (ambient.type === 'bubble') return Object.assign(base, { y: anywhere ? Math.random() * H : H + 10, vx: 0, vy: -(10 + Math.random() * 22),
+      size: 1.5 + Math.random() * 3.5, max: 10 + Math.random() * 10, sway: 6, sw: 1.5 + Math.random() * 2 });
+    return Object.assign(base, { type: 'mote', y: anywhere ? Math.random() * H : H + 10, vx: (Math.random() - 0.5) * 6, vy: -(6 + Math.random() * 14),
+      size: 1 + Math.random() * 2.2, max: 9 + Math.random() * 8 });
+  }
+  function spawnAmbient() {
+    for (let i = parts.length - 1; i >= 0; i--) if (parts[i].ambient) parts.splice(i, 1);
+    if (!reduce) for (let i = 0; i < ambient.count; i++) parts.push(mote(true));
+    kick();
+  }
+
+  function add(p) {
+    parts.push(Object.assign({ life: 0, rot: 0, vr: 0, g: 600, drag: 0.985, size: 4 }, p));
+    kick();
+  }
+  function kick() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
+
+  let last = 0;
+  function frame(now) {
+    const dt = Math.min(0.033, (now - last) / 1000); last = now;
+    cx.clearRect(0, 0, W, H);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.life += dt;
+      if (p.life >= p.max) {
+        if (p.ambient) parts[i] = mote(false); else parts.splice(i, 1);
+        continue;
+      }
+      p.vx *= Math.pow(p.drag, dt * 60); p.vy *= Math.pow(p.drag, dt * 60);
+      p.vy += p.g * dt;
+      p.x += p.vx * dt + (p.sway ? Math.sin(p.life * p.sw + p.tw) * p.sway * dt : 0); p.y += p.vy * dt; p.rot += (p.vr || 0) * dt;
+      draw(p);
+    }
+    if (parts.length) requestAnimationFrame(frame); else running = false;
+  }
+
+  function draw(p) {
+    const k = p.life / p.max;
+    const alpha = p.ambient ? Math.sin(Math.PI * k) * (0.35 + 0.25 * Math.sin(p.life * 3 + p.tw)) : k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+    cx.save();
+    cx.globalAlpha = Math.max(0, alpha);
+    cx.translate(p.x, p.y);
+    cx.rotate(p.rot);
+    cx.fillStyle = p.color;
+    const s = p.size * (p.grow ? 1 + k * p.grow : p.type === 'star' ? 1 - k * 0.5 : 1);
+    switch (p.type) {
+      case 'mote':
+        cx.shadowColor = p.color; cx.shadowBlur = 8;
+        cx.beginPath(); cx.arc(0, 0, s, 0, 7); cx.fill(); break;
+      case 'petal':
+        cx.globalAlpha = Math.min(1, alpha * 1.6);
+        cx.scale(1, Math.abs(Math.cos(p.life * 1.7 + p.tw)) * 0.6 + 0.4);
+        cx.beginPath(); cx.ellipse(0, 0, s * 1.4, s * 0.8, 0, 0, 7); cx.fill();
+        cx.fillStyle = 'rgba(255,255,255,.45)'; cx.beginPath(); cx.ellipse(-s * 0.4, -s * 0.2, s * 0.5, s * 0.25, 0, 0, 7); cx.fill(); break;
+      case 'bubble':
+        cx.globalAlpha = Math.min(1, alpha * 1.5);
+        cx.strokeStyle = p.color; cx.lineWidth = 1;
+        cx.beginPath(); cx.arc(0, 0, s, 0, 7); cx.stroke();
+        cx.fillStyle = p.color; cx.globalAlpha *= 0.5; cx.beginPath(); cx.arc(-s * 0.35, -s * 0.35, s * 0.25, 0, 7); cx.fill(); break;
+      case 'dot':
+      case 'pearl':
+        cx.beginPath(); cx.arc(0, 0, s, 0, 7); cx.fill();
+        if (p.type === 'pearl') { cx.fillStyle = 'rgba(255,255,255,.35)'; cx.beginPath(); cx.arc(-s * 0.35, -s * 0.35, s * 0.3, 0, 7); cx.fill(); }
+        break;
+      case 'star': {
+        cx.shadowColor = p.color; cx.shadowBlur = 10;
+        cx.beginPath();
+        for (let i = 0; i < 10; i++) { const r = i % 2 ? s * 0.42 : s, a = (i * Math.PI) / 5 - Math.PI / 2; cx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+        cx.closePath(); cx.fill(); break;
+      }
+      case 'heart':
+        cx.beginPath();
+        cx.moveTo(0, s * 0.35);
+        cx.bezierCurveTo(-s * 1.1, -s * 0.4, -s * 0.45, -s * 1.1, 0, -s * 0.45);
+        cx.bezierCurveTo(s * 0.45, -s * 1.1, s * 1.1, -s * 0.4, 0, s * 0.35);
+        cx.fill(); break;
+      case 'confetti':
+        cx.scale(1, Math.cos(p.life * p.flip));
+        cx.fillRect(-s, -s * 0.45, s * 2, s * 0.9); break;
+      case 'ring':
+        cx.globalAlpha = (1 - k) * 0.8;
+        cx.strokeStyle = p.color; cx.lineWidth = 3 * (1 - k) + 0.5;
+        cx.beginPath(); cx.arc(0, 0, p.size + k * p.reach, 0, 7); cx.stroke(); break;
+    }
+    cx.restore();
+  }
+
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  const FX = {
+    reduce,
+    // generic radial burst
+    burst(x, y, { colors = ['#fff'], count = 18, speed = 260, types = ['dot', 'star'], size = [2, 5], g = 500, life = [0.5, 1.0], up = 0 } = {}) {
+      const n = reduce ? Math.ceil(count / 4) : count;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, v = speed * (0.35 + Math.random() * 0.65);
+        add({ type: pick(types), x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - up, g, size: rnd(size[0], size[1]), color: pick(colors),
+          max: rnd(life[0], life[1]), vr: rnd(-8, 8), rot: Math.random() * 6, flip: rnd(6, 14) });
+      }
+    },
+    ring(x, y, color = '#fff', reach = 70, size = 8) { add({ type: 'ring', x, y, vx: 0, vy: 0, g: 0, size, reach, color, max: 0.5 }); },
+    hearts(x, y, n = 6) {
+      for (let i = 0; i < (reduce ? 2 : n); i++) add({ type: 'heart', x: x + rnd(-14, 14), y, vx: rnd(-50, 50), vy: rnd(-160, -90), g: -40, drag: 0.97,
+        size: rnd(5, 9), color: pick(['#ff7aa8', '#ff9ec2', '#ffd0e0']), max: rnd(0.9, 1.4), vr: rnd(-1, 1) });
+    },
+    // falling pearls from a pour lip into a cup
+    pearls(x, y0, y1, n, dur) {
+      for (let i = 0; i < n; i++) setTimeout(() => add({ type: 'pearl', x: x + rnd(-3, 3), y: y0, vx: rnd(-10, 10), vy: 80, g: 1800, drag: 1,
+        size: rnd(3.5, 5), color: '#3a2626', max: Math.sqrt((2 * Math.max(10, y1 - y0)) / 1800) + 0.02 }), (i / n) * dur);
+    },
+    setAmbient(opts) { Object.assign(ambient, opts); if (cv) spawnAmbient(); },
+    confetti(colors = ['#a689e0', '#7cc46a', '#f7b733', '#f47fa4', '#5b8def', '#ffe6a8', '#ffffff']) {
+      const n = reduce ? 20 : 140;
+      for (let i = 0; i < n; i++) {
+        const left = i % 2 === 0;
+        add({ type: 'confetti', x: left ? -10 : W + 10, y: H * rnd(0.45, 0.85), vx: (left ? 1 : -1) * rnd(250, 700), vy: rnd(-900, -450), g: 900, drag: 0.975,
+          size: rnd(3, 6), color: pick(colors), max: rnd(1.6, 2.6), vr: rnd(-12, 12), flip: rnd(6, 16) });
+      }
+    },
+    // DOM text that pops, floats and fades
+    text(x, y, str, { color = '#fff', size = 22, rise = 60, dur = 1000, cls = '' } = {}) {
+      const el = document.createElement('div');
+      el.className = 'floaty ' + cls;
+      el.textContent = str;
+      Object.assign(el.style, { left: x + 'px', top: y + 'px', color, fontSize: size + 'px' });
+      document.body.appendChild(el);
+      el.animate([
+        { transform: 'translate(-50%,-50%) scale(.3)', opacity: 0 },
+        { transform: 'translate(-50%,-50%) scale(1.25)', opacity: 1, offset: 0.18 },
+        { transform: 'translate(-50%,-50%) scale(1)', opacity: 1, offset: 0.3 },
+        { transform: `translate(-50%, calc(-50% - ${rise}px)) scale(1)`, opacity: 0 },
+      ], { duration: reduce ? 600 : dur, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => el.remove();
+    },
+    shake(el, px = 4, dur = 260) {
+      if (reduce || !el) return;
+      el.animate([0, 1, 2, 3, 4, 5, 6].map((i) => ({ transform: `translate(${i === 6 ? 0 : (Math.random() * 2 - 1) * px * (1 - i / 6)}px, ${i === 6 ? 0 : (Math.random() * 2 - 1) * px * (1 - i / 6)}px)` })), { duration: dur });
+    },
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  root.BobaFX = FX;
+})(window);
+
+</script>
+<script>
+const { FLAVORS } = Boba;
+const A = window.BobaAudio, FX = window.BobaFX;
+const REDUCE = FX.reduce;
+const CUSTOMERS = ['🐸','👻','🐉','🦊','🧙','🐈‍⬛','🦉','🍄'];
+const PRAISE = ['Nice!', 'Sweet!', 'Yummy!', 'Boba-licious!', 'Magical!', 'Spellbinding!', 'LEGENDARY!'];
+const T = { lift: 180, unit: 110, back: 180 }; // pour timing (ms)
+
+// ---- Skins: same game, different visual designs (A/B/C test candidates) ----
+const SKINS = {
+  twilight: { name: 'Sakura Twilight', family: 'sakura', ambient: { type: 'petal', colors: ['#ffb7cf', '#ffd6e4', '#d9c6ff'], count: 14 },
+    colors: { T: '#bfa2ff', M: '#95e07d', G: '#ffd056', S: '#ff94b6', B: '#86b8ff', R: '#d39461', L: '#fff1d6', K: '#9a6750', W: '#fffaf4', P: '#4a3030', F: '#c6f3ff' } },
+  cafe: { name: 'Night Café', ambient: { type: 'mote', colors: ['#c9a7ff', '#ffe6a8'], count: 26 },
+    colors: { T: '#a689e0', M: '#7cc46a', G: '#f7b733', S: '#f47fa4', B: '#5b8def', R: '#a8693b', L: '#efe6cf', K: '#5a3b2e', W: '#f8f8ff', P: '#3b2621', F: '#bdf2ff' } },
+  sakura: { name: 'Sakura Pastel', family: 'sakura', ambient: { type: 'petal', colors: ['#ffc1d6', '#ffd9e6', '#ffffff'], count: 18 },
+    colors: { T: '#b99cf5', M: '#8fd977', G: '#ffcc4d', S: '#ff8fb1', B: '#7fb2ff', R: '#c98a58', L: '#fff1d6', K: '#8a5a44', W: '#fffaf4', P: '#4a3030', F: '#c9f4ff' } },
+  lab: { name: 'Potion Lab', ambient: { type: 'bubble', colors: ['#58ffb0', '#b26bff', '#4fb3ff'], count: 22 },
+    colors: { T: '#b46dff', M: '#3dffa0', G: '#ffb238', S: '#ff4f8b', B: '#3fb0ff', R: '#e08a3a', L: '#f0ffb8', K: '#7a4430', W: '#e6f6ff', P: '#3a2433', F: '#9ffcff' } },
+};
+let skin = 'twilight'; // default look; the saved choice is applied at boot
+function applySkin(name, announce) {
+  skin = name;
+  const root = document.documentElement;
+  if (name === 'cafe') delete root.dataset.skin; else root.dataset.skin = name;
+  root.dataset.family = SKINS[name].family || name;
+  for (const [k, c] of Object.entries(SKINS[name].colors)) FLAVORS[k].color = c;
+  FX.setAmbient(SKINS[name].ambient);
+  if (level) render();
+  if ($('titleScreen').classList.contains('show')) renderTitle();
+  if (announce) {
+    const t = document.createElement('div');
+    t.className = 'skin-toast'; t.textContent = '🎨 ' + SKINS[name].name;
+    document.body.appendChild(t);
+    t.animate([{ opacity: 0, transform: 'translate(-50%,-50%) scale(.6)' }, { opacity: 1, transform: 'translate(-50%,-50%) scale(1.08)', offset: 0.2 },
+      { opacity: 1, transform: 'translate(-50%,-50%) scale(1)', offset: 0.75 }, { opacity: 0, transform: 'translate(-50%,-60%) scale(1)' }], { duration: 1300, easing: 'ease-out' }).onfinish = () => t.remove();
+    if (!REDUCE) [...$('board').children].forEach((slot, n) => slot.animate([{ transform: 'scale(.85)', opacity: .3 }, { transform: 'scale(1.05)', offset: .6 }, { transform: 'none', opacity: 1 }],
+      { duration: 380, delay: n * 35, easing: 'ease-out', fill: 'backwards' }));
+  }
+}
+
+let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [], vialsUsed = 0, adTimer = null;
+let levelStart = 0, wasStuck = false;
+let busy = false, streak = 0, quietMoves = 0, hiddenCup = null, flying = null, knownOpen = new Set(), lastProgress = 0;
+
+const $ = (id) => document.getElementById(id);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const vialSizes = () => level.bonusVials || [2, 3, 4];
+const isDev = () => location.hash === '#dev';
+const syncDev = () => document.body.classList.toggle('dev', isDev());
+window.addEventListener('hashchange', () => { syncDev(); render(); });
+syncDev();
+
+// Browsers only allow audio after a gesture: unlock on the first touch.
+document.addEventListener('pointerdown', () => A.unlock(), { capture: true });
+$('skinBtn').onclick = () => { const names = Object.keys(SKINS); applySkin(names[(names.indexOf(skin) + 1) % names.length], true); A.tap(); };
+
+const pick = $('pick');
+LEVELS.forEach((l, i) => pick.add(new Option(`${l.id} · ${l.title}`, i)));
+pick.onchange = () => load(+pick.value);
+
+const cupEl = (i) => $('board').children[i]?.querySelector('.cup');
+const orderEl = (k) => $('counter').querySelectorAll('.order')[k];
+const center = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, r }; };
+const isDone = (s, i) => s.mode === 'sort' && s.cups[i].length === s.cap && Boba.topRun(s.cups[i]) === s.cups[i].length;
+
+function setCoins(n, bump = true) {
+  Save.get().coins = n; Save.write(); syncCoins();
+  if (bump) { const p = $('coins'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
+}
+
+// ------------------------------------------------------------------------------------------
+function load(i) {
+  idx = i; pick.value = i; level = LEVELS[i];
+  $('lvlTitle').textContent = `${level.id} · ${level.title}`;
+  hideCoach(); levelStart = Date.now();
+  state = Boba.initState(level); history = []; sel = null; moves = 0; hintCups = []; vialsUsed = 0;
+  streak = 0; quietMoves = 0; busy = false; lastProgress = 0;
+  finishFlight();
+  knownOpen = new Set((state.open || []).map((o) => o.i));
+  $('win').classList.remove('show');
+  clearInterval(adTimer); $('ad').classList.remove('show');
+  Save.get().current = i; Save.write();
+  track('level_start', { id: level.id });
+  render();
+  setTimeout(() => tutorial('start'), 650);
+  // cups drop in, cascading
+  if (!REDUCE) [...$('board').children].forEach((slot, n) => slot.animate(
+    [{ transform: 'translateY(-40px) scale(.8)', opacity: 0 }, { transform: 'translateY(4px) scale(1.03)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }],
+    { duration: 420, delay: n * 55, easing: 'ease-out', fill: 'backwards' }));
+  [...$('board').children].forEach((_, n) => setTimeout(() => A.hop(n), n * 55 + 200));
+}
+
+function progress(s) {
+  if (s.mode === 'orders') {
+    const total = s.orders.join('').length;
+    let done = s.orders.slice(0, s.next).join('').length;
+    for (const o of s.open) done -= s.orders[o.i].length - o.filled;
+    return done / total;
+  }
+  const total = s.cups.join('').length;
+  let good = 0;
+  s.cups.forEach((c) => { if (c.length && Boba.topRun(c) === c.length) good += c.length >= 2 ? c.length : 0; });
+  return good / total;
+}
+
+function layerEl(code, { ghost = false, surface = false, seam = false } = {}) {
+  const d = document.createElement('div');
+  d.className = 'layer ' + code + (ghost ? ' ghost' : '') + (surface ? ' surface' : '') + (seam ? ' seam' : '');
+  d.style.backgroundColor = FLAVORS[code].color;
+  d.style.setProperty('--c', FLAVORS[code].color);
+  d.title = FLAVORS[code].name;
+  return d;
+}
+
+function fillCup(cup, str, cap) {
+  cup.style.setProperty('--cap', cap);
+  [...str].forEach((code, n) => cup.appendChild(layerEl(code, { surface: n === str.length - 1 && code !== 'P', seam: n > 0 && str[n - 1] !== code })));
+}
+
+// anim: { cup|slot, from, n, pearl, delay } for the pour-in; sealed: Set of newly completed cups
+function render(anim = {}) {
+  const s = level.stats;
+  $('meta').innerHTML = `<b>${level.world}</b> · ${level.note}<br>Moves <b>${moves}</b> · ★★★ in <b>${s.optimal}</b>` +
+    (isDev() ? ` · ${level.tier} · casual stuck ${s.casualStuckPct ?? '?'}% (random ${s.randomPlayStuckPct}%) · branching ${s.branching}` : '');
+
+  // progress bar (+ sparkle when it grows)
+  const p = progress(state);
+  $('prog').style.width = (p * 100).toFixed(1) + '%';
+  if (p > lastProgress + 0.001 && !REDUCE) {
+    const r = $('prog').parentElement.getBoundingClientRect();
+    setTimeout(() => FX.burst(r.left + r.width * p, r.top + r.height / 2, { colors: ['#fff', '#ffe6a8'], count: 6, speed: 90, g: 120, size: [1.5, 3] }), 450);
+  }
+  lastProgress = p;
+
+  // counter
+  const counter = $('counter');
+  counter.hidden = state.mode !== 'orders';
+  counter.innerHTML = '';
+  if (state.mode === 'orders') {
+    counter.insertAdjacentHTML('beforeend', '<div class="label">Counter</div>');
+    state.open.forEach((o, k) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'cust-slot';
+      if (!knownOpen.has(o.i)) {
+        wrap.classList.add('enter'); wrap.style.setProperty('--d', (anim.enterDelay || 0) + 'ms');
+        knownOpen.add(o.i);
+        setTimeout(() => A.customer(), (anim.enterDelay || 0) + 150);
+      }
+      wrap.innerHTML = `<div class="cust">${CUSTOMERS[o.i % CUSTOMERS.length]}</div>`;
+      const cup = document.createElement('div');
+      cup.className = 'cup order' + (hintCups.includes('o' + k) ? ' hint' : '');
+      cup.style.setProperty('--cap', level.orders[o.i].length);
+      cup.style.setProperty('--gd', (k * 1.3) + 's');
+      [...level.orders[o.i]].forEach((c, n) => cup.appendChild(layerEl(c, { ghost: n >= o.filled, surface: n === o.filled - 1 && c !== 'P' })));
+      cup.onclick = () => tap('o' + k);
+      wrap.appendChild(cup);
+      counter.appendChild(wrap);
+      if (anim.slot === k) animateIn(cup, anim);
+    });
+    const waiting = state.orders.length - state.next;
+    counter.insertAdjacentHTML('beforeend', `<div class="queue">${waiting ? 'In queue: ' + state.orders.slice(state.next).map((o, n) => CUSTOMERS[(state.next + n) % CUSTOMERS.length]).join(' ') : 'No one else waiting'}</div>`);
+  }
+
+  // play cups
+  const board = $('board');
+  board.innerHTML = '';
+  state.cups.forEach((c, i) => {
+    const cup = document.createElement('div');
+    const done = isDone(state, i);
+    const isVial = i >= level.cups.length;
+    cup.className = 'cup' + (isVial ? ' vial' : '') + (sel === i ? ' sel' : '') + (done ? ' done' : '') + (hintCups.includes(i) ? ' hint' : '') + (c.length ? '' : ' empty') + (!done && c.length === state.cap - 1 && Boba.topRun(c) === c.length ? ' almost' : '');
+    cup.style.setProperty('--gd', ((i * 0.9) % 7) + 's');
+    if (c.length) cup.style.setProperty('--glow', FLAVORS[c[c.length - 1]].color);
+    fillCup(cup, c, state.caps[i]);
+    cup.insertAdjacentHTML('beforeend', '<span class="face"><i></i><i></i><b></b></span>');
+    cup.onclick = () => tap(i);
+    if (hiddenCup === i) cup.style.visibility = 'hidden';
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    if (isVial) slot.insertAdjacentHTML('beforeend', `<div class="vialtag">✦ ${state.caps[i]}</div>`);
+    slot.appendChild(cup);
+    if (done) {
+      const lid = document.createElement('div');
+      lid.className = 'lid';
+      lid.innerHTML = '<i class="straw"></i>';
+      slot.appendChild(lid);
+      if (anim.sealed && anim.sealed.has(i) && !REDUCE) {
+        const d = anim.sealDelay || 0;
+        lid.animate([{ transform: 'translateY(-60px) scale(1.2,.8)', opacity: 0 }, { transform: 'translateY(3px) scale(.9,1.15)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }],
+          { duration: 380, delay: d, easing: 'cubic-bezier(.3,1.4,.5,1)', fill: 'backwards' });
+        lid.firstChild.animate([{ transform: 'translateY(-40px) rotate(30deg)', opacity: 0 }, { transform: 'rotate(14deg)', opacity: 1 }],
+          { duration: 300, delay: d + 260, easing: 'cubic-bezier(.3,1.6,.5,1)', fill: 'backwards' });
+        cup.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12,.9)', offset: 0.35 }, { transform: 'scale(.95,1.06)', offset: 0.7 }, { transform: 'scale(1)' }],
+          { duration: 420, delay: d + 120 });
+      }
+    }
+    board.appendChild(slot);
+    if (anim.cup === i) animateIn(cup, anim);
+  });
+
+  balanceRows();
+
+  // Players only see the magic ingredients explained; dev mode lists every flavour.
+  const used = new Set((level.cups.join('') + (level.orders || []).join('')).split(''));
+  const shown = [...used].sort().filter((c) => isDev() || c === 'P' || c === 'F');
+  $('legend').className = 'legend' + (isDev() ? '' : ' special');
+  $('legend').innerHTML = shown.map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c === 'P' ? ' sink' : c === 'F' ? ' floats' : ''}</span>`).join('');
+  $('undo').disabled = !history.length;
+  const sizes = vialSizes();
+  $('vial').disabled = vialsUsed >= sizes.length;
+  $('vial').textContent = vialsUsed < sizes.length ? `📺 +${sizes[vialsUsed]}-layer vial` : 'No vials left';
+  // gently suggest the vial when the player has no useful moves left
+  const stuck = !Boba.isWon(state) && !Boba.legalMoves(state).length;
+  $('vial').classList.toggle('nudge', stuck && vialsUsed < sizes.length);
+  if (stuck && !wasStuck) { track('stuck', { id: level.id, moves }); setTimeout(() => tutorial('stuck'), 500); }
+  wasStuck = stuck;
+}
+
+// Spread cups evenly over rows (7 cups -> 4 + 3, never 6 + 1).
+function balanceRows() {
+  const board = $('board'), slots = [...board.children];
+  if (!slots.length) return;
+  board.style.maxWidth = '';
+  const gap = 12, w = Math.max(...slots.map((s) => s.offsetWidth)) + gap;
+  const perRowMax = Math.max(1, Math.floor((board.clientWidth + gap) / w));
+  const perRow = Math.ceil(slots.length / Math.ceil(slots.length / perRowMax));
+  board.style.maxWidth = perRow * w + 'px';
+}
+window.addEventListener('resize', () => level && balanceRows());
+
+// Layers arriving in a cup: liquids grow upward in sequence; pearls drop in and push liquid up.
+function animateIn(cup, a) {
+  if (REDUCE) return;
+  const layers = cup.querySelectorAll('.layer');
+  for (let n = 0; n < a.n; n++) {
+    const el = layers[a.from + n];
+    if (!el) continue;
+    const delay = (a.delay || 0) + n * T.unit;
+    if (a.pearl) el.animate([{ transform: 'translateY(-160%)', opacity: 0 }, { transform: 'translateY(8%) scaleY(.85)', opacity: 1, offset: 0.75 }, { transform: 'none', opacity: 1 }],
+      { duration: T.unit + 120, delay, easing: 'ease-in', fill: 'backwards' });
+    else el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1.06)', offset: 0.8 }, { transform: 'scaleY(1)' }],
+      { duration: T.unit + 20, delay, easing: 'linear', fill: 'backwards' });
+  }
+  if (a.shift) for (let n = a.from + a.n; n < layers.length; n++) layers[n].animate(
+    [{ transform: `translateY(${a.n * 100}%)` }, { transform: 'translateY(-6%)', offset: 0.8 }, { transform: 'none' }],
+    { duration: a.n * T.unit + 160, delay: a.delay || 0, easing: 'ease-out', fill: 'backwards' });
+}
+
+// ------------------------------------------------------------------------------------------
+function tap(target) {
+  if (busy) return;
+  hintCups = [];
+  if (typeof target === 'string') { if (sel !== null) tryMove([sel, target]); return; }
+  if (sel === null) { if (state.cups[target].length) select(target); return; }
+  if (sel === target) { deselect(); return; }
+  if (!tryMove([sel, target])) {
+    shakeCup(cupEl(target));
+    A.invalid();
+    const prev = sel; deselect(true);
+    if (state.cups[target].length && target !== prev) setTimeout(() => select(target), 60);
+  }
+}
+
+function select(i) {
+  finishFlight();
+  sel = i;
+  const el = cupEl(i);
+  el.classList.add('sel');
+  A.select(state.cups[i].length);
+  tutorial('select');
+  if (REDUCE) return;
+  el.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-22px) scale(.94,1.07)', offset: 0.45 }, { transform: 'translateY(-12px) scale(1.03,.97)', offset: 0.75 }, { transform: 'translateY(-14px)' }],
+    { duration: 300, easing: 'ease-out' });
+  el.querySelectorAll('.layer').forEach((l, n) => l.animate([{ transform: 'skewY(0)' }, { transform: `skewY(${7 - n}deg)` }, { transform: `skewY(${-4 + n * 0.5}deg)` }, { transform: 'skewY(2deg)' }, { transform: 'skewY(0)' }],
+    { duration: 650, easing: 'ease-out' }));
+}
+
+function deselect(silent) {
+  const el = sel !== null && cupEl(sel);
+  sel = null;
+  if (!el) return;
+  el.classList.remove('sel');
+  if (!silent) A.deselect();
+  setTimeout(() => tutorial('select'), 0);
+  if (!REDUCE) el.animate([{ transform: 'translateY(-14px)' }, { transform: 'translateY(3px) scale(1.04,.95)', offset: 0.6 }, { transform: 'none' }], { duration: 260, easing: 'ease-in' });
+}
+
+function shakeCup(el) {
+  if (!el || REDUCE) return;
+  el.animate([0, -7, 6, -4, 3, 0].map((x) => ({ transform: `translateX(${x}px) rotate(${x / 2}deg)` })), { duration: 320, easing: 'ease-out' });
+}
+
+function tryMove(m) {
+  const legal = Boba.legalMoves(state).some(([a, b]) => a === m[0] && b === m[1]);
+  // allow "pointless" pure-cup -> empty-cup moves for the player even though the solver prunes them
+  const src = state.cups[m[0]], dst = typeof m[1] === 'number' ? state.cups[m[1]] : null;
+  const pointless = dst !== null && !dst.length && src.length && Boba.topRun(src) === src.length;
+  if (!legal && !pointless) return false;
+  pour(m);
+  return true;
+}
+
+// Restore the source cup if a flight is still returning.
+function finishFlight() {
+  if (!flying) return;
+  flying.clone.remove();
+  const el = cupEl(flying.i);
+  if (el) el.style.visibility = '';
+  hiddenCup = null; flying = null;
+}
+
+async function pour(m) {
+  finishFlight();
+  busy = true;
+  const before = state;
+  const after = Boba.applyMove(state, m);
+  const amount = after.lastAmount;
+  const i = m[0];
+  const t = before.cups[i].slice(-1);
+  const solid = t === 'P';
+  const toOrder = typeof m[1] === 'string';
+  const k = toOrder ? +m[1].slice(1) : -1;
+  const dstCap = toOrder ? level.orders[before.open[k].i].length : before.caps[m[1]];
+  const dstFrom = toOrder ? before.open[k].filled : before.cups[m[1]].length;
+  const srcEl = cupEl(i), dstEl = toOrder ? orderEl(k) : cupEl(m[1]);
+  const served = toOrder && !after.open.some((o) => o.i === before.open[k].i);
+  const sealed = new Set();
+  if (!toOrder && !isDone(before, m[1]) && isDone(after, m[1])) sealed.add(m[1]);
+
+  history.push(before);
+  moves++;
+  sel = null;
+
+  const r1 = srcEl.getBoundingClientRect(), r2 = dstEl.getBoundingClientRect();
+  const layerH = (r2.height - 8) / dstCap;
+  // where poured units land: liquids on top; pearls sink below liquid
+  const landFrom = toOrder ? dstFrom : Boba.landIndex(before.cups[m[1]], t);
+  const shift = !toOrder && landFrom < before.cups[m[1]].length; // layers above get pushed up
+  const surfaceY = r2.bottom - 5 - dstFrom * layerH;
+  const pourMs = amount * T.unit + 60;
+
+  // serving: keep a copy of the customer + cup on screen while the real counter moves on
+  let servedClone = null;
+  if (served) {
+    const slotEl = dstEl.parentElement, sr = slotEl.getBoundingClientRect();
+    servedClone = slotEl.cloneNode(true);
+    servedClone.classList.remove('enter');
+    Object.assign(servedClone.style, { position: 'fixed', left: sr.left + 'px', top: sr.top + 'px', width: sr.width + 'px', margin: 0, zIndex: 41, pointerEvents: 'none' });
+    document.body.appendChild(servedClone);
+  }
+
+  if (REDUCE) {
+    state = after;
+    render({ sealed, enterDelay: 0 });
+    busy = false;
+    if (servedClone) servedClone.remove();
+    await afterMove({ sealed, served, dstEl: toOrder ? null : cupEl(m[1]), t });
+    return;
+  }
+
+  // 1) lift: the source cup flies over the target and tips, pivoting on its lip
+  const clone = srcEl.cloneNode(true);
+  clone.classList.remove('sel', 'hint');
+  clone.classList.add('flying');
+  Object.assign(clone.style, { left: r1.left + 'px', top: r1.top + 'px', width: r1.width + 'px', height: r1.height + 'px', margin: 0, transform: 'none', visibility: 'visible' });
+  document.body.appendChild(clone);
+  hiddenCup = i; srcEl.style.visibility = 'hidden';
+  const side = r2.left + r2.width / 2 >= r1.left + r1.width / 2 ? 1 : -1;
+  clone.style.transformOrigin = side === 1 ? 'top right' : 'top left';
+  const pivotX = r2.left + r2.width / 2 + side * 3;
+  const pivotY = r2.top - 22;
+  const dx = pivotX - (side === 1 ? r1.right : r1.left);
+  const dy = pivotY - r1.top;
+  const ang = side * 74;
+  flying = { clone, i };
+  await clone.animate([
+    { transform: 'translate(0,0) rotate(0deg)' },
+    { transform: `translate(${dx * 0.6}px, ${dy * 0.6 - 26}px) rotate(${ang * 0.2}deg)`, offset: 0.55 },
+    { transform: `translate(${dx}px, ${dy}px) rotate(${ang}deg)` },
+  ], { duration: T.lift, easing: 'cubic-bezier(.35,.6,.4,1)', fill: 'forwards' }).finished;
+
+  // 2) pour: stream + drain + fill, all in sync with the sound
+  A.pour(amount, dstFrom, dstCap, solid, T.unit);
+  const color = FLAVORS[t].color;
+  [...clone.querySelectorAll('.layer')].slice(-amount).reverse().forEach((el, n) =>
+    el.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: T.unit, delay: n * T.unit, fill: 'forwards', easing: 'linear' }));
+  if (!solid) {
+    const st = document.createElement('div');
+    st.className = 'stream';
+    Object.assign(st.style, { left: pivotX - 3 + 'px', top: pivotY + 'px', height: Math.max(10, surfaceY - pivotY) + 'px', backgroundColor: color });
+    if (skin === 'lab') st.style.setProperty('--sc', color);
+    document.body.appendChild(st);
+    st.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 70, fill: 'forwards' });
+    st.animate([{ width: '6px', marginLeft: '0px' }, { width: '4px', marginLeft: '1px' }, { width: '7px', marginLeft: '-.5px' }, { width: '5px', marginLeft: '.5px' }],
+      { duration: 180, iterations: Infinity, direction: 'alternate' });
+    for (let u = 0; u < amount; u++) setTimeout(() => FX.burst(pivotX, surfaceY - u * layerH - 2, { colors: [color, '#ffffff'], count: 5, speed: 120, g: 900, up: 120, size: [1.5, 3], types: ['dot'], life: [0.25, 0.45] }), u * T.unit + 60);
+    setTimeout(() => {
+      st.style.transformOrigin = 'bottom';
+      st.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(0)' }], { duration: 90, fill: 'forwards' }).onfinish = () => st.remove();
+    }, pourMs - 50);
+  } else {
+    FX.pearls(pivotX, pivotY, surfaceY, amount * 4, amount * T.unit);
+  }
+
+  state = after;
+  const anim = toOrder
+    ? (served ? { enterDelay: pourMs + 700 } : { slot: k, from: dstFrom, n: amount, delay: 50 })
+    : { cup: m[1], from: landFrom, n: amount, pearl: solid, shift, delay: solid ? 140 : 50, sealed, sealDelay: pourMs + 40 };
+  render(anim);
+  if (servedClone) animateIn(servedClone.querySelector('.order'), { from: dstFrom, n: amount, delay: 50 });
+
+  await wait(pourMs);
+
+  // 3) return the cup home (input is already open again)
+  busy = false;
+  const back = clone.animate([
+    { transform: `translate(${dx}px, ${dy}px) rotate(${ang}deg)` },
+    { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - 18}px) rotate(${-ang * 0.08}deg)`, offset: 0.55 },
+    { transform: 'translate(0,0) rotate(0deg)' },
+  ], { duration: T.back, easing: 'cubic-bezier(.35,.6,.4,1)', fill: 'forwards' });
+  back.onfinish = () => {
+    if (flying && flying.clone === clone) {
+      finishFlight();
+      const el = cupEl(i);
+      if (el && !REDUCE) el.animate([{ transform: 'scale(1.06,.92)' }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
+    }
+  };
+
+  await afterMove({ sealed, served, servedClone, dstEl: toOrder ? null : cupEl(m[1]), t });
+}
+
+async function afterMove({ sealed, served, servedClone, dstEl, t }) {
+  const good = sealed.size > 0 || served;
+  if (good) { streak++; quietMoves = 0; } else if (++quietMoves >= 4) streak = 0;
+
+  if (sealed.size && dstEl) {
+    await wait(60);
+    const c = center(dstEl);
+    const color = FLAVORS[t].color;
+    A.complete(streak - 1);
+    FX.ring(c.x, c.r.top, color, 80);
+    FX.burst(c.x, c.r.top + 10, { colors: [color, '#ffffff', '#ffe6a8'], count: 26 + streak * 4, speed: 300 + streak * 30, up: 160, types: ['star', 'dot'] });
+    FX.shake($('board'), 2 + Math.min(streak, 4));
+    praise(c.x, c.r.top - 18);
+  }
+  if (served && servedClone) {
+    const cust = servedClone.querySelector('.cust');
+    const c = center(servedClone);
+    A.serve(streak - 1);
+    FX.hearts(c.x, c.r.top + 10, 7);
+    FX.burst(c.x, c.y, { colors: ['#ffffff', '#ffe6a8', '#ff9ec2'], count: 22 + streak * 4, speed: 280, up: 120 });
+    FX.ring(c.x, c.y, '#ffe6a8', 90);
+    if (cust) cust.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-22px) scale(1.35) rotate(-10deg)', offset: 0.35 }, { transform: 'translateY(0) scale(1)', offset: 0.7 }, { transform: 'translateY(-8px) scale(1.15) rotate(8deg)' }],
+      { duration: 520, easing: 'ease-out', fill: 'forwards' });
+    praise(c.x, c.r.top - 8);
+    setTimeout(() => servedClone.animate([{ transform: 'none', opacity: 1 }, { transform: 'translate(40px,-30px) scale(.7)', opacity: 0 }],
+      { duration: 420, easing: 'ease-in', fill: 'forwards' }).onfinish = () => servedClone.remove(), 520);
+  } else if (servedClone) servedClone.remove();
+
+  tutorial('moved');
+  if (Boba.isWon(state)) await celebrate();
+}
+
+function praise(x, y) {
+  const word = PRAISE[Math.min(Math.max(streak - 1, 0), PRAISE.length - 1)];
+  const hue = ['#ffffff', '#ffe6a8', '#ff9ec2', '#c9a7ff', '#8ee0a6', '#ffd76a', '#ffd76a'][Math.min(streak - 1, 6)];
+  FX.text(x, y, word, { color: hue, size: 20 + Math.min(streak, 6) * 3, cls: streak >= 3 ? 'big' : '' });
+  if (streak >= 2) { A.praise(streak); setTimeout(() => FX.text(x, y + 24, `${streak}× streak`, { color: '#c9a7ff', size: 13, rise: 40, dur: 900 }), 120); }
+}
+
+// ------------------------------------------------------------------------------------------
+async function celebrate() {
+  busy = true;
+  await wait(380);
+  // victory lap: every cup hops in turn, climbing the scale
+  const slots = [...$('board').children];
+  slots.forEach((slot, n) => setTimeout(() => {
+    A.hop(n);
+    if (REDUCE) return;
+    slot.animate([{ transform: 'none' }, { transform: 'translateY(-18px) scale(1.06,.94)', offset: 0.4 }, { transform: 'translateY(2px) scale(.96,1.04)', offset: 0.75 }, { transform: 'none' }],
+      { duration: 380, easing: 'ease-out' });
+    const c = center(slot);
+    FX.burst(c.x, c.r.top + 20, { colors: ['#ffe6a8', '#ffffff', '#c9a7ff'], count: 8, speed: 140, up: 80, size: [1.5, 3.5] });
+  }, n * 85));
+  await wait(slots.length * 85 + 200);
+
+  A.win();
+  FX.confetti([...new Set(Object.values(FLAVORS).map((f) => f.color)), '#ffffff']);
+  FX.shake(document.body, 5, 380);
+
+  const opt = level.stats.optimal;
+  const stars = moves <= opt ? 3 : moves <= Math.ceil(opt * 1.4) ? 2 : 1;
+  const sv = Save.get(), best = sv.stars[level.id] || 0;
+  if (stars > best) sv.stars[level.id] = stars;
+  sv.wins++; if (idx + 1 < LEVELS.length) sv.current = idx + 1;
+  Save.write();
+  track('level_win', { id: level.id, moves, stars, vials: vialsUsed, secs: Math.round((Date.now() - levelStart) / 1000) });
+  hideCoach();
+  const golden = Math.random() < 0.15;
+  const tip = golden ? 30 : 1 + Math.floor(Math.random() * 5);
+  const base = 10 + stars * 5;
+
+  $('winTitle').textContent = ['Served!', 'Delicious!', 'Perfect brew!'][stars - 1];
+  $('winText').textContent = `${moves} moves (best possible: ${opt})` + (vialsUsed ? ` · ${vialsUsed} bonus vial${vialsUsed > 1 ? 's' : ''}` : '') + (stars > best && best ? ' · new best!' : '');
+  $('earnN').textContent = 0;
+  $('tipLine').textContent = ''; $('tipLine').className = 'tip';
+  const starEls = [...$('stars').children];
+  starEls.forEach((s) => (s.className = ''));
+  $('win').classList.add('show');
+  await wait(420);
+
+  for (let n = 0; n < 3; n++) {
+    if (n < stars) {
+      starEls[n].className = 'on';
+      A.star(n === stars - 1 && stars === 3 ? 2 : n);
+      const c = center(starEls[n]);
+      FX.burst(c.x, c.y, { colors: ['#ffd76a', '#fff3c4', '#ffffff'], count: n === 2 ? 30 : 16, speed: n === 2 ? 320 : 220, types: ['star', 'dot'], g: 300 });
+      FX.ring(c.x, c.y, '#ffd76a', 50, 14);
+    }
+    await wait(340);
+  }
+
+  // coins count up
+  await countUp(base, 0);
+  await wait(200);
+  if (golden) {
+    $('tipLine').textContent = `✨ Golden tip! +${tip}`; $('tipLine').className = 'tip golden';
+    A.golden();
+    const c = center($('tipLine'));
+    FX.burst(c.x, c.y, { colors: ['#ffd76a', '#fff3c4'], count: 40, speed: 360, types: ['star'], g: 250 });
+  } else {
+    $('tipLine').textContent = `${CUSTOMERS[idx % CUSTOMERS.length]} left a tip: +${tip}`;
+    A.coin(12);
+  }
+  await countUp(base + tip, base);
+  setCoins(Save.get().coins + base + tip);
+  // Ask for an App Store rating at happy moments, at most once per install (iOS limits it further).
+  if (Native.has && !sv.reviewAsked && stars === 3 && sv.wins >= 6) { sv.reviewAsked = true; Save.write(); setTimeout(() => Native.post('requestReview'), 1200); }
+  const pc = center($('coins'));
+  FX.burst(pc.x, pc.y, { colors: ['#ffd76a', '#ffffff'], count: 12, speed: 150, g: 200, size: [1.5, 3] });
+  busy = false;
+}
+
+function countUp(to, from) {
+  return new Promise((res) => {
+    const steps = Math.min(20, to - from), el = $('earnN');
+    if (steps <= 0) { el.textContent = to; return res(); }
+    let n = 0;
+    const iv = setInterval(() => {
+      n++;
+      el.textContent = Math.round(from + ((to - from) * n) / steps);
+      A.coin(n);
+      if (n >= steps) { clearInterval(iv); res(); }
+    }, 38);
+  });
+}
+
+// ------------------------------------------------------------------------------------------
+$('undo').onclick = () => {
+  if (busy || !history.length) return;
+  finishFlight();
+  const prev = state;
+  state = history.pop(); moves--; sel = null; hintCups = []; streak = 0; quietMoves = 0;
+  if (state.open) knownOpen = new Set([...knownOpen, ...state.open.map((o) => o.i)]);
+  A.undo();
+  render();
+  if (!REDUCE) state.cups.forEach((c, n) => {
+    if (c !== prev.cups[n]) cupEl(n)?.animate([{ transform: 'scale(.92,1.06)', filter: 'brightness(1.4)' }, { transform: 'none', filter: 'none' }], { duration: 260, easing: 'ease-out' });
+  });
+};
+$('restart').onclick = () => { if (busy) return; A.undo(); load(idx); };
+$('nextBtn').onclick = () => { A.tap(); load((idx + 1) % LEVELS.length); };
+$('winNext').onclick = () => {
+  A.tap();
+  if (idx + 1 < LEVELS.length) return load(idx + 1);
+  $('win').classList.remove('show'); showScreen('titleScreen');
+  toast('You served every customer! New levels are brewing ☕', 3500);
+};
+$('winLevels').onclick = () => { A.tap(); $('win').classList.remove('show'); screenStack = ['titleScreen']; showScreen('levelsScreen'); };
+$('restart').addEventListener('click', () => track('level_restart', { id: level.id, moves }));
+
+// Rewarded-ad flow (simulated). The vial is added to every undo step too, so Undo never takes it back.
+function grantVial() {
+  const size = vialSizes()[vialsUsed++];
+  state = Boba.addVial(state, size);
+  history = history.map((h) => Boba.addVial(h, size));
+  A.vial();
+  render();
+  const el = cupEl(state.cups.length - 1);
+  if (!el) return;
+  if (!REDUCE) el.parentElement.animate([{ transform: 'translateY(-120px) rotate(-200deg) scale(.3)', opacity: 0 }, { transform: 'translateY(6px) rotate(10deg) scale(1.08)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }],
+    { duration: 650, easing: 'cubic-bezier(.3,1.2,.5,1)' });
+  setTimeout(() => {
+    const c = center(el);
+    FX.burst(c.x, c.y, { colors: ['#c9a7ff', '#ffffff', '#ffe6a8'], count: 30, speed: 260, types: ['star', 'dot'], g: 200 });
+    FX.ring(c.x, c.y, '#c9a7ff', 90);
+  }, 450);
+}
+$('vial').onclick = () => {
+  if (busy || vialsUsed >= vialSizes().length) return;
+  A.tap();
+  track('vial_offer', { id: level.id, size: vialSizes()[vialsUsed] });
+  hideCoach();
+  if (isDev()) return grantVial();
+  if (Native.has) {
+    busy = true; A.pause();
+    Native.showRewardedAd('bonus_vial').then(({ ok, reason }) => {
+      busy = false; A.resume();
+      track(ok ? 'vial_granted' : 'ad_' + reason, { id: level.id });
+      if (ok) grantVial();
+      else toast(reason === 'unavailable' ? 'No ad is ready right now. Try again in a moment.' : 'Watch to the end to get the vial.');
+    });
+    return;
+  }
+  let t = 3;
+  $('adSize').textContent = `${vialSizes()[vialsUsed]}-layer vial`;
+  $('adCount').textContent = t; $('adRing').style.setProperty('--p', 0);
+  $('ad').classList.add('show');
+  const t0 = performance.now();
+  adTimer = setInterval(() => {
+    const el = (performance.now() - t0) / 1000;
+    $('adRing').style.setProperty('--p', Math.min(100, (el / 3) * 100));
+    const left = Math.max(0, Math.ceil(3 - el));
+    if (left !== t) { t = left; $('adCount').textContent = t || '✓'; }
+    if (el >= 3) { clearInterval(adTimer); track('vial_granted', { id: level.id }); setTimeout(() => { $('ad').classList.remove('show'); grantVial(); }, 200); }
+  }, 30);
+};
+$('adCancel').onclick = () => { clearInterval(adTimer); $('ad').classList.remove('show'); A.tap(); track('ad_cancel', { id: level.id }); };
+$('hint').onclick = () => {
+  const sol = Boba.solve(level, 200000, state);
+  if (sol.solvable && sol.path.length) { hintCups = sol.path[0]; sel = null; render(); }
+  else $('meta').insertAdjacentHTML('beforeend', '<br><b style="color:var(--warn)">Stuck! Undo, restart, or grab a vial.</b>');
+};
+
+
+// ==== Save data =============================================================================
+// One JSON blob. In the iOS app the native side injects the last save as window.__BOBA_SAVE__
+// before the page loads and stores every update in UserDefaults; in a browser it lives in localStorage.
+const SAVE_KEY = 'boba.save.v1';
+const Save = (() => {
+  const fresh = () => ({ v: 1, coins: 0, current: 0, stars: {}, skin: 'twilight', straw: 'classic',
+    owned: { skins: ['twilight'], straws: ['classic'] }, settings: { haptics: true }, tutorials: {}, wins: 0, reviewAsked: false });
+  let data = fresh();
+  try {
+    const raw = window.__BOBA_SAVE__ || JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (raw && raw.v === 1) data = Object.assign(fresh(), raw);
+    else { const c = +localStorage.getItem('boba.coins'); if (c) data.coins = c; } // migrate prototype coins
+  } catch {}
+  return {
+    get: () => data,
+    write() {
+      const json = JSON.stringify(data);
+      try { localStorage.setItem(SAVE_KEY, json); } catch {}
+      Native.post('save', { json });
+    },
+    reset() { data = fresh(); this.write(); },
+  };
+})();
+
+// ==== Native bridge (iOS app) ===============================================================
+const Native = {
+  has: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.boba),
+  post(type, payload = {}) { if (this.has) try { window.webkit.messageHandlers.boba.postMessage({ type, ...payload }); } catch {} },
+  _pending: {}, _id: 0,
+  // Rewarded ad: resolves { ok, reason } — ok only if the player earned the reward.
+  showRewardedAd(placement) {
+    return new Promise((resolve) => { const id = ++this._id; this._pending[id] = resolve; this.post('showRewardedAd', { id, placement }); });
+  },
+};
+// Called by the iOS app.
+window.BobaNative = {
+  adResult(id, granted, reason) { const r = Native._pending[id]; delete Native._pending[id]; if (r) r({ ok: !!granted, reason: reason || (granted ? 'earned' : 'closed') }); },
+  pause() { A.pause(); },
+  resume() { A.resume(); },
+};
+// Haptics: native Taptic patterns in the app; returning false lets audio.js fall back to navigator.vibrate.
+window.BobaHaptics = (kind) => {
+  if (!Save.get().settings.haptics) return true;
+  if (!Native.has) return false;
+  Native.post('haptic', { kind });
+  return true;
+};
+
+// ==== Analytics ============================================================================
+// Events go to the native layer (wire to your analytics SDK there). In dev mode they are logged.
+const EVENTS = [];
+function track(name, props = {}) {
+  const e = { name, t: Date.now(), ...props };
+  EVENTS.push(e); if (EVENTS.length > 300) EVENTS.shift();
+  Native.post('track', { name, props });
+  if (isDev()) console.log('[track]', name, props);
+}
+
+// ==== Shop catalogue ========================================================================
+const SHOP = {
+  themes: [
+    { id: 'twilight', name: 'Sakura Twilight', price: 0, preview: 'linear-gradient(180deg,#3b263c,#1f1422)', cups: ['#bfa2ff', '#ff94b6', '#95e07d'] },
+    { id: 'cafe', name: 'Night Café', price: 150, preview: 'linear-gradient(180deg,#3d2c60,#1e1830)', cups: ['#a689e0', '#f7b733', '#f47fa4'] },
+    { id: 'sakura', name: 'Sakura Pastel', price: 150, preview: 'linear-gradient(180deg,#fff6f0,#ffe4ec)', cups: ['#b99cf5', '#ff8fb1', '#ffcc4d'] },
+    { id: 'lab', name: 'Potion Lab', price: 300, preview: 'linear-gradient(180deg,#0c2226,#050c0e)', cups: ['#b46dff', '#3dffa0', '#3fb0ff'] },
+  ],
+  straws: [
+    { id: 'classic', name: 'Classic', price: 0, css: null },
+    { id: 'mint', name: 'Mint Stripe', price: 60, css: 'repeating-linear-gradient(180deg,#9df2c9 0 6px,#fff 6px 10px)' },
+    { id: 'lemon', name: 'Lemon Drop', price: 60, css: 'repeating-linear-gradient(180deg,#ffd84d 0 6px,#fff8d6 6px 10px)' },
+    { id: 'rainbow', name: 'Rainbow', price: 120, css: 'linear-gradient(180deg,#ff8fb1,#ffd056,#95e07d,#86b8ff,#bfa2ff)' },
+    { id: 'galaxy', name: 'Galaxy', price: 200, css: 'radial-gradient(circle at 50% 20%,#fff 0 1px,transparent 2px) 0 0/7px 9px,linear-gradient(180deg,#5b3fa8,#1d1540)' },
+    { id: 'gold', name: 'Golden', price: 400, css: 'linear-gradient(90deg,#b8860b,#ffe08a 45%,#c9961a)' },
+  ],
+};
+function applyStraw(id) {
+  const item = SHOP.straws.find((x) => x.id === id) || SHOP.straws[0];
+  if (item.css) document.documentElement.style.setProperty('--straw', item.css);
+  else document.documentElement.style.removeProperty('--straw');
+}
+
+// ==== Screens ===============================================================================
+const SCREENS = ['titleScreen', 'levelsScreen', 'shopScreen'];
+let screenStack = [];
+function showScreen(id) {
+  SCREENS.forEach((s) => $(s).classList.toggle('show', s === id));
+  screenStack.push(id);
+  hideCoach();
+  if (id === 'titleScreen') renderTitle();
+  if (id === 'levelsScreen') renderLevels();
+  if (id === 'shopScreen') renderShop();
+  syncCoins();
+  track('screen', { id });
+}
+function closeScreens() { SCREENS.forEach((s) => $(s).classList.remove('show')); screenStack = []; }
+document.querySelectorAll('[data-back]').forEach((b) => (b.onclick = () => {
+  A.tap(); screenStack.pop(); const prev = screenStack.pop();
+  if (prev) showScreen(prev); else closeScreens();
+}));
+const syncCoins = () => document.querySelectorAll('#coinN, .coinN').forEach((e) => (e.textContent = Save.get().coins));
+const unlockedUpTo = () => { const st = Save.get().stars; let i = 0; while (i < LEVELS.length - 1 && st[LEVELS[i].id]) i++; return i; };
+
+function renderTitle() {
+  const sv = Save.get(), i = Math.min(sv.current, unlockedUpTo());
+  $('playSub').textContent = `Level ${LEVELS[i].id} · ${LEVELS[i].title}`;
+  const host = $('logoCup');
+  if (!host.firstChild) {
+    host.innerHTML = '<div class="slot"><div class="cup done" style="--cap:4;--glow:#ff94b6"></div><div class="lid"><i class="straw"></i></div></div>';
+    const cup = host.querySelector('.cup');
+    fillCup(cup, 'PTSS', 4);
+    cup.insertAdjacentHTML('beforeend', '<span class="face"><i></i><i></i><b></b></span>');
+  } else { // refresh colours after a theme change
+    const cup = host.querySelector('.cup'); cup.querySelectorAll('.layer').forEach((l) => l.remove());
+    const face = cup.querySelector('.face'); fillCup(cup, 'PTSS', 4); cup.appendChild(face);
+  }
+}
+$('playBtn').onclick = () => { A.tap(); closeScreens(); load(Math.min(Save.get().current, unlockedUpTo())); };
+$('levelsBtn').onclick = () => { A.tap(); showScreen('levelsScreen'); };
+$('shopBtn').onclick = () => { A.tap(); showScreen('shopScreen'); };
+$('menuBtn').onclick = () => { if (busy) return; A.tap(); screenStack = ['titleScreen']; showScreen('levelsScreen'); };
+
+const WORLD_INFO = { 'Cozy Corner': 'Learn to pour and serve.', 'Pearl Grotto': 'Pearls always sink.', 'Fizz Falls': 'Sparkle soda always floats.' };
+function renderLevels() {
+  const sv = Save.get(), open = unlockedUpTo(), host = $('worlds');
+  host.innerHTML = '';
+  let total = 0;
+  const worlds = [...new Set(LEVELS.map((l) => l.world))];
+  worlds.forEach((w) => {
+    const sec = document.createElement('div'); sec.className = 'world';
+    sec.innerHTML = `<h3>${w}</h3><p>${WORLD_INFO[w] || ''}</p><div class="lvl-grid"></div>`;
+    LEVELS.forEach((l, i) => {
+      if (l.world !== w) return;
+      const st = sv.stars[l.id] || 0; total += st;
+      const b = document.createElement('button');
+      b.className = 'lvl' + (l.tier === 'hard' ? ' boss' : '') + (l.mode === 'orders' ? ' counter' : '') + (i === open && !st ? ' current' : '');
+      b.disabled = i > open;
+      b.innerHTML = i > open ? '🔒' : `${l.id.split('-')[1]}<span class="st">${'★'.repeat(st)}<i>${'★'.repeat(3 - st)}</i></span>`;
+      b.setAttribute('aria-label', `Level ${l.id} ${l.title}${i > open ? ', locked' : `, ${st} stars`}`);
+      b.onclick = () => { A.tap(); closeScreens(); load(i); };
+      sec.querySelector('.lvl-grid').appendChild(b);
+    });
+    host.appendChild(sec);
+  });
+  $('starsTotal').textContent = `★ ${total} / ${LEVELS.length * 3}`;
+}
+
+let shopTab = 'themes';
+document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => {
+  A.tap(); shopTab = b.dataset.tab;
+  document.querySelectorAll('[data-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  renderShop();
+}));
+function renderShop() {
+  const sv = Save.get(), grid = $('shopGrid'), kind = shopTab === 'themes' ? 'skins' : 'straws';
+  grid.innerHTML = '';
+  SHOP[shopTab].forEach((it) => {
+    const owned = sv.owned[kind].includes(it.id), equipped = (kind === 'skins' ? sv.skin : sv.straw) === it.id;
+    const card = document.createElement('div');
+    card.className = 'item' + (equipped ? ' equipped' : '');
+    const preview = kind === 'skins'
+      ? `<div class="preview" style="background:${it.preview}">${it.cups.map((c, n) => `<i style="height:${42 + n * 8}px;background:${c}"></i>`).join('')}</div>`
+      : `<div class="preview" style="background:color-mix(in srgb, var(--text) 8%, transparent)"><i class="strawp" style="background:${it.css || 'repeating-linear-gradient(180deg, #ff8fb8 0 6px, #fff 6px 10px)'}"></i></div>`;
+    card.innerHTML = `${preview}<b>${it.name}</b><button class="${equipped || owned ? 'owned' : 'buy'}">${equipped ? 'Equipped ✓' : owned ? 'Equip' : '🪙 ' + it.price}</button>`;
+    const btn = card.querySelector('button');
+    btn.disabled = equipped;
+    btn.onclick = () => buy(kind, it, card);
+    grid.appendChild(card);
+  });
+}
+function buy(kind, it, card) {
+  const sv = Save.get();
+  if (!sv.owned[kind].includes(it.id)) {
+    if (sv.coins < it.price) {
+      A.invalid(); FX.shake(card, 5); toast(`You need ${it.price - sv.coins} more coins. Win levels to earn them!`);
+      track('shop_insufficient', { item: it.id }); return;
+    }
+    sv.coins -= it.price; sv.owned[kind].push(it.id);
+    A.vial();
+    const c = center(card);
+    FX.burst(c.x, c.y, { colors: ['#ffd76a', '#ffffff', '#ff94b6'], count: 36, speed: 280, types: ['star', 'dot'], g: 260 });
+    FX.ring(c.x, c.y, '#ffd76a', 80);
+    track('shop_buy', { kind, item: it.id, price: it.price });
+  } else A.tap();
+  if (kind === 'skins') { sv.skin = it.id; applySkin(it.id, true); } else { sv.straw = it.id; applyStraw(it.id); }
+  track('equip', { kind, item: it.id });
+  Save.write(); renderShop(); syncCoins();
+}
+
+function toast(text, ms = 2200) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = text; document.body.appendChild(t);
+  t.animate([{ opacity: 0, transform: 'translate(-50%, 12px)' }, { opacity: 1, transform: 'translate(-50%, 0)', offset: 0.12 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: ms }).onfinish = () => t.remove();
+}
+
+// ==== Settings ==============================================================================
+function syncSwitches() {
+  $('sfxBtn').setAttribute('aria-checked', String(A.sfxOn));
+  $('musBtn').setAttribute('aria-checked', String(A.musicOn));
+  $('hapBtn').setAttribute('aria-checked', String(Save.get().settings.haptics));
+}
+const openSettings = () => { A.tap(); syncSwitches(); $('resetBtn').classList.remove('armed'); $('resetBtn').textContent = 'Reset progress'; $('settings').classList.add('show'); };
+$('gearBtn').onclick = openSettings;
+document.querySelectorAll('[data-open="settings"]').forEach((b) => (b.onclick = openSettings));
+$('settingsDone').onclick = () => { A.tap(); $('settings').classList.remove('show'); };
+$('sfxBtn').onclick = () => { A.setSfx(!A.sfxOn); syncSwitches(); A.tap(); };
+$('musBtn').onclick = () => { A.setMusic(!A.musicOn); syncSwitches(); A.tap(); };
+$('hapBtn').onclick = () => { const st = Save.get().settings; st.haptics = !st.haptics; Save.write(); syncSwitches(); A.tap(); };
+$('resetBtn').onclick = () => {
+  const b = $('resetBtn');
+  if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Tap again to erase everything'; A.invalid(); return; }
+  Save.reset(); applySkin('twilight', false); applyStraw('classic'); syncCoins();
+  $('settings').classList.remove('show'); toast('Progress reset'); track('reset');
+  closeScreens(); showScreen('titleScreen');
+};
+$('version').textContent = `Magic Boba ${window.__BOBA_VERSION__ || 'web'} · ${LEVELS.length} levels`;
+
+// ==== Tutorial coach ========================================================================
+// Coach marks point at a cup or button with a hand and a speech bubble. Touches pass through.
+function hideCoach() { $('coach').hidden = true; }
+function showCoach(target, text, { hand = true, below = false } = {}) {
+  const coach = $('coach'), bubble = coach.querySelector('.bubble'), h = coach.querySelector('.hand');
+  coach.hidden = false; bubble.textContent = text; h.hidden = !hand || !target;
+  const W = innerWidth, H = innerHeight;
+  if (!target) { // free-floating tip near the top of the board
+    const br = $('board').getBoundingClientRect();
+    bubble.style.left = Math.max(16, W / 2 - 140) + 'px'; bubble.style.top = Math.max(80, br.top - 10) + 'px';
+    return;
+  }
+  const r = target.getBoundingClientRect();
+  h.style.left = r.left + r.width / 2 + 'px'; h.style.top = r.bottom - 10 + 'px';
+  bubble.style.visibility = 'hidden'; bubble.style.left = '0px'; bubble.style.top = '0px';
+  const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
+  let top = below ? r.bottom + 56 : r.top - bh - 18; if (top < 70) top = r.bottom + 56;
+  if (top + bh > H - 10) top = H - bh - 10;
+  bubble.style.left = Math.min(W - bw - 16, Math.max(16, r.left + r.width / 2 - bw / 2)) + 'px';
+  bubble.style.top = top + 'px'; bubble.style.visibility = '';
+}
+const seen = (k) => !!Save.get().tutorials[k];
+const markSeen = (k) => { Save.get().tutorials[k] = true; Save.write(); track('tutorial_done', { step: k }); };
+let tutorialPours = 0;
+function bestMove() { const r = Boba.solve(level, 60000, state); return r.solvable && r.path.length ? r.path[0] : null; }
+function tutorial(event) {
+  if (busy && event !== 'moved') return;
+  if (SCREENS.some((id) => $(id).classList.contains('show')) || $('win').classList.contains('show')) return hideCoach();
+  const t = level.tutorial;
+  if (event === 'start') tutorialPours = 0;
+  if (t === 'basics' && !seen('basics')) {
+    if (event === 'moved') tutorialPours++;
+    if (tutorialPours >= 2) {
+      showCoach(null, 'Lovely! Sort every flavour into its own cup.', { hand: false });
+      setTimeout(hideCoach, 2600); markSeen('basics'); return;
+    }
+    const m = bestMove(); if (!m) return hideCoach();
+    if (sel === null) showCoach(cupEl(m[0]), tutorialPours ? 'Pick up another cup' : 'Tap a cup to pick it up');
+    else if (sel === m[0]) showCoach(typeof m[1] === 'number' ? cupEl(m[1]) : orderEl(+m[1].slice(1)), 'Now tap here to pour');
+    else showCoach(cupEl(m[0]), 'Try this cup instead');
+    return;
+  }
+  if (t === 'counter' && !seen('counter')) {
+    if (event === 'start') setTimeout(() => showCoach(orderEl(0), 'Customers are waiting! Pour into their cup whatever it needs next, from the bottom up.', { below: true }), 700);
+    if (event === 'moved') { hideCoach(); markSeen('counter'); }
+    return;
+  }
+  const tips = { pearls: 'New! Pearls always sink to the bottom, under any drink.', soda: 'New! Sparkle soda always floats on top. Other drinks slide underneath.' };
+  if (tips[t] && !seen(t)) {
+    if (event === 'start') setTimeout(() => showCoach(null, tips[t], { hand: false }), 700);
+    if (event === 'moved') { hideCoach(); markSeen(t); }
+    return;
+  }
+  if (event === 'stuck' && !seen('vial')) { showCoach($('vial'), 'Out of moves? Watch a short ad for a bonus vial, or tap ↶ to undo.'); markSeen('vial'); }
+  else if (event === 'moved' && !$('coach').hidden) hideCoach();
+}
+window.addEventListener('resize', hideCoach);
+
+// ==== Boot ==================================================================================
+{
+  const sv = Save.get();
+  if (!sv.owned.skins.includes(sv.skin)) sv.skin = 'twilight';
+  applySkin(sv.skin, false); applyStraw(sv.straw);
+  load(Math.min(sv.current, unlockedUpTo()));
+  showScreen('titleScreen');
+  track('app_open', { native: Native.has, levels: LEVELS.length });
+}
+</script>
+</body>
+</html>

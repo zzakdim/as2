@@ -289,20 +289,108 @@
     background: conic-gradient(var(--accent) calc(var(--p, 0) * 1%), color-mix(in srgb, var(--text) 12%, transparent) 0); }
   .adring b { width: 50px; height: 50px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; }
 
+  /* ---- sparkle soda ---- */
+  .layer.F { background-image: radial-gradient(circle at 25% 30%, #fff 1.4px, transparent 2px), radial-gradient(circle at 70% 65%, #fff 1.2px, transparent 1.8px),
+      radial-gradient(circle at 45% 85%, #fff 1px, transparent 1.6px), var(--gloss); background-size: 14px 16px, 18px 20px, 12px 22px, auto; animation: soda 1.8s linear infinite; }
+  @keyframes soda { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 0 -16px, 0 -20px, 0 -22px, 0 0; } }
+
+  /* ---- full-screen menus (title, levels, shop) ---- */
+  .screen { position: fixed; inset: 0; z-index: 44; display: none; flex-direction: column; overflow-y: auto; overscroll-behavior: contain;
+    background-color: var(--bg); background-image: var(--bg-image); background-attachment: fixed;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .screen.show { display: flex; animation: screenIn .35s ease-out; }
+  @keyframes screenIn { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
+  .screen-head { display: flex; align-items: center; gap: 10px; padding: 4px 0 12px; }
+  .screen-head h2 { flex: 1; margin: 0; font: 700 24px var(--font-display); }
+  .btn { font: 600 17px var(--font-body); border-radius: 16px; padding: 12px 18px; }
+  .btn.cta { background: var(--cta); color: #fff; border-color: transparent; box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 45%, #000 30%), 0 10px 24px rgba(0,0,0,.25); }
+  .btn.cta:active { transform: translateY(4px) scale(.98); box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 45%, #000 30%); }
+
+  /* title */
+  #titleScreen { align-items: center; text-align: center; }
+  .title-top { align-self: stretch; display: flex; justify-content: space-between; align-items: center; }
+  .logo { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 340px; }
+  .logo-cup { transform: scale(1.45); margin: 52px 0 40px; animation: logoBob 3.2s ease-in-out infinite; filter: drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
+  .logo-cup .slot::after, .logo-cup .slot::before { display: none; }
+  .logo-cup .cup { cursor: default; }
+  @keyframes logoBob { 0%,100% { transform: scale(1.45) translateY(0) rotate(-3deg); } 50% { transform: scale(1.45) translateY(-6px) rotate(3deg); } }
+  .logo-text { margin: 0; font: 800 58px/0.9 var(--font-display); letter-spacing: .01em;
+    background: linear-gradient(180deg, #fff 10%, #ffc2d6 55%, #ffd56a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 0 color-mix(in srgb, var(--accent) 60%, #000 20%)) drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 45%, transparent)); }
+  html[data-skin="sakura"] .logo-text { background: linear-gradient(180deg, #ff7fa8, #c9578a); -webkit-background-clip: text; background-clip: text; }
+  .tagline { margin: 6px 0 0; color: var(--muted); font-size: 16px; }
+  .title-actions { display: grid; gap: 12px; width: min(320px, 100%); padding-bottom: 12px; }
+  .title-actions .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #playBtn { font-size: 22px; padding: 16px; }
+  #playBtn small { display: block; font-size: 13px; font-weight: 500; opacity: .85; }
+
+  /* level map */
+  .world { margin: 6px 0 18px; }
+  .world h3 { margin: 0 0 2px; font: 700 18px var(--font-display); }
+  .world p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+  .lvl-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .lvl { aspect-ratio: 1; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0;
+    font: 700 19px var(--font-display); position: relative; }
+  .lvl .st { font-size: 10px; letter-spacing: 1px; color: var(--gold); min-height: 12px; }
+  .lvl .st i { font-style: normal; color: color-mix(in srgb, var(--text) 20%, transparent); }
+  .lvl.boss { border-color: var(--gold); }
+  .lvl.counter::after { content: "☕"; position: absolute; top: -6px; right: -4px; font-size: 13px; }
+  .lvl.current { background: var(--cta); color: #fff; border-color: transparent; animation: cta 1.6s ease-in-out infinite; }
+  .lvl:disabled { opacity: .45; }
+  .stars-total { font-weight: 700; color: var(--gold); }
+
+  /* shop */
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tabs button { flex: 1; }
+  .tabs button[aria-selected="true"] { background: var(--cta); color: #fff; border-color: transparent; }
+  .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .item { border-radius: 18px; padding: 10px; border: 1px solid var(--panel-edge); background: var(--btn-bg); display: flex; flex-direction: column; gap: 8px; text-align: center; }
+  .item .preview { height: 92px; border-radius: 12px; display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding-bottom: 12px; position: relative; overflow: hidden; }
+  .item .preview i { width: 16px; border-radius: 3px 3px 8px 8px; border: 2px solid rgba(255,255,255,.7); border-top: none; }
+  .item .preview .strawp { width: 12px; height: 70px; border-radius: 6px; border: none; transform: rotate(12deg); }
+  .item b { font: 700 15px var(--font-display); }
+  .item button { padding: 8px; font-weight: 600; }
+  .item button.owned { background: transparent; }
+  .item button.buy { background: var(--cta); color: #fff; border-color: transparent; }
+  .item.equipped { border: 2px solid var(--accent); }
+
+  /* settings */
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px; border-bottom: 1px solid color-mix(in srgb, var(--text) 10%, transparent); text-align: left; }
+  .switch { width: 52px; height: 30px; border-radius: 99px; padding: 0; position: relative; background: color-mix(in srgb, var(--text) 18%, transparent); border: none; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.3); transition: transform .2s cubic-bezier(.3,1.5,.5,1); }
+  .switch[aria-checked="true"] { background: var(--good); }
+  .switch[aria-checked="true"]::after { transform: translateX(22px); }
+  .card .actions { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .fine { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  #resetBtn.armed { background: #d9534f; color: #fff; border-color: transparent; }
+
+  /* tutorial coach */
+  #coach { position: fixed; inset: 0; z-index: 46; pointer-events: none; }
+  #coach .bubble { position: fixed; max-width: min(280px, calc(100vw - 32px)); background: var(--card); color: var(--text); border: 1px solid var(--panel-edge);
+    border-radius: 16px; padding: 10px 14px; font: 600 15px/1.35 var(--font-body); box-shadow: 0 12px 30px rgba(0,0,0,.35); text-align: center;
+    animation: pop .4s cubic-bezier(.3,1.6,.5,1) both; }
+  #coach .hand { position: fixed; font-size: 34px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); animation: point 1s ease-in-out infinite; transform-origin: 50% 0; }
+  @keyframes point { 0%,100% { transform: translate(-50%, 0) scale(1); } 50% { transform: translate(-50%, 10px) scale(.92); } }
+  .toast { position: fixed; left: 50%; bottom: max(90px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 70; pointer-events: none;
+    background: var(--card); border: 1px solid var(--panel-edge); color: var(--text); padding: 10px 16px; border-radius: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    max-width: calc(100vw - 32px); text-align: center; }
+  #lvlTitle { font-size: 17px; }
+  .legend.special span { background: color-mix(in srgb, var(--text) 8%, transparent); border-radius: 99px; padding: 3px 10px; }
+
   @media (prefers-reduced-motion: reduce) {
-    .cup::before, .cust, .progress i::after, #winNext, #vial.nudge, .layer::after, .layer.surface::before, .face i, .cup.done { animation: none; }
+    .logo-cup, .lvl.current, .layer.F, .cup::before, .cust, .progress i::after, #winNext, #vial.nudge, .layer::after, .layer.surface::before, .face i, .cup.done { animation: none; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>🧋 Magic Boba</h1>
+  <button class="icon" id="menuBtn" aria-label="Levels">☰</button>
+  <h1 id="lvlTitle">Magic Boba</h1>
   <span class="devbadge dev-only">DEV</span>
   <span class="pill" id="coins" title="Coins">🪙 <span id="coinN">0</span></span>
-  <button class="icon" id="skinBtn" aria-label="Change look">🎨</button>
-  <button class="icon" id="sfxBtn" aria-label="Sound effects">🔊</button>
-  <button class="icon" id="musBtn" aria-label="Music">🎵</button>
-  <select id="pick" aria-label="Level"></select>
+  <button class="icon" id="gearBtn" aria-label="Settings">⚙️</button>
+  <button class="icon dev-only" id="skinBtn" aria-label="Cycle look">🎨</button>
+  <select id="pick" class="dev-only" aria-label="Level"></select>
 </header>
 <div class="meta" id="meta"></div>
 <div class="progress" aria-hidden="true"><i id="prog"></i></div>
@@ -314,7 +402,7 @@
   <button id="restart" class="sq" aria-label="Restart" title="Restart">⟲</button>
   <button id="vial">📺 + Vial</button>
   <button id="hint" class="sq dev-only" aria-label="Hint" title="Hint">✨</button>
-  <button id="nextBtn" class="sq" aria-label="Skip level" title="Skip level">›</button>
+  <button id="nextBtn" class="sq dev-only" aria-label="Skip level" title="Skip level">›</button>
 </div>
 
 <div class="overlay" id="win"><div class="card">
@@ -324,7 +412,43 @@
   <div class="earn">🪙 +<span id="earnN">0</span></div>
   <div class="tip" id="tipLine"></div>
   <button id="winNext">Next level ›</button>
+  <div><button id="winLevels" style="margin-top:10px;background:transparent;border:none;color:var(--muted)">Level map</button></div>
 </div></div>
+
+<section class="screen" id="titleScreen" aria-label="Title">
+  <div class="title-top"><span class="pill">🪙 <span class="coinN">0</span></span><button class="icon" data-open="settings" aria-label="Settings">⚙️</button></div>
+  <div class="logo">
+    <div class="logo-cup" id="logoCup" aria-hidden="true"></div>
+    <h1 class="logo-text">Magic<br>Boba</h1>
+    <p class="tagline">a cozy potion café</p>
+  </div>
+  <div class="title-actions">
+    <button class="btn cta" id="playBtn">Play<small id="playSub"></small></button>
+    <div class="row"><button class="btn" id="levelsBtn">🗺️ Levels</button><button class="btn" id="shopBtn">🛍️ Shop</button></div>
+  </div>
+</section>
+
+<section class="screen" id="levelsScreen" aria-label="Levels">
+  <div class="screen-head"><button class="icon" data-back aria-label="Back">‹</button><h2>Levels</h2><span class="stars-total" id="starsTotal"></span></div>
+  <div id="worlds"></div>
+</section>
+
+<section class="screen" id="shopScreen" aria-label="Shop">
+  <div class="screen-head"><button class="icon" data-back aria-label="Back">‹</button><h2>Shop</h2><span class="pill">🪙 <span class="coinN">0</span></span></div>
+  <div class="tabs" role="tablist"><button role="tab" data-tab="themes" aria-selected="true">Themes</button><button role="tab" data-tab="straws" aria-selected="false">Straws</button></div>
+  <div class="shop-grid" id="shopGrid"></div>
+</section>
+
+<div class="overlay" id="settings"><div class="card">
+  <h2>Settings</h2>
+  <div class="toggle"><span>Sound effects</span><button class="switch" id="sfxBtn" role="switch" aria-label="Sound effects"></button></div>
+  <div class="toggle"><span>Music</span><button class="switch" id="musBtn" role="switch" aria-label="Music"></button></div>
+  <div class="toggle"><span>Haptics</span><button class="switch" id="hapBtn" role="switch" aria-label="Haptics"></button></div>
+  <div class="actions"><button id="resetBtn">Reset progress</button><button class="cta btn" id="settingsDone" style="padding:8px 18px">Done</button></div>
+  <div class="fine" id="version"></div>
+</div></div>
+
+<div id="coach" hidden><div class="bubble"></div><div class="hand">👆</div></div>
 
 <div class="overlay" id="ad"><div class="card">
   <h2>📺 Ad break</h2>
@@ -348,16 +472,15 @@ const T = { lift: 180, unit: 110, back: 180 }; // pour timing (ms)
 // ---- Skins: same game, different visual designs (A/B/C test candidates) ----
 const SKINS = {
   twilight: { name: 'Sakura Twilight', family: 'sakura', ambient: { type: 'petal', colors: ['#ffb7cf', '#ffd6e4', '#d9c6ff'], count: 14 },
-    colors: { T: '#bfa2ff', M: '#95e07d', G: '#ffd056', S: '#ff94b6', B: '#86b8ff', R: '#d39461', L: '#fff1d6', K: '#9a6750', W: '#fffaf4', P: '#4a3030' } },
+    colors: { T: '#bfa2ff', M: '#95e07d', G: '#ffd056', S: '#ff94b6', B: '#86b8ff', R: '#d39461', L: '#fff1d6', K: '#9a6750', W: '#fffaf4', P: '#4a3030', F: '#c6f3ff' } },
   cafe: { name: 'Night Café', ambient: { type: 'mote', colors: ['#c9a7ff', '#ffe6a8'], count: 26 },
-    colors: { T: '#a689e0', M: '#7cc46a', G: '#f7b733', S: '#f47fa4', B: '#5b8def', R: '#a8693b', L: '#efe6cf', K: '#5a3b2e', W: '#f8f8ff', P: '#3b2621' } },
+    colors: { T: '#a689e0', M: '#7cc46a', G: '#f7b733', S: '#f47fa4', B: '#5b8def', R: '#a8693b', L: '#efe6cf', K: '#5a3b2e', W: '#f8f8ff', P: '#3b2621', F: '#bdf2ff' } },
   sakura: { name: 'Sakura Pastel', family: 'sakura', ambient: { type: 'petal', colors: ['#ffc1d6', '#ffd9e6', '#ffffff'], count: 18 },
-    colors: { T: '#b99cf5', M: '#8fd977', G: '#ffcc4d', S: '#ff8fb1', B: '#7fb2ff', R: '#c98a58', L: '#fff1d6', K: '#8a5a44', W: '#fffaf4', P: '#4a3030' } },
+    colors: { T: '#b99cf5', M: '#8fd977', G: '#ffcc4d', S: '#ff8fb1', B: '#7fb2ff', R: '#c98a58', L: '#fff1d6', K: '#8a5a44', W: '#fffaf4', P: '#4a3030', F: '#c9f4ff' } },
   lab: { name: 'Potion Lab', ambient: { type: 'bubble', colors: ['#58ffb0', '#b26bff', '#4fb3ff'], count: 22 },
-    colors: { T: '#b46dff', M: '#3dffa0', G: '#ffb238', S: '#ff4f8b', B: '#3fb0ff', R: '#e08a3a', L: '#f0ffb8', K: '#7a4430', W: '#e6f6ff', P: '#3a2433' } },
+    colors: { T: '#b46dff', M: '#3dffa0', G: '#ffb238', S: '#ff4f8b', B: '#3fb0ff', R: '#e08a3a', L: '#f0ffb8', K: '#7a4430', W: '#e6f6ff', P: '#3a2433', F: '#9ffcff' } },
 };
-let skin = 'twilight'; // default look
-try { if (SKINS[localStorage.getItem('boba.skin2')]) skin = localStorage.getItem('boba.skin2'); } catch {}
+let skin = 'twilight'; // default look; the saved choice is applied at boot
 function applySkin(name, announce) {
   skin = name;
   const root = document.documentElement;
@@ -365,8 +488,8 @@ function applySkin(name, announce) {
   root.dataset.family = SKINS[name].family || name;
   for (const [k, c] of Object.entries(SKINS[name].colors)) FLAVORS[k].color = c;
   FX.setAmbient(SKINS[name].ambient);
-  try { localStorage.setItem('boba.skin2', name); } catch {}
   if (level) render();
+  if ($('titleScreen').classList.contains('show')) renderTitle();
   if (announce) {
     const t = document.createElement('div');
     t.className = 'skin-toast'; t.textContent = '🎨 ' + SKINS[name].name;
@@ -379,9 +502,8 @@ function applySkin(name, announce) {
 }
 
 let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [], vialsUsed = 0, adTimer = null;
+let levelStart = 0, wasStuck = false;
 let busy = false, streak = 0, quietMoves = 0, hiddenCup = null, flying = null, knownOpen = new Set(), lastProgress = 0;
-let coins = 0;
-try { coins = +localStorage.getItem('boba.coins') || 0; } catch {}
 
 const $ = (id) => document.getElementById(id);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -393,10 +515,6 @@ syncDev();
 
 // Browsers only allow audio after a gesture: unlock on the first touch.
 document.addEventListener('pointerdown', () => A.unlock(), { capture: true });
-const syncAudioBtns = () => { $('sfxBtn').textContent = A.sfxOn ? '🔊' : '🔇'; $('musBtn').style.opacity = A.musicOn ? 1 : 0.4; };
-$('sfxBtn').onclick = () => { A.setSfx(!A.sfxOn); syncAudioBtns(); A.tap(); };
-$('musBtn').onclick = () => { A.setMusic(!A.musicOn); syncAudioBtns(); A.tap(); };
-syncAudioBtns();
 $('skinBtn').onclick = () => { const names = Object.keys(SKINS); applySkin(names[(names.indexOf(skin) + 1) % names.length], true); A.tap(); };
 
 const pick = $('pick');
@@ -409,23 +527,25 @@ const center = (el) => { const r = el.getBoundingClientRect(); return { x: r.lef
 const isDone = (s, i) => s.mode === 'sort' && s.cups[i].length === s.cap && Boba.topRun(s.cups[i]) === s.cups[i].length;
 
 function setCoins(n, bump = true) {
-  coins = n; $('coinN').textContent = n;
-  try { localStorage.setItem('boba.coins', n); } catch {}
+  Save.get().coins = n; Save.write(); syncCoins();
   if (bump) { const p = $('coins'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
 }
-setCoins(coins, false);
 
 // ------------------------------------------------------------------------------------------
 function load(i) {
   idx = i; pick.value = i; level = LEVELS[i];
+  $('lvlTitle').textContent = `${level.id} · ${level.title}`;
+  hideCoach(); levelStart = Date.now();
   state = Boba.initState(level); history = []; sel = null; moves = 0; hintCups = []; vialsUsed = 0;
   streak = 0; quietMoves = 0; busy = false; lastProgress = 0;
   finishFlight();
   knownOpen = new Set((state.open || []).map((o) => o.i));
   $('win').classList.remove('show');
   clearInterval(adTimer); $('ad').classList.remove('show');
-  try { localStorage.setItem('boba.level', i); } catch {}
+  Save.get().current = i; Save.write();
+  track('level_start', { id: level.id });
   render();
+  setTimeout(() => tutorial('start'), 650);
   // cups drop in, cascading
   if (!REDUCE) [...$('board').children].forEach((slot, n) => slot.animate(
     [{ transform: 'translateY(-40px) scale(.8)', opacity: 0 }, { transform: 'translateY(4px) scale(1.03)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }],
@@ -463,7 +583,7 @@ function fillCup(cup, str, cap) {
 // anim: { cup|slot, from, n, pearl, delay } for the pour-in; sealed: Set of newly completed cups
 function render(anim = {}) {
   const s = level.stats;
-  $('meta').innerHTML = `<b>${level.world}</b> — ${level.note}<br>Moves <b>${moves}</b> · best possible <b>${s.optimal}</b>` +
+  $('meta').innerHTML = `<b>${level.world}</b> · ${level.note}<br>Moves <b>${moves}</b> · ★★★ in <b>${s.optimal}</b>` +
     (isDev() ? ` · ${level.tier} · casual stuck ${s.casualStuckPct ?? '?'}% (random ${s.randomPlayStuckPct}%) · branching ${s.branching}` : '');
 
   // progress bar (+ sparkle when it grows)
@@ -543,8 +663,11 @@ function render(anim = {}) {
 
   balanceRows();
 
+  // Players only see the magic ingredients explained; dev mode lists every flavour.
   const used = new Set((level.cups.join('') + (level.orders || []).join('')).split(''));
-  $('legend').innerHTML = [...used].sort().map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c === 'P' ? ' (sinks)' : ''}</span>`).join('');
+  const shown = [...used].sort().filter((c) => isDev() || c === 'P' || c === 'F');
+  $('legend').className = 'legend' + (isDev() ? '' : ' special');
+  $('legend').innerHTML = shown.map((c) => `<span><i style="background:${FLAVORS[c].color}"></i>${FLAVORS[c].name}${c === 'P' ? ' sink' : c === 'F' ? ' floats' : ''}</span>`).join('');
   $('undo').disabled = !history.length;
   const sizes = vialSizes();
   $('vial').disabled = vialsUsed >= sizes.length;
@@ -552,6 +675,8 @@ function render(anim = {}) {
   // gently suggest the vial when the player has no useful moves left
   const stuck = !Boba.isWon(state) && !Boba.legalMoves(state).length;
   $('vial').classList.toggle('nudge', stuck && vialsUsed < sizes.length);
+  if (stuck && !wasStuck) { track('stuck', { id: level.id, moves }); setTimeout(() => tutorial('stuck'), 500); }
+  wasStuck = stuck;
 }
 
 // Spread cups evenly over rows (7 cups -> 4 + 3, never 6 + 1).
@@ -579,7 +704,7 @@ function animateIn(cup, a) {
     else el.animate([{ transform: 'scaleY(0)' }, { transform: 'scaleY(1.06)', offset: 0.8 }, { transform: 'scaleY(1)' }],
       { duration: T.unit + 20, delay, easing: 'linear', fill: 'backwards' });
   }
-  if (a.pearl) for (let n = a.from + a.n; n < layers.length; n++) layers[n].animate(
+  if (a.shift) for (let n = a.from + a.n; n < layers.length; n++) layers[n].animate(
     [{ transform: `translateY(${a.n * 100}%)` }, { transform: 'translateY(-6%)', offset: 0.8 }, { transform: 'none' }],
     { duration: a.n * T.unit + 160, delay: a.delay || 0, easing: 'ease-out', fill: 'backwards' });
 }
@@ -605,6 +730,7 @@ function select(i) {
   const el = cupEl(i);
   el.classList.add('sel');
   A.select(state.cups[i].length);
+  tutorial('select');
   if (REDUCE) return;
   el.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-22px) scale(.94,1.07)', offset: 0.45 }, { transform: 'translateY(-12px) scale(1.03,.97)', offset: 0.75 }, { transform: 'translateY(-14px)' }],
     { duration: 300, easing: 'ease-out' });
@@ -618,6 +744,7 @@ function deselect(silent) {
   if (!el) return;
   el.classList.remove('sel');
   if (!silent) A.deselect();
+  setTimeout(() => tutorial('select'), 0);
   if (!REDUCE) el.animate([{ transform: 'translateY(-14px)' }, { transform: 'translateY(3px) scale(1.04,.95)', offset: 0.6 }, { transform: 'none' }], { duration: 260, easing: 'ease-in' });
 }
 
@@ -670,8 +797,8 @@ async function pour(m) {
   const r1 = srcEl.getBoundingClientRect(), r2 = dstEl.getBoundingClientRect();
   const layerH = (r2.height - 8) / dstCap;
   // where poured units land: liquids on top; pearls sink below liquid
-  let landFrom = dstFrom;
-  if (!toOrder && solid) { const d = before.cups[m[1]]; landFrom = 0; while (landFrom < d.length && d[landFrom] === 'P') landFrom++; }
+  const landFrom = toOrder ? dstFrom : Boba.landIndex(before.cups[m[1]], t);
+  const shift = !toOrder && landFrom < before.cups[m[1]].length; // layers above get pushed up
   const surfaceY = r2.bottom - 5 - dstFrom * layerH;
   const pourMs = amount * T.unit + 60;
 
@@ -741,7 +868,7 @@ async function pour(m) {
   state = after;
   const anim = toOrder
     ? (served ? { enterDelay: pourMs + 700 } : { slot: k, from: dstFrom, n: amount, delay: 50 })
-    : { cup: m[1], from: landFrom, n: amount, pearl: solid, delay: solid ? 140 : 50, sealed, sealDelay: pourMs + 40 };
+    : { cup: m[1], from: landFrom, n: amount, pearl: solid, shift, delay: solid ? 140 : 50, sealed, sealDelay: pourMs + 40 };
   render(anim);
   if (servedClone) animateIn(servedClone.querySelector('.order'), { from: dstFrom, n: amount, delay: 50 });
 
@@ -793,6 +920,7 @@ async function afterMove({ sealed, served, servedClone, dstEl, t }) {
       { duration: 420, easing: 'ease-in', fill: 'forwards' }).onfinish = () => servedClone.remove(), 520);
   } else if (servedClone) servedClone.remove();
 
+  tutorial('moved');
   if (Boba.isWon(state)) await celebrate();
 }
 
@@ -825,8 +953,12 @@ async function celebrate() {
 
   const opt = level.stats.optimal;
   const stars = moves <= opt ? 3 : moves <= Math.ceil(opt * 1.4) ? 2 : 1;
-  let best = 0; try { best = +localStorage.getItem('boba.best.' + level.id) || 0; } catch {}
-  try { if (stars > best) localStorage.setItem('boba.best.' + level.id, stars); } catch {}
+  const sv = Save.get(), best = sv.stars[level.id] || 0;
+  if (stars > best) sv.stars[level.id] = stars;
+  sv.wins++; if (idx + 1 < LEVELS.length) sv.current = idx + 1;
+  Save.write();
+  track('level_win', { id: level.id, moves, stars, vials: vialsUsed, secs: Math.round((Date.now() - levelStart) / 1000) });
+  hideCoach();
   const golden = Math.random() < 0.15;
   const tip = golden ? 30 : 1 + Math.floor(Math.random() * 5);
   const base = 10 + stars * 5;
@@ -864,7 +996,9 @@ async function celebrate() {
     A.coin(12);
   }
   await countUp(base + tip, base);
-  setCoins(coins + base + tip);
+  setCoins(Save.get().coins + base + tip);
+  // Ask for an App Store rating at happy moments, at most once per install (iOS limits it further).
+  if (Native.has && !sv.reviewAsked && stars === 3 && sv.wins >= 6) { sv.reviewAsked = true; Save.write(); setTimeout(() => Native.post('requestReview'), 1200); }
   const pc = center($('coins'));
   FX.burst(pc.x, pc.y, { colors: ['#ffd76a', '#ffffff'], count: 12, speed: 150, g: 200, size: [1.5, 3] });
   busy = false;
@@ -898,7 +1032,15 @@ $('undo').onclick = () => {
   });
 };
 $('restart').onclick = () => { if (busy) return; A.undo(); load(idx); };
-$('nextBtn').onclick = $('winNext').onclick = () => { A.tap(); load((idx + 1) % LEVELS.length); };
+$('nextBtn').onclick = () => { A.tap(); load((idx + 1) % LEVELS.length); };
+$('winNext').onclick = () => {
+  A.tap();
+  if (idx + 1 < LEVELS.length) return load(idx + 1);
+  $('win').classList.remove('show'); showScreen('titleScreen');
+  toast('You served every customer! New levels are brewing ☕', 3500);
+};
+$('winLevels').onclick = () => { A.tap(); $('win').classList.remove('show'); screenStack = ['titleScreen']; showScreen('levelsScreen'); };
+$('restart').addEventListener('click', () => track('level_restart', { id: level.id, moves }));
 
 // Rewarded-ad flow (simulated). The vial is added to every undo step too, so Undo never takes it back.
 function grantVial() {
@@ -920,7 +1062,19 @@ function grantVial() {
 $('vial').onclick = () => {
   if (busy || vialsUsed >= vialSizes().length) return;
   A.tap();
+  track('vial_offer', { id: level.id, size: vialSizes()[vialsUsed] });
+  hideCoach();
   if (isDev()) return grantVial();
+  if (Native.has) {
+    busy = true; A.pause();
+    Native.showRewardedAd('bonus_vial').then(({ ok, reason }) => {
+      busy = false; A.resume();
+      track(ok ? 'vial_granted' : 'ad_' + reason, { id: level.id });
+      if (ok) grantVial();
+      else toast(reason === 'unavailable' ? 'No ad is ready right now. Try again in a moment.' : 'Watch to the end to get the vial.');
+    });
+    return;
+  }
   let t = 3;
   $('adSize').textContent = `${vialSizes()[vialsUsed]}-layer vial`;
   $('adCount').textContent = t; $('adRing').style.setProperty('--p', 0);
@@ -931,19 +1085,299 @@ $('vial').onclick = () => {
     $('adRing').style.setProperty('--p', Math.min(100, (el / 3) * 100));
     const left = Math.max(0, Math.ceil(3 - el));
     if (left !== t) { t = left; $('adCount').textContent = t || '✓'; }
-    if (el >= 3) { clearInterval(adTimer); setTimeout(() => { $('ad').classList.remove('show'); grantVial(); }, 200); }
+    if (el >= 3) { clearInterval(adTimer); track('vial_granted', { id: level.id }); setTimeout(() => { $('ad').classList.remove('show'); grantVial(); }, 200); }
   }, 30);
 };
-$('adCancel').onclick = () => { clearInterval(adTimer); $('ad').classList.remove('show'); A.tap(); };
+$('adCancel').onclick = () => { clearInterval(adTimer); $('ad').classList.remove('show'); A.tap(); track('ad_cancel', { id: level.id }); };
 $('hint').onclick = () => {
   const sol = Boba.solve(level, 200000, state);
   if (sol.solvable && sol.path.length) { hintCups = sol.path[0]; sel = null; render(); }
   else $('meta').insertAdjacentHTML('beforeend', '<br><b style="color:var(--warn)">Stuck! Undo, restart, or grab a vial.</b>');
 };
 
-applySkin(skin, false);
-let start = 0; try { start = +localStorage.getItem('boba.level') || 0; } catch {}
-load(Math.min(start, LEVELS.length - 1));
+
+// ==== Save data =============================================================================
+// One JSON blob. In the iOS app the native side injects the last save as window.__BOBA_SAVE__
+// before the page loads and stores every update in UserDefaults; in a browser it lives in localStorage.
+const SAVE_KEY = 'boba.save.v1';
+const Save = (() => {
+  const fresh = () => ({ v: 1, coins: 0, current: 0, stars: {}, skin: 'twilight', straw: 'classic',
+    owned: { skins: ['twilight'], straws: ['classic'] }, settings: { haptics: true }, tutorials: {}, wins: 0, reviewAsked: false });
+  let data = fresh();
+  try {
+    const raw = window.__BOBA_SAVE__ || JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (raw && raw.v === 1) data = Object.assign(fresh(), raw);
+    else { const c = +localStorage.getItem('boba.coins'); if (c) data.coins = c; } // migrate prototype coins
+  } catch {}
+  return {
+    get: () => data,
+    write() {
+      const json = JSON.stringify(data);
+      try { localStorage.setItem(SAVE_KEY, json); } catch {}
+      Native.post('save', { json });
+    },
+    reset() { data = fresh(); this.write(); },
+  };
+})();
+
+// ==== Native bridge (iOS app) ===============================================================
+const Native = {
+  has: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.boba),
+  post(type, payload = {}) { if (this.has) try { window.webkit.messageHandlers.boba.postMessage({ type, ...payload }); } catch {} },
+  _pending: {}, _id: 0,
+  // Rewarded ad: resolves { ok, reason } — ok only if the player earned the reward.
+  showRewardedAd(placement) {
+    return new Promise((resolve) => { const id = ++this._id; this._pending[id] = resolve; this.post('showRewardedAd', { id, placement }); });
+  },
+};
+// Called by the iOS app.
+window.BobaNative = {
+  adResult(id, granted, reason) { const r = Native._pending[id]; delete Native._pending[id]; if (r) r({ ok: !!granted, reason: reason || (granted ? 'earned' : 'closed') }); },
+  pause() { A.pause(); },
+  resume() { A.resume(); },
+};
+// Haptics: native Taptic patterns in the app; returning false lets audio.js fall back to navigator.vibrate.
+window.BobaHaptics = (kind) => {
+  if (!Save.get().settings.haptics) return true;
+  if (!Native.has) return false;
+  Native.post('haptic', { kind });
+  return true;
+};
+
+// ==== Analytics ============================================================================
+// Events go to the native layer (wire to your analytics SDK there). In dev mode they are logged.
+const EVENTS = [];
+function track(name, props = {}) {
+  const e = { name, t: Date.now(), ...props };
+  EVENTS.push(e); if (EVENTS.length > 300) EVENTS.shift();
+  Native.post('track', { name, props });
+  if (isDev()) console.log('[track]', name, props);
+}
+
+// ==== Shop catalogue ========================================================================
+const SHOP = {
+  themes: [
+    { id: 'twilight', name: 'Sakura Twilight', price: 0, preview: 'linear-gradient(180deg,#3b263c,#1f1422)', cups: ['#bfa2ff', '#ff94b6', '#95e07d'] },
+    { id: 'cafe', name: 'Night Café', price: 150, preview: 'linear-gradient(180deg,#3d2c60,#1e1830)', cups: ['#a689e0', '#f7b733', '#f47fa4'] },
+    { id: 'sakura', name: 'Sakura Pastel', price: 150, preview: 'linear-gradient(180deg,#fff6f0,#ffe4ec)', cups: ['#b99cf5', '#ff8fb1', '#ffcc4d'] },
+    { id: 'lab', name: 'Potion Lab', price: 300, preview: 'linear-gradient(180deg,#0c2226,#050c0e)', cups: ['#b46dff', '#3dffa0', '#3fb0ff'] },
+  ],
+  straws: [
+    { id: 'classic', name: 'Classic', price: 0, css: null },
+    { id: 'mint', name: 'Mint Stripe', price: 60, css: 'repeating-linear-gradient(180deg,#9df2c9 0 6px,#fff 6px 10px)' },
+    { id: 'lemon', name: 'Lemon Drop', price: 60, css: 'repeating-linear-gradient(180deg,#ffd84d 0 6px,#fff8d6 6px 10px)' },
+    { id: 'rainbow', name: 'Rainbow', price: 120, css: 'linear-gradient(180deg,#ff8fb1,#ffd056,#95e07d,#86b8ff,#bfa2ff)' },
+    { id: 'galaxy', name: 'Galaxy', price: 200, css: 'radial-gradient(circle at 50% 20%,#fff 0 1px,transparent 2px) 0 0/7px 9px,linear-gradient(180deg,#5b3fa8,#1d1540)' },
+    { id: 'gold', name: 'Golden', price: 400, css: 'linear-gradient(90deg,#b8860b,#ffe08a 45%,#c9961a)' },
+  ],
+};
+function applyStraw(id) {
+  const item = SHOP.straws.find((x) => x.id === id) || SHOP.straws[0];
+  if (item.css) document.documentElement.style.setProperty('--straw', item.css);
+  else document.documentElement.style.removeProperty('--straw');
+}
+
+// ==== Screens ===============================================================================
+const SCREENS = ['titleScreen', 'levelsScreen', 'shopScreen'];
+let screenStack = [];
+function showScreen(id) {
+  SCREENS.forEach((s) => $(s).classList.toggle('show', s === id));
+  screenStack.push(id);
+  hideCoach();
+  if (id === 'titleScreen') renderTitle();
+  if (id === 'levelsScreen') renderLevels();
+  if (id === 'shopScreen') renderShop();
+  syncCoins();
+  track('screen', { id });
+}
+function closeScreens() { SCREENS.forEach((s) => $(s).classList.remove('show')); screenStack = []; }
+document.querySelectorAll('[data-back]').forEach((b) => (b.onclick = () => {
+  A.tap(); screenStack.pop(); const prev = screenStack.pop();
+  if (prev) showScreen(prev); else closeScreens();
+}));
+const syncCoins = () => document.querySelectorAll('#coinN, .coinN').forEach((e) => (e.textContent = Save.get().coins));
+const unlockedUpTo = () => { const st = Save.get().stars; let i = 0; while (i < LEVELS.length - 1 && st[LEVELS[i].id]) i++; return i; };
+
+function renderTitle() {
+  const sv = Save.get(), i = Math.min(sv.current, unlockedUpTo());
+  $('playSub').textContent = `Level ${LEVELS[i].id} · ${LEVELS[i].title}`;
+  const host = $('logoCup');
+  if (!host.firstChild) {
+    host.innerHTML = '<div class="slot"><div class="cup done" style="--cap:4;--glow:#ff94b6"></div><div class="lid"><i class="straw"></i></div></div>';
+    const cup = host.querySelector('.cup');
+    fillCup(cup, 'PTSS', 4);
+    cup.insertAdjacentHTML('beforeend', '<span class="face"><i></i><i></i><b></b></span>');
+  } else { // refresh colours after a theme change
+    const cup = host.querySelector('.cup'); cup.querySelectorAll('.layer').forEach((l) => l.remove());
+    const face = cup.querySelector('.face'); fillCup(cup, 'PTSS', 4); cup.appendChild(face);
+  }
+}
+$('playBtn').onclick = () => { A.tap(); closeScreens(); load(Math.min(Save.get().current, unlockedUpTo())); };
+$('levelsBtn').onclick = () => { A.tap(); showScreen('levelsScreen'); };
+$('shopBtn').onclick = () => { A.tap(); showScreen('shopScreen'); };
+$('menuBtn').onclick = () => { if (busy) return; A.tap(); screenStack = ['titleScreen']; showScreen('levelsScreen'); };
+
+const WORLD_INFO = { 'Cozy Corner': 'Learn to pour and serve.', 'Pearl Grotto': 'Pearls always sink.', 'Fizz Falls': 'Sparkle soda always floats.' };
+function renderLevels() {
+  const sv = Save.get(), open = unlockedUpTo(), host = $('worlds');
+  host.innerHTML = '';
+  let total = 0;
+  const worlds = [...new Set(LEVELS.map((l) => l.world))];
+  worlds.forEach((w) => {
+    const sec = document.createElement('div'); sec.className = 'world';
+    sec.innerHTML = `<h3>${w}</h3><p>${WORLD_INFO[w] || ''}</p><div class="lvl-grid"></div>`;
+    LEVELS.forEach((l, i) => {
+      if (l.world !== w) return;
+      const st = sv.stars[l.id] || 0; total += st;
+      const b = document.createElement('button');
+      b.className = 'lvl' + (l.tier === 'hard' ? ' boss' : '') + (l.mode === 'orders' ? ' counter' : '') + (i === open && !st ? ' current' : '');
+      b.disabled = i > open;
+      b.innerHTML = i > open ? '🔒' : `${l.id.split('-')[1]}<span class="st">${'★'.repeat(st)}<i>${'★'.repeat(3 - st)}</i></span>`;
+      b.setAttribute('aria-label', `Level ${l.id} ${l.title}${i > open ? ', locked' : `, ${st} stars`}`);
+      b.onclick = () => { A.tap(); closeScreens(); load(i); };
+      sec.querySelector('.lvl-grid').appendChild(b);
+    });
+    host.appendChild(sec);
+  });
+  $('starsTotal').textContent = `★ ${total} / ${LEVELS.length * 3}`;
+}
+
+let shopTab = 'themes';
+document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => {
+  A.tap(); shopTab = b.dataset.tab;
+  document.querySelectorAll('[data-tab]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+  renderShop();
+}));
+function renderShop() {
+  const sv = Save.get(), grid = $('shopGrid'), kind = shopTab === 'themes' ? 'skins' : 'straws';
+  grid.innerHTML = '';
+  SHOP[shopTab].forEach((it) => {
+    const owned = sv.owned[kind].includes(it.id), equipped = (kind === 'skins' ? sv.skin : sv.straw) === it.id;
+    const card = document.createElement('div');
+    card.className = 'item' + (equipped ? ' equipped' : '');
+    const preview = kind === 'skins'
+      ? `<div class="preview" style="background:${it.preview}">${it.cups.map((c, n) => `<i style="height:${42 + n * 8}px;background:${c}"></i>`).join('')}</div>`
+      : `<div class="preview" style="background:color-mix(in srgb, var(--text) 8%, transparent)"><i class="strawp" style="background:${it.css || 'repeating-linear-gradient(180deg, #ff8fb8 0 6px, #fff 6px 10px)'}"></i></div>`;
+    card.innerHTML = `${preview}<b>${it.name}</b><button class="${equipped || owned ? 'owned' : 'buy'}">${equipped ? 'Equipped ✓' : owned ? 'Equip' : '🪙 ' + it.price}</button>`;
+    const btn = card.querySelector('button');
+    btn.disabled = equipped;
+    btn.onclick = () => buy(kind, it, card);
+    grid.appendChild(card);
+  });
+}
+function buy(kind, it, card) {
+  const sv = Save.get();
+  if (!sv.owned[kind].includes(it.id)) {
+    if (sv.coins < it.price) {
+      A.invalid(); FX.shake(card, 5); toast(`You need ${it.price - sv.coins} more coins. Win levels to earn them!`);
+      track('shop_insufficient', { item: it.id }); return;
+    }
+    sv.coins -= it.price; sv.owned[kind].push(it.id);
+    A.vial();
+    const c = center(card);
+    FX.burst(c.x, c.y, { colors: ['#ffd76a', '#ffffff', '#ff94b6'], count: 36, speed: 280, types: ['star', 'dot'], g: 260 });
+    FX.ring(c.x, c.y, '#ffd76a', 80);
+    track('shop_buy', { kind, item: it.id, price: it.price });
+  } else A.tap();
+  if (kind === 'skins') { sv.skin = it.id; applySkin(it.id, true); } else { sv.straw = it.id; applyStraw(it.id); }
+  track('equip', { kind, item: it.id });
+  Save.write(); renderShop(); syncCoins();
+}
+
+function toast(text, ms = 2200) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = text; document.body.appendChild(t);
+  t.animate([{ opacity: 0, transform: 'translate(-50%, 12px)' }, { opacity: 1, transform: 'translate(-50%, 0)', offset: 0.12 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: ms }).onfinish = () => t.remove();
+}
+
+// ==== Settings ==============================================================================
+function syncSwitches() {
+  $('sfxBtn').setAttribute('aria-checked', String(A.sfxOn));
+  $('musBtn').setAttribute('aria-checked', String(A.musicOn));
+  $('hapBtn').setAttribute('aria-checked', String(Save.get().settings.haptics));
+}
+const openSettings = () => { A.tap(); syncSwitches(); $('resetBtn').classList.remove('armed'); $('resetBtn').textContent = 'Reset progress'; $('settings').classList.add('show'); };
+$('gearBtn').onclick = openSettings;
+document.querySelectorAll('[data-open="settings"]').forEach((b) => (b.onclick = openSettings));
+$('settingsDone').onclick = () => { A.tap(); $('settings').classList.remove('show'); };
+$('sfxBtn').onclick = () => { A.setSfx(!A.sfxOn); syncSwitches(); A.tap(); };
+$('musBtn').onclick = () => { A.setMusic(!A.musicOn); syncSwitches(); A.tap(); };
+$('hapBtn').onclick = () => { const st = Save.get().settings; st.haptics = !st.haptics; Save.write(); syncSwitches(); A.tap(); };
+$('resetBtn').onclick = () => {
+  const b = $('resetBtn');
+  if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Tap again to erase everything'; A.invalid(); return; }
+  Save.reset(); applySkin('twilight', false); applyStraw('classic'); syncCoins();
+  $('settings').classList.remove('show'); toast('Progress reset'); track('reset');
+  closeScreens(); showScreen('titleScreen');
+};
+$('version').textContent = `Magic Boba ${window.__BOBA_VERSION__ || 'web'} · ${LEVELS.length} levels`;
+
+// ==== Tutorial coach ========================================================================
+// Coach marks point at a cup or button with a hand and a speech bubble. Touches pass through.
+function hideCoach() { $('coach').hidden = true; }
+function showCoach(target, text, { hand = true, below = false } = {}) {
+  const coach = $('coach'), bubble = coach.querySelector('.bubble'), h = coach.querySelector('.hand');
+  coach.hidden = false; bubble.textContent = text; h.hidden = !hand || !target;
+  const W = innerWidth, H = innerHeight;
+  if (!target) { // free-floating tip near the top of the board
+    const br = $('board').getBoundingClientRect();
+    bubble.style.left = Math.max(16, W / 2 - 140) + 'px'; bubble.style.top = Math.max(80, br.top - 10) + 'px';
+    return;
+  }
+  const r = target.getBoundingClientRect();
+  h.style.left = r.left + r.width / 2 + 'px'; h.style.top = r.bottom - 10 + 'px';
+  bubble.style.visibility = 'hidden'; bubble.style.left = '0px'; bubble.style.top = '0px';
+  const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
+  let top = below ? r.bottom + 56 : r.top - bh - 18; if (top < 70) top = r.bottom + 56;
+  if (top + bh > H - 10) top = H - bh - 10;
+  bubble.style.left = Math.min(W - bw - 16, Math.max(16, r.left + r.width / 2 - bw / 2)) + 'px';
+  bubble.style.top = top + 'px'; bubble.style.visibility = '';
+}
+const seen = (k) => !!Save.get().tutorials[k];
+const markSeen = (k) => { Save.get().tutorials[k] = true; Save.write(); track('tutorial_done', { step: k }); };
+let tutorialPours = 0;
+function bestMove() { const r = Boba.solve(level, 60000, state); return r.solvable && r.path.length ? r.path[0] : null; }
+function tutorial(event) {
+  if (busy && event !== 'moved') return;
+  if (SCREENS.some((id) => $(id).classList.contains('show')) || $('win').classList.contains('show')) return hideCoach();
+  const t = level.tutorial;
+  if (event === 'start') tutorialPours = 0;
+  if (t === 'basics' && !seen('basics')) {
+    if (event === 'moved') tutorialPours++;
+    if (tutorialPours >= 2) {
+      showCoach(null, 'Lovely! Sort every flavour into its own cup.', { hand: false });
+      setTimeout(hideCoach, 2600); markSeen('basics'); return;
+    }
+    const m = bestMove(); if (!m) return hideCoach();
+    if (sel === null) showCoach(cupEl(m[0]), tutorialPours ? 'Pick up another cup' : 'Tap a cup to pick it up');
+    else if (sel === m[0]) showCoach(typeof m[1] === 'number' ? cupEl(m[1]) : orderEl(+m[1].slice(1)), 'Now tap here to pour');
+    else showCoach(cupEl(m[0]), 'Try this cup instead');
+    return;
+  }
+  if (t === 'counter' && !seen('counter')) {
+    if (event === 'start') setTimeout(() => showCoach(orderEl(0), 'Customers are waiting! Pour into their cup whatever it needs next, from the bottom up.', { below: true }), 700);
+    if (event === 'moved') { hideCoach(); markSeen('counter'); }
+    return;
+  }
+  const tips = { pearls: 'New! Pearls always sink to the bottom, under any drink.', soda: 'New! Sparkle soda always floats on top. Other drinks slide underneath.' };
+  if (tips[t] && !seen(t)) {
+    if (event === 'start') setTimeout(() => showCoach(null, tips[t], { hand: false }), 700);
+    if (event === 'moved') { hideCoach(); markSeen(t); }
+    return;
+  }
+  if (event === 'stuck' && !seen('vial')) { showCoach($('vial'), 'Out of moves? Watch a short ad for a bonus vial, or tap ↶ to undo.'); markSeen('vial'); }
+  else if (event === 'moved' && !$('coach').hidden) hideCoach();
+}
+window.addEventListener('resize', hideCoach);
+
+// ==== Boot ==================================================================================
+{
+  const sv = Save.get();
+  if (!sv.owned.skins.includes(sv.skin)) sv.skin = 'twilight';
+  applySkin(sv.skin, false); applyStraw(sv.straw);
+  load(Math.min(sv.current, unlockedUpTo()));
+  showScreen('titleScreen');
+  track('app_open', { native: Native.has, levels: LEVELS.length });
+}
 </script>
 </body>
 </html>

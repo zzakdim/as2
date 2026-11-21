@@ -1,13 +1,17 @@
-# Magic Boba — level prototype
+# Magic Boba: game (web layer)
 
-A throwaway HTML prototype for testing rules and levels before the SpriteKit build.
+The complete game: rules, levels, visuals, sound and menus. The same code runs in a browser (the Claude
+artifact) and inside the iOS app (`../ios`, a native Swift shell around a web view).
 
 | File | What it is |
 |---|---|
 | `engine.js` | Rules (pouring, pearls sink, order cups) + BFS solver + random-play "stuck rate" |
 | `generate.js` | Builds the test pack: deals many random seeds per level spec, solves each, keeps the one closest to the target move count |
 | `levels.json` / `levels.js` | Generated pack (same data; `.js` is for the browser) |
-| `play.html` | Playable, touch-friendly test page with Undo / Restart / Hint |
+| `play.html` | The game: title screen, level map, shop, settings, tutorial coach, the board, and the native bridge |
+| `audio.js` / `fx.js` | Synthesized sound and music / particles and floating text |
+| `engine.test.js` | Rules and solver tests: `node engine.test.js` |
+| `ui.test.js` | End-to-end player-flow tests with a fake iOS bridge: `node ui.test.js` |
 
 ## Play
 
@@ -25,7 +29,8 @@ then open `http://<your-computer-ip>:8000/play.html` on the phone.
 node magic_boba/proto/generate.js
 ```
 
-Edit the `PACK` array in `generate.js` to add or tune levels. Each level gets:
+Edit the `PACK` array in `generate.js` to add or tune levels (30 levels across 3 worlds). Finished levels are
+cached in `levels.cache.json`, so a rerun only redoes levels whose spec changed. Each level gets:
 
 - `optimal` – fewest possible moves (proven by the solver; drives the star rating)
 - `branching` – average legal moves per position (higher = more choice)
@@ -36,6 +41,8 @@ Edit the `PACK` array in `generate.js` to add or tune levels. Each level gets:
 - Cups hold 4 layers. Pour the top run of one ingredient; as much as fits moves.
 - Liquids pour onto an empty cup, the same liquid, or a pearl bed.
 - **Pearls** pour into any cup with room and **sink below the liquid**.
+- **Sparkle soda** pours onto any cup with room and **floats on top**. Other liquids poured onto it slide
+  underneath, and must match the layer under the soda.
 - **Sort mode:** win when every cup is full of one ingredient.
 - **Orders mode:** customers wait at the counter (`slots` at a time). Pour into an order cup only the
   ingredient its recipe needs next (bottom → top). Finished orders leave; win when everyone is served.

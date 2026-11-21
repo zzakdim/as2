@@ -136,6 +136,12 @@
 
   // Haptics only after the first touch (browsers block it before), and only where supported.
   const vibrate = (p) => { if (!ctx) return; try { navigator.vibrate && navigator.vibrate(p); } catch {} };
+  // Named haptics: inside the iOS app these become native Taptic Engine patterns (see BobaNative);
+  // in a browser they fall back to navigator.vibrate where supported (Android).
+  const haptic = (kind, p) => {
+    if (root.BobaHaptics && root.BobaHaptics(kind) !== false) return;
+    vibrate(p);
+  };
   const ready = () => ctx && ctx.state === 'running';
 
   // ---- game sounds ---------------------------------------------------------------------
@@ -152,6 +158,8 @@
       const d = new Float32Array(meterNode.fftSize); meterNode.getFloatTimeDomainData(d);
       return d.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
     },
+    pause() { if (ctx && ctx.state === 'running') ctx.suspend(); },
+    resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); },
     get sfxOn() { return sfxOn; },
     get musicOn() { return musicOn; },
     setSfx(on) {
@@ -166,7 +174,7 @@
     },
 
     select(level = 0) { // lifting a cup: glass clink pitched by how full it is
-      vibrate(8);
+      haptic('select', 8);
       if (!ready()) return;
       glass(hz(12 + level), 0, 0.2);
       noise({ dur: 0.05, g: 0.05, type: 'highpass', f: 3000 });
@@ -178,7 +186,7 @@
 
     // amount: layers moving. from: dest fill level before. cap: dest capacity.
     pour(amount, from, cap, solid, unitMs) {
-      vibrate([12, 30, 12]);
+      haptic('pour', [12, 30, 12]);
       if (!ready()) return;
       const U = unitMs / 1000;
       const res = (lvl) => 260 * cap / Math.max(0.6, cap - lvl + 0.4);
@@ -221,7 +229,7 @@
 
     // a cup becomes complete. streak climbs the scale.
     complete(streak = 0) {
-      vibrate([20, 40, 30]);
+      haptic('complete', [20, 40, 30]);
       if (!ready()) return;
       duck(0.4, 0.4);
       // cork/lid pop
@@ -234,7 +242,7 @@
 
     // a customer's order is finished
     serve(streak = 0) {
-      vibrate([15, 30, 15, 30, 40]);
+      haptic('serve', [15, 30, 15, 30, 40]);
       if (!ready()) return;
       duck(0.35, 0.6);
       noise({ dur: 0.03, g: 0.2, type: 'bandpass', f: 1600, Q: 0.8 });
@@ -248,21 +256,21 @@
     },
 
     invalid() {
-      vibrate(30);
+      haptic('invalid', 30);
       if (!ready()) return;
       tone({ f: 150, f2: 95, glide: 0.1, a: 0.004, dur: 0.14, g: 0.17, rev: 0 });
       tone({ f: 118, f2: 80, glide: 0.1, t: 0.09, a: 0.004, dur: 0.14, g: 0.11, rev: 0 });
     },
 
     undo() {
-      vibrate(10);
+      haptic('undo', 10);
       if (!ready()) return;
       noise({ dur: 0.18, g: 0.1, type: 'bandpass', f: 2600, f2: 500, Q: 2 });
       glass(hz(7), 0.08, 0.08, 0.1);
     },
 
     vial() { // magic glissando
-      vibrate([10, 20, 10, 20, 10, 20, 40]);
+      haptic('vial', [10, 20, 10, 20, 10, 20, 40]);
       if (!ready()) return;
       duck(0.3, 0.8);
       for (let i = 0; i < 10; i++) tone({ f: hz(8 + i), t: i * 0.035, type: 'triangle', a: 0.003, dur: 0.35, g: 0.1, rev: 0.6, pan: (i / 10) * 1.2 - 0.6 });
@@ -276,14 +284,14 @@
     },
 
     hop(i) { // victory lap: cups hop one by one up the scale
-      vibrate(6);
+      haptic('hop', 6);
       if (!ready()) return;
       tone({ f: hz(10 + i), type: 'triangle', a: 0.003, dur: 0.22, g: 0.12, rev: 0.35 });
       glass(hz(15 + i), 0, 0.06, 0.3);
     },
 
     win() {
-      vibrate([30, 60, 30, 60, 80]);
+      haptic('win', [30, 60, 30, 60, 80]);
       if (!ready()) return;
       duck(0.25, 2.2);
       const chord = [0, 2, 3, 5, 7, 8, 10]; // F A C F A C F (scale steps)
@@ -295,7 +303,7 @@
     },
 
     star(n) { // n = 0,1,2 — each higher, last one biggest
-      vibrate(n === 2 ? [30, 30, 60] : 25);
+      haptic('star', n === 2 ? [30, 30, 60] : 25);
       if (!ready()) return;
       const s = 15 + n * 2;
       bell(hz(s), 0, 0.22, 1.3);
@@ -310,7 +318,7 @@
     },
 
     golden() { // rare golden tip: the jackpot sound
-      vibrate([40, 40, 40, 40, 120]);
+      haptic('golden', [40, 40, 40, 40, 120]);
       if (!ready()) return;
       duck(0.2, 1.5);
       for (let i = 0; i < 14; i++) tone({ f: hz(10 + i), t: i * 0.04, type: 'square', a: 0.003, dur: 0.1, g: 0.035, rev: 0.4 });
@@ -319,7 +327,7 @@
     },
 
     tap() { // UI buttons
-      vibrate(5);
+      haptic('tap', 5);
       if (!ready()) return;
       tone({ f: hz(10), f2: hz(11), glide: 0.03, a: 0.002, dur: 0.05, g: 0.06, rev: 0 });
     },
@@ -408,5 +416,7 @@
     };
   })();
 
+  // Silence everything when the app goes to the background or the tab is hidden.
+  document.addEventListener('visibilitychange', () => (document.hidden ? S.pause() : S.resume()));
   root.BobaAudio = S;
 })(window);
