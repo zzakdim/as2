@@ -477,12 +477,20 @@
   function renderTray() {
     const slots = document.querySelectorAll('#tray .slot');
     const slotW = slots[0].getBoundingClientRect().width || 100;
+    const size = Math.min(22, Math.floor((slotW - 12) / 5));
     run.game.tray.forEach((p, i) => {
       const slot = slots[i];
-      slot.innerHTML = '';
       slot.classList.remove('dragging');
+      // A piece still waiting in the tray keeps its element, so it doesn't replay the deal-in animation
+      // on every placement. Only new pieces (a fresh tray, a swap, an undo) are drawn again.
+      const kept = slot.firstChild;
+      if (p && kept && slot.pbPiece === p && slot.pbSize === size) {
+        kept.classList.toggle('no-fit', !Core.fitsAnywhere(run.game.board, p));
+        return;
+      }
+      slot.innerHTML = '';
+      slot.pbPiece = p; slot.pbSize = size;
       if (!p) return;
-      const size = Math.min(22, Math.floor((slotW - 12) / 5));
       const el = pieceEl(p, size, 2);
       if (!Core.fitsAnywhere(run.game.board, p)) el.classList.add('no-fit');
       slot.appendChild(el);
