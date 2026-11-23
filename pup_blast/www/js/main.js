@@ -49,6 +49,9 @@
   // Text appears in the phone's language (or the one picked in Settings); see i18n.js.
   const I18N = window.PB.I18N;
   I18N.start(state.settings.lang, document);
+  // Names the player typed stay exactly as typed in every language.
+  const syncNames = () => I18N.setNames(Object.values(state.pups).map((o) => o && o.name));
+  syncNames();
   document.documentElement.style.setProperty('--buddy-word', JSON.stringify(I18N.t('Buddy'))); // the Kennel badge is CSS text
 
   // ---- Release settings ----
@@ -946,7 +949,8 @@
         ${lvl ? '<button type="button" class="btn" data-act="collect">Collect</button>'
     : `<button type="button" class="btn" data-act="again">Collect &amp; play again</button>
         <button type="button" class="btn ghost" data-act="home">Collect &amp; go home</button>
-        ${boards.kind === 'gamecenter' ? '<button type="button" class="btn ghost small" data-act="boards">See the leaderboard</button>' : ''}`}
+        ${boards.kind === 'gamecenter' ? '<button type="button" class="btn ghost small" data-act="boards">See the leaderboard</button>' : ''}
+        ${isBest && g.score > 0 ? shareButton() : ''}`}
       </div>`, { cls: 'gameover' });
     if (!recount) countUp(sheet.querySelector('.go-score'), g.score);
     { const b = sheet.querySelector('.go-bones span'); if (b) countUp(b, bones, (v) => `+${v.toLocaleString()}`, () => { if (!recount) sfx.coin(); }); }
@@ -956,6 +960,7 @@
       if (!act) return;
       const a = act.dataset.act;
       if (a === 'boards') { track('leaderboard_open', { from: 'gameover' }); boards.show('weekly'); return; }
+      if (a === 'share') { bragBest(g.score)(act); return; }
       if (a === 'revive') {
         track('ad_rewarded_request', { placement: 'revive' });
         act.disabled = true; // one ad, one revive, however fast the button is tapped
@@ -1012,12 +1017,13 @@
     const firstClear = got >= 1 && prev.stars === 0;
     state.levels[lvl.id] = { stars: Math.max(prev.stars, got), best: Math.max(prev.best, score) };
     const rewards = [];
+    let newWorld = null;
     if (firstClear) {
       if (lvl.reward.type === 'dig') { state.tokens.dig++; rewards.push(`A free ${verb().toLowerCase()} at the ${gachaName()}`); }
       else { state.bones += lvl.reward.amount; rewards.push(`+${lvl.reward.amount} bones for clearing it`); }
     }
     if (firstClear) {
-      Levels.WORLDS.filter((w) => w.unlockAfter === lvl.id).forEach((w) => { rewards.push(`New world open: the ${w.name}!`); track('world_open', { world: w.id }); });
+      Levels.WORLDS.filter((w) => w.unlockAfter === lvl.id).forEach((w) => { rewards.push(`New world open: the ${w.name}!`); track('world_open', { world: w.id }); newWorld = w; });
     }
     const world = Levels.WORLDS.find((w) => w.id === lvl.world);
     let sweep = false;
@@ -1026,7 +1032,7 @@
       state.tokens.epic++;
       sweep = true;
     }
-    return { got, prevStars: prev.stars, newBest: score > prev.best && prev.best > 0, firstClear, rewards, sweep };
+    return { got, prevStars: prev.stars, newBest: score > prev.best && prev.best > 0, firstClear, rewards, sweep, newWorld };
   }
 
   // Gives the buddy bond XP for a run. Returns reward lines for the result sheet.
@@ -1095,6 +1101,7 @@
       <p class="go-sub">${sum.got ? (sum.newBest ? 'New best for this level' : sum.got > sum.prevStars && sum.prevStars ? 'New star record' : 'Level cleared') : 'Not quite. Try again!'}</p>
       <ul class="reward-list">${lines.map((x) => `<li>${x}</li>`).join('')}</ul>
       <div class="stack">
+        ${sum.newWorld && !tutorial ? shareButton() : ''}
         ${tutorial ? '<button type="button" class="btn" data-act="home">Continue</button>' : `
         ${sum.got && nxt ? '<button type="button" class="btn" data-act="next">Next level</button>' : ''}
         <div class="pull-row"><button type="button" class="btn ${sum.got && nxt ? 'ghost' : ''}" data-act="retry">Retry</button><button type="button" class="btn ghost" data-act="map">Map</button></div>`}
@@ -1107,6 +1114,7 @@
     sheet.onclick = (e) => {
       const a = e.target.closest('[data-act]');
       if (!a) return;
+      if (a.dataset.act === 'share') { bragWorld(sum.newWorld)(a); return; }
       closeModal();
       if (a.dataset.act === 'next') startRun({ level: nxt });
       else if (a.dataset.act === 'retry') startRun({ level: lvl });
@@ -1441,6 +1449,7 @@
     weekly.querySelector('.label').textContent = wLeft > 0
       ? `Weekly ${verb().toLowerCase()} · ${Pups.RARITY[ECON.WEEKLY_MIN_RARITY].label} or better`
       : `Next weekly ${verb().toLowerCase()} in ${fmtWait(State.msToNextWeek(Date.now()))}`;
+    $('#btn-invite').hidden = !inviteReady() || !state.tutorial.done;
     const free = $('#btn-pull-free');
     const left = state.daily.freePullsLeft;
     free.hidden = ECON.DAILY_AD_PULLS <= 0;
@@ -1521,6 +1530,65 @@
     },
   };
 
+  // ---------------------------------------------------------------- sharing
+  // Brag cards for big moments, shared through the phone's share sheet (share.js). Each helper returns
+  // a click handler for a Share button; the card is drawn when it's tapped.
+  const ShareKit = window.PB.Share;
+  const tt = (s) => I18N.t(s); // the card is a picture, so its text is translated here rather than on screen
+  const shareButton = () => '<button type="button" class="btn alt share-btn" data-act="share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Share</span></button>';
+  function shareCard(kind, cardOpts, text) {
+    return async (btn) => {
+      if (btn && btn.disabled) return;
+      if (btn) btn.disabled = true;
+      track('share_open', { kind });
+      const footer = tt('Free on the App Store');
+      const image = await ShareKit.card(Object.assign({ footer }, cardOpts)).catch(() => null);
+      const res = await ShareKit.share({ title: 'Pup Blast', text: `${text} 🐶`, image });
+      if (btn) btn.disabled = false;
+      track(res.completed ? 'share_done' : 'share_cancel', { kind, activity: res.activity || '' });
+      if (res.unavailable) toast(tt('Sharing works in the app'));
+      return res;
+    };
+  }
+  const rarityColor = (r) => Pups.RARITY[r].color;
+  // The moment worth bragging about in a dig result, if any: a new Legendary, or a pup reaching max level.
+  function bragFor(r) {
+    const maxed = r.leveledUp && r.level >= Pups.MAX_LEVEL;
+    if (maxed) {
+      return shareCard('max_level', { pupSvg: Pups.renderPup(r.pup, { plain: true }), headline: tt(`${r.pup.name} reached max level!`), sub: tt(r.pup.breed), kicker: tt('Max level'), accent: rarityColor(r.pup.rarity) },
+        tt(`${r.pup.name} just reached max level in Pup Blast!`));
+    }
+    if (r.isNew && r.rarity === 'legendary') {
+      return shareCard('legendary', { pupSvg: Pups.renderPup(r.pup, { plain: true }), headline: tt(`I found ${r.pup.name}!`), sub: tt(`A Legendary ${r.pup.breed}`), kicker: tt('Legendary'), accent: rarityColor('legendary') },
+        tt(`I found ${r.pup.name}, a Legendary ${r.pup.breed}, in Pup Blast!`));
+    }
+    return null;
+  }
+  function bragWorld(w) {
+    const buddy = Pups.BY_ID[state.buddy];
+    return shareCard('world', { pupSvg: Pups.renderPup(buddy, { plain: true }), headline: tt(`I opened the ${w.name}!`), sub: tt(`World ${Levels.WORLDS.indexOf(w) + 1}`), kicker: tt('A new world'), accent: '#5fd98a' },
+      tt(`I just opened the ${w.name} in Pup Blast!`));
+  }
+  function bragBest(score) {
+    const buddy = Pups.BY_ID[state.buddy];
+    const n = score.toLocaleString();
+    return shareCard('best', { pupSvg: Pups.renderPup(buddy, { plain: true }), headline: tt(`New best: ${n}!`), sub: tt('Endless mode'), kicker: tt('New best score'), accent: '#ff8fab' },
+      tt(`I just scored ${n} in Pup Blast! Can you beat it?`));
+  }
+  // Once a week, sharing the game with a friend earns a free dig. Only a completed share counts.
+  const INVITE_REWARD = true; // set false to keep the button but drop the reward
+  const inviteReady = () => state.weekly.invited !== state.weekly.week;
+  $('#btn-invite').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    const buddy = Pups.BY_ID[state.buddy];
+    const res = await shareCard('invite', { pupSvg: Pups.renderPup(buddy, { plain: true }), headline: tt('Come play Pup Blast!'), sub: tt('A cozy block puzzle with puppies to collect'), kicker: tt('Join me'), accent: '#ffd04a' },
+      tt("I'm collecting puppies in Pup Blast, a cozy block puzzle. Come play!"))(btn);
+    if (!res || !res.completed || !inviteReady()) return;
+    state.weekly.invited = state.weekly.week;
+    if (INVITE_REWARD) { state.tokens.dig++; sfx.coin(); toast(tt(`Thanks for sharing! A free ${verb().toLowerCase()} is waiting`)); }
+    save(); renderGacha();
+  });
+
   async function reveal(results, again) {
     const sheet = openModal('', { cls: 'reveal' });
     const canAgain = () => again && again.can();
@@ -1528,9 +1596,11 @@
       const r = results[0];
       if (digMode()) await PullFX.dig(sheet, r, fxCtx);
       else await PullFX.single(sheet, r, fxCtx);
+      const brag = bragFor(r);
       PullFX.showResult(sheet, r, Object.assign({}, fxCtx, {
         actions: () => `
           ${state.buddy !== r.pup.id ? '<button type="button" class="btn" data-act="buddy">Make buddy</button>' : ''}
+          ${brag ? shareButton() : ''}
           <div class="pull-row">
             <button type="button" class="btn ghost" data-act="done">Nice!</button>
             ${canAgain() ? `<button type="button" class="btn alt" data-act="again">${again.label}</button>` : ''}
@@ -1539,6 +1609,7 @@
       sheet.onclick = (e) => {
         const act = e.target.closest('[data-act]');
         if (!act) return;
+        if (act.dataset.act === 'share') { brag(act); return; }
         if (act.dataset.act === 'buddy') { state.buddy = r.pup.id; save(); sfx.woof(); toast(`${r.pup.name} is your buddy now`); }
         closeModal(); renderGacha();
         tutorialAfterReveal();
@@ -1546,13 +1617,16 @@
       };
       return;
     }
+    // Ten at once: the best moment in the batch (a Legendary, a pup hitting max level) can be shared.
+    const best = results.map(bragFor).find(Boolean);
     await PullFX.multi(sheet, results, Object.assign({}, fxCtx, {
-      multiActions: () => `<div class="pull-row"><button type="button" class="btn ghost" data-act="done">Done</button>
+      multiActions: () => `${best ? shareButton() : ''}<div class="pull-row"><button type="button" class="btn ghost" data-act="done">Done</button>
         ${canAgain() ? `<button type="button" class="btn alt" data-act="again">${again.label}</button>` : ''}</div>`,
     }), digMode() ? 'dig' : 'capsule');
     sheet.onclick = (e) => {
       const act = e.target.closest('[data-act]');
       if (!act) return;
+      if (act.dataset.act === 'share' && best) { best(act); return; }
       closeModal(); renderGacha();
       tutorialAfterReveal();
       if (act.dataset.act === 'again') again.run();
@@ -1713,6 +1787,7 @@
       const name = Pups.cleanName(input.value);
       if (!name) { sfx.nope(); input.focus(); return; }
       if (name === pup.baseName) delete o.name; else o.name = name;
+      syncNames();
       sfx.woof(); haptic('LIGHT');
       track('pup_renamed', { pup: pup.id });
       done();
@@ -1723,7 +1798,7 @@
       const a = e.target.closest('[data-act]');
       if (!a) return;
       if (a.dataset.act === 'save') saveName();
-      else if (a.dataset.act === 'reset') { delete o.name; done(); }
+      else if (a.dataset.act === 'reset') { delete o.name; syncNames(); done(); }
       else done();
     };
   }

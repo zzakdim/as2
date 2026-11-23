@@ -913,3 +913,9 @@ body:has(#modal:not([hidden])) .coach, body:has(#modal:not([hidden])) .dev-btn {
 
 /* While an ad for this sheet is loading, nothing else on it can be tapped. */
 .sheet.busy { pointer-events: none; }
+
+/* Sharing: a Share button on big moments, and the weekly invite at the Dig Spot. */
+.share-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.share-btn svg { width: 20px; height: 20px; flex: none; }
+.btn.invite { --b: #3fb7a6; --bd: #1f7f72; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.invite svg { width: 20px; height: 20px; flex: none; }

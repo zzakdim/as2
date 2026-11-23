@@ -15,6 +15,9 @@
   let exact = new Map();
   let patterns = [];
   const misses = new Set(); // English text seen with no translation (for checking coverage)
+  // Names the player gave their pups: never translated, even when one is a word like "Play" or "Ice".
+  let names = new Set();
+  function setNames(list) { names = new Set((list || []).filter(Boolean).map((n) => String(n).trim())); }
   const ATTRS = ['aria-label', 'title', 'placeholder', 'alt'];
   const LETTER = /\p{L}/u;
 
@@ -49,6 +52,7 @@
   function fit(v, depth) {
     if (!LETTER.test(v)) return 1;
     const c = v.trim();
+    if (names.has(c)) return 1; // a pup's own name fills a hole as-is
     if (exact.has(c) || (depth < 3 && viaPattern(c, depth + 1) !== null)) return 2;
     return c.length <= 16 && !/[.!?:;]\s|[.!?]$/.test(c) ? 0 : -1;
   }
@@ -93,6 +97,7 @@
     if (lang === 'en' || typeof s !== 'string' || !LETTER.test(s)) return s;
     const lead = s.match(/^\s*/)[0], trail = s.match(/\s*$/)[0];
     const core = s.trim();
+    if (names.has(core)) return s;
     const hit = exact.get(core);
     if (hit !== undefined) return lead + hit + trail;
     let viaP = viaPattern(core, depth || 0);
@@ -159,7 +164,7 @@
     return lang;
   }
 
-  const I18N = { LANGS, add, detect, start, t, lang: () => lang, tables, misses };
+  const I18N = { LANGS, add, detect, start, t, setNames, lang: () => lang, tables, misses };
   root.PB = root.PB || {};
   root.PB.I18N = I18N;
   if (typeof module !== 'undefined' && module.exports) module.exports = I18N;

@@ -52,3 +52,16 @@ for (const code of Object.keys(I18N.LANGS).filter((c) => c !== 'en' && c !== 'xx
     }
   });
 }
+
+test("a pup's custom name is never translated, alone or inside a sentence", () => {
+  I18N.add('xx', { Play: 'Spielen', 'Say hi to {0}!': 'Sag hallo zu {0}!', '{0} is free!': '{0} ist frei!' });
+  I18N.LANGS.xx = 'Test';
+  I18N.start('xx');
+  I18N.setNames(['Play', 'Rex!']);
+  assert.strictEqual(I18N.t('Play'), 'Play');
+  assert.strictEqual(I18N.t('Say hi to Play!'), 'Sag hallo zu Play!');
+  assert.strictEqual(I18N.t('Rex! is free!'), 'Rex! ist frei!');
+  I18N.setNames([]);
+  assert.strictEqual(I18N.t('Play'), 'Spielen');
+  I18N.start('en');
+});
