@@ -236,16 +236,16 @@
   @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
 
   /* ---- board, shelf, cups ---- */
-  .board { flex: 1; width: 100%; margin: 0 auto; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 4px 12px; padding: 8px 0; }
+  .board { flex: 1; width: 100%; margin: 0 auto; display: flex; flex-wrap: wrap; align-content: center; align-items: flex-end; justify-content: center; gap: 4px 12px; padding: 8px 0; --s: 1; }
   .slot { position: relative; padding: 22px 0 18px; }
   .slot::after { /* shelf plank; neighbours overlap so a row reads as one shelf */
-    content: ""; position: absolute; left: -7px; right: -7px; bottom: 9px; height: var(--shelf-h); background: var(--shelf);
+    content: ""; position: absolute; left: calc(-1 * var(--gx, 7px)); right: calc(-1 * var(--gx, 7px)); bottom: 9px; height: var(--shelf-h); background: var(--shelf);
     border-radius: 2px; box-shadow: var(--shelf-shadow); z-index: -1; }
   .slot::before { /* contact shadow, shrinks when the cup lifts */
     content: ""; position: absolute; left: 8%; right: 8%; bottom: 14px; height: 10px; z-index: 0; border-radius: 50%;
     background: radial-gradient(closest-side, var(--contact), transparent); transition: transform .25s, opacity .25s; }
   .slot:has(.cup.sel)::before { transform: scaleX(.6); opacity: .45; }
-  .cup { position: relative; z-index: 1; width: var(--cup-w); height: calc(var(--cap) * var(--cup-unit) + 14px);
+  .cup { position: relative; z-index: 1; width: calc(var(--cup-w) * var(--s, 1)); height: calc((var(--cap) * var(--cup-unit) + 14px) * var(--s, 1));
     border: var(--cup-border) solid var(--cup-edge); border-top: none; border-radius: var(--cup-radius); background: var(--cup-bg);
     box-shadow: var(--cup-rim); display: flex; flex-direction: column-reverse; padding: 4px; overflow: hidden; cursor: pointer; }
   .cup::before { /* glass glint that sweeps across now and then */
@@ -263,7 +263,7 @@
                       50% { box-shadow: var(--cup-rim), 0 0 30px color-mix(in srgb, var(--glow) 80%, transparent); } }
   .cup.almost { animation: almost 1.6s ease-in-out infinite; }
   @keyframes almost { 0%,100% { box-shadow: var(--cup-rim), 0 0 0 0 transparent; } 50% { box-shadow: var(--cup-rim), 0 0 16px color-mix(in srgb, var(--glow) 60%, transparent); } }
-  .cup.vial { width: calc(var(--cup-w) - 10px); border-color: color-mix(in srgb, var(--accent) 80%, transparent); border-radius: 4px 4px 18px 18px;
+  .cup.vial { width: calc((var(--cup-w) - 10px) * var(--s, 1)); border-color: color-mix(in srgb, var(--accent) 80%, transparent); border-radius: 4px 4px 18px 18px;
     background: color-mix(in srgb, var(--accent) 12%, transparent); }
   .order { width: calc(var(--cup-w) - 8px); height: 120px; border-style: dashed; border-top-style: none; }
   .layer { flex: 0 0 calc(100% / var(--cap)); position: relative; transform-origin: bottom; background-image: var(--gloss); }
@@ -288,10 +288,10 @@
       radial-gradient(circle at 44% 74%, rgba(255,255,255,.4) 6%, #6e4a3c 7% 17%, transparent 19%),
       radial-gradient(circle at 86% 78%, rgba(255,255,255,.3) 5%, #6e4a3c 6% 15%, transparent 17%); }
   .vialtag { position: absolute; bottom: -2px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--accent); font-weight: 600; }
-  .lid { position: absolute; top: 12px; left: 50%; width: calc(var(--cup-w) + 8px); height: 14px; margin-left: calc(var(--cup-w) / -2 - 4px); z-index: 4;
+  .lid { position: absolute; top: 12px; left: 50%; width: calc(var(--cup-w) * var(--s, 1) + 8px); height: 14px; margin-left: calc(var(--cup-w) * var(--s, 1) / -2 - 4px); z-index: 4;
     background: var(--lid); border-radius: 50% 50% 4px 4px / 100% 100% 4px 4px; box-shadow: 0 2px 4px rgba(0,0,0,.25); }
   .straw { position: absolute; bottom: 8px; left: 58%; width: 7px; height: 34px; border-radius: 4px; transform: rotate(14deg); transform-origin: bottom; background: var(--straw); }
-  html[data-skin="lab"] .lid { width: calc(var(--cup-w) - 12px); margin-left: calc(var(--cup-w) / -2 + 6px); height: 18px; top: 8px; border-radius: 4px 4px 2px 2px;
+  html[data-skin="lab"] .lid { width: calc(var(--cup-w) * var(--s, 1) - 12px); margin-left: calc(var(--cup-w) * var(--s, 1) / -2 + 6px); height: 18px; top: 8px; border-radius: 4px 4px 2px 2px;
     background: var(--lid), repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 5px); background-blend-mode: multiply; }
   html[data-skin="lab"] .straw { display: none; }
   html[data-family="sakura"] .lid::after { content: "♥"; position: absolute; left: 0; right: 0; top: -2px; text-align: center; font-size: 10px; color: #fff; }
@@ -917,10 +917,11 @@ window.LEVELS = [{"id":"1-1","title":"First Pour","note":"Tap a cup, then tap wh
   }
 
   // Glass: inharmonic partials with faster decay up high.
-  function glass(f, t = 0, g = 0.22, rev = 0.25, pan = 0) {
+  // `bright` scales the upper overtones (1 = crisp glass, lower = softer, rounder clink).
+  function glass(f, t = 0, g = 0.22, rev = 0.25, pan = 0, bright = 1) {
     const P = [[1, 1, 0.55], [2.76, 0.45, 0.32], [5.4, 0.22, 0.18], [8.93, 0.1, 0.1]];
     const j = jitter(10);
-    for (const [r, gg, dd] of P) tone({ f: f * r * j, t, a: 0.002, dur: dd, g: g * gg, rev, pan });
+    for (const [r, gg, dd] of P) tone({ f: f * r * j, t, a: 0.002, dur: dd, g: g * gg * (r > 1 ? bright : 1), rev, pan });
   }
 
   // Bell / chime: near-harmonic partials, long tail.
@@ -989,8 +990,8 @@ window.LEVELS = [{"id":"1-1","title":"First Pour","note":"Tap a cup, then tap wh
     select(level = 0) { // lifting a cup: glass clink pitched by how full it is
       haptic('select', 8);
       if (!ready()) return;
-      glass(hz(12 + level), 0, 0.2);
-      noise({ dur: 0.05, g: 0.05, type: 'highpass', f: 3000 });
+      glass(hz(7 + Math.min(level, 4)), 0, 0.15, 0.2, 0, 0.5);
+      noise({ dur: 0.04, g: 0.03, type: 'bandpass', f: 2200 });
     },
     deselect() {
       if (!ready()) return;
@@ -1048,9 +1049,9 @@ window.LEVELS = [{"id":"1-1","title":"First Pour","note":"Tap a cup, then tap wh
       // cork/lid pop
       noise({ dur: 0.03, g: 0.25, type: 'bandpass', f: 1800, Q: 0.8 });
       tone({ f: 760, f2: 240, glide: 0.06, a: 0.002, dur: 0.08, g: 0.25, rev: 0.05 });
-      const s = 10 + Math.min(streak, 8) * 2;
-      [0, 2, 4].forEach((d, i) => bell(hz(s + d), 0.07 + i * 0.075, 0.16, 0.9));
-      sparkle(0.25, 6 + streak, s + 5);
+      const s = 9 + Math.min(streak, 6);
+      [0, 2, 4].forEach((d, i) => bell(hz(s + d), 0.07 + i * 0.075, 0.15, 0.9));
+      sparkle(0.25, 4 + Math.min(streak, 4), s + 3, 0.035);
     },
 
     // a customer's order is finished
@@ -1632,15 +1633,29 @@ function render(anim = {}) {
   wasStuck = stuck;
 }
 
-// Spread cups evenly over rows (7 cups -> 4 + 3, never 6 + 1).
+// Lay cups out to fill the play area: spread them evenly over rows (7 cups -> 4 + 3, never 6 + 1),
+// grow them up to 25% when there is room (width and height), and widen the gaps to use the space.
 function balanceRows() {
   const board = $('board'), slots = [...board.children];
   if (!slots.length) return;
-  board.style.maxWidth = '';
-  const gap = 12, w = Math.max(...slots.map((s) => s.offsetWidth)) + gap;
-  const perRowMax = Math.max(1, Math.floor((board.clientWidth + gap) / w));
-  const perRow = Math.ceil(slots.length / Math.ceil(slots.length / perRowMax));
-  board.style.maxWidth = perRow * w + 'px';
+  Object.assign(board.style, { maxWidth: '', columnGap: '', rowGap: '' });
+  board.style.setProperty('--s', 1);
+  const MIN_GAP = 12, MAX_GAP = 40, ROW_GAP = 22, PAD = 40; // PAD: slot room for lid + shelf (doesn't scale)
+  const w0 = Math.max(...slots.map((s) => s.offsetWidth));
+  const h0 = Math.max(...slots.map((s) => s.offsetHeight));
+  const cs = getComputedStyle(board);
+  const W = board.clientWidth, H = board.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const perRowMax = Math.max(1, Math.floor((W + MIN_GAP) / (w0 + MIN_GAP)));
+  const rows = Math.ceil(slots.length / perRowMax);
+  const perRow = Math.ceil(slots.length / rows);
+  const fitW = (W - (perRow - 1) * 22) / (perRow * w0);
+  const fitH = (H - rows * PAD - (rows - 1) * ROW_GAP) / (rows * Math.max(1, h0 - PAD));
+  const scale = Math.max(1, Math.min(1.25, fitW, fitH));
+  board.style.setProperty('--s', scale.toFixed(3));
+  const w = w0 * scale;
+  const gap = perRow > 1 ? Math.min(MAX_GAP, Math.max(MIN_GAP, (W - perRow * w) / perRow)) : MIN_GAP;
+  board.style.setProperty('--gx', gap / 2 + 1 + 'px'); // shelf planks meet across the gap
+  Object.assign(board.style, { columnGap: gap + 'px', rowGap: ROW_GAP + 'px', maxWidth: Math.ceil(perRow * w + (perRow - 1) * gap + 2) + 'px' });
 }
 window.addEventListener('resize', () => level && balanceRows());
 

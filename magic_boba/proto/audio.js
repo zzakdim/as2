@@ -104,10 +104,11 @@
   }
 
   // Glass: inharmonic partials with faster decay up high.
-  function glass(f, t = 0, g = 0.22, rev = 0.25, pan = 0) {
+  // `bright` scales the upper overtones (1 = crisp glass, lower = softer, rounder clink).
+  function glass(f, t = 0, g = 0.22, rev = 0.25, pan = 0, bright = 1) {
     const P = [[1, 1, 0.55], [2.76, 0.45, 0.32], [5.4, 0.22, 0.18], [8.93, 0.1, 0.1]];
     const j = jitter(10);
-    for (const [r, gg, dd] of P) tone({ f: f * r * j, t, a: 0.002, dur: dd, g: g * gg, rev, pan });
+    for (const [r, gg, dd] of P) tone({ f: f * r * j, t, a: 0.002, dur: dd, g: g * gg * (r > 1 ? bright : 1), rev, pan });
   }
 
   // Bell / chime: near-harmonic partials, long tail.
@@ -176,8 +177,8 @@
     select(level = 0) { // lifting a cup: glass clink pitched by how full it is
       haptic('select', 8);
       if (!ready()) return;
-      glass(hz(12 + level), 0, 0.2);
-      noise({ dur: 0.05, g: 0.05, type: 'highpass', f: 3000 });
+      glass(hz(7 + Math.min(level, 4)), 0, 0.15, 0.2, 0, 0.5);
+      noise({ dur: 0.04, g: 0.03, type: 'bandpass', f: 2200 });
     },
     deselect() {
       if (!ready()) return;
@@ -235,9 +236,9 @@
       // cork/lid pop
       noise({ dur: 0.03, g: 0.25, type: 'bandpass', f: 1800, Q: 0.8 });
       tone({ f: 760, f2: 240, glide: 0.06, a: 0.002, dur: 0.08, g: 0.25, rev: 0.05 });
-      const s = 10 + Math.min(streak, 8) * 2;
-      [0, 2, 4].forEach((d, i) => bell(hz(s + d), 0.07 + i * 0.075, 0.16, 0.9));
-      sparkle(0.25, 6 + streak, s + 5);
+      const s = 9 + Math.min(streak, 6);
+      [0, 2, 4].forEach((d, i) => bell(hz(s + d), 0.07 + i * 0.075, 0.15, 0.9));
+      sparkle(0.25, 4 + Math.min(streak, 4), s + 3, 0.035);
     },
 
     // a customer's order is finished
