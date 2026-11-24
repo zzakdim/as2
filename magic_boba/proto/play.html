@@ -679,26 +679,31 @@ function render(anim = {}) {
   wasStuck = stuck;
 }
 
-// Lay cups out to fill the play area: spread them evenly over rows (7 cups -> 4 + 3, never 6 + 1),
-// grow them up to 25% when there is room (width and height), and widen the gaps to use the space.
+// Lay cups out to fill the play area. Try every row count (rows stay balanced: 5 cups -> 3 + 2,
+// 7 -> 4 + 3, never 6 + 1) and keep the one that lets the cups grow biggest; ties go to fewer rows.
 function balanceRows() {
   const board = $('board'), slots = [...board.children];
   if (!slots.length) return;
   Object.assign(board.style, { maxWidth: '', columnGap: '', rowGap: '' });
   board.style.setProperty('--s', 1);
-  const MIN_GAP = 12, MAX_GAP = 40, ROW_GAP = 22, PAD = 40; // PAD: slot room for lid + shelf (doesn't scale)
+  const MIN_GAP = 12, MAX_GAP = 40, ROW_GAP = 22, PAD = 40, MAX_SCALE = 1.5; // PAD: slot room for lid + shelf
+  const n = slots.length;
   const w0 = Math.max(...slots.map((s) => s.offsetWidth));
   const h0 = Math.max(...slots.map((s) => s.offsetHeight));
   const cs = getComputedStyle(board);
   const W = board.clientWidth, H = board.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const perRowMax = Math.max(1, Math.floor((W + MIN_GAP) / (w0 + MIN_GAP)));
-  const rows = Math.ceil(slots.length / perRowMax);
-  const perRow = Math.ceil(slots.length / rows);
-  const fitW = (W - (perRow - 1) * 22) / (perRow * w0);
-  const fitH = (H - rows * PAD - (rows - 1) * ROW_GAP) / (rows * Math.max(1, h0 - PAD));
-  const scale = Math.max(1, Math.min(1.25, fitW, fitH));
+  let best = null;
+  for (let rows = 1; rows <= n; rows++) {
+    const perRow = Math.ceil(n / rows);
+    if (Math.ceil(n / perRow) !== rows) continue;             // same layout as a smaller row count
+    const fitW = (W - (perRow - 1) * 22) / (perRow * w0);
+    const fitH = (H - rows * PAD - (rows - 1) * ROW_GAP) / (rows * Math.max(1, h0 - PAD));
+    const scale = Math.min(MAX_SCALE, fitW, fitH);
+    if (!best || scale > best.scale + 0.02) best = { rows, perRow, scale };
+  }
+  const scale = Math.max(best.perRow * w0 + (best.perRow - 1) * MIN_GAP > W ? 0.85 : 1, best.scale);
   board.style.setProperty('--s', scale.toFixed(3));
-  const w = w0 * scale;
+  const w = w0 * scale, perRow = best.perRow;
   const gap = perRow > 1 ? Math.min(MAX_GAP, Math.max(MIN_GAP, (W - perRow * w) / perRow)) : MIN_GAP;
   board.style.setProperty('--gx', gap / 2 + 1 + 'px'); // shelf planks meet across the gap
   Object.assign(board.style, { columnGap: gap + 'px', rowGap: ROW_GAP + 'px', maxWidth: Math.ceil(perRow * w + (perRow - 1) * gap + 2) + 'px' });
