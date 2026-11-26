@@ -18,9 +18,30 @@ t('pearls sink below liquid and soda', () => assert.deepStrictEqual(move(['P', '
 t('pour amount limited by space', () => assert.deepStrictEqual(move(['TTT', 'TT'], [0, 1]), ['T', 'TTTT']));
 t('landIndex: liquid under soda', () => assert.strictEqual(B.landIndex('PTF', 'T'), 2));
 t('small vial leftovers do not win', () => assert.ok(!B.isWon({ cups: ['TTTT', 'MM', 'MM'], caps: [4, 4, 2], cap: 4, mode: 'sort' })));
-t('orders: only next recipe ingredient accepted', () => {
-  const s = B.initState({ cups: ['TP', 'T'], cap: 4, mode: 'orders', orders: ['PTT'], slots: 1 });
-  assert.ok(!B.legalMoves(s).some(([a, b]) => b === 'o0' && a === 1)); // taro before pearls: refused
+t('orders: a customer takes the matching jar and it leaves the shelf', () => {
+  const s = B.initState({ cups: ['TTT', 'MT', ''], cap: 4, mode: 'orders', orders: ['TTTT', 'MMMM'], slots: 1 });
+  const n = B.applyMove(s, [1, 0]); // pour the T onto TTT -> TTTT -> served
+  assert.deepStrictEqual(n.cups, ['M', '']);
+  assert.deepStrictEqual(n.open.map((o) => o.i), [1]);
+});
+t('orders: no pouring into customers any more', () => {
+  const s = B.initState({ cups: ['TT', 'TT'], cap: 4, mode: 'orders', orders: ['TTTT'], slots: 1 });
+  assert.ok(B.legalMoves(s).every(([, b]) => typeof b === 'number'));
+});
+t('orders: a newly arrived customer takes a ready jar at once', () => {
+  const s = B.initState({ cups: ['TTT', 'T', 'MMMM'], cap: 4, mode: 'orders', orders: ['TTTT', 'MMMM'], slots: 1 });
+  const n = B.applyMove(s, [1, 0]);
+  assert.deepStrictEqual(n.cups, ['']);
+  assert.ok(B.isWon(n));
+});
+t('orders: layered recipe must match exactly', () => {
+  const s = B.initState({ cups: ['P', 'TTT', ''], cap: 4, mode: 'orders', orders: ['PTTT'], slots: 1 });
+  const n = B.applyMove(s, [0, 1]); // pearls sink under the taro -> PTTT
+  assert.ok(B.isWon(n));
+});
+t('odd jars: half and single jars must end empty', () => {
+  assert.ok(!B.isWon({ cups: ['TTTT', 'MM', 'MM'], caps: [4, 2, 2], cap: 4, mode: 'sort' }));
+  assert.ok(B.isWon({ cups: ['TTTT', 'MMMM', '', ''], caps: [4, 4, 2, 1], cap: 4, mode: 'sort' }));
 });
 t('solver solves a soda level', () => {
   const r = B.solve(lvl(['TTFF', 'MTFF', 'MMT', 'M']));

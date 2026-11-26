@@ -15,6 +15,13 @@
       "",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
     "stats": {
       "optimal": 5,
       "target": 5,
@@ -61,6 +68,13 @@
       "GTMG",
       "",
       ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
       "optimal": 7,
@@ -241,7 +255,7 @@
   {
     "id": "1-5",
     "title": "First Customers",
-    "note": "Customers want full cups. Pour what their cup needs next.",
+    "note": "Make the drink a customer wants. They take the jar!",
     "orders": [
       "TTTT",
       "MMMM",
@@ -254,43 +268,52 @@
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "GGGM",
-      "MMMT",
-      "TTTG"
+      "GMTT",
+      "MMGM",
+      "GGTT",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
       "optimal": 6,
       "target": 6,
-      "branching": 2.35,
-      "statesSearched": 38,
+      "branching": 3.3,
+      "statesSearched": 61,
       "casualStuckPct": 0,
       "randomPlayStuckPct": 0,
-      "seed": 50
+      "seed": 3
     },
     "solution": [
       [
         0,
-        "o1"
+        3
       ],
       [
         1,
-        "o0"
+        0
+      ],
+      [
+        2,
+        3
       ],
       [
         1,
-        "o1"
+        2
       ],
       [
         0,
-        "o1"
+        1
       ],
       [
-        2,
-        "o1"
-      ],
-      [
-        2,
-        "o0"
+        0,
+        1
       ]
     ]
   },
@@ -459,7 +482,7 @@
   {
     "id": "1-8",
     "title": "Busy Counter",
-    "note": "Four regulars at once.",
+    "note": "Every jar you serve leaves the shelf.",
     "orders": [
       "TTTT",
       "MMMM",
@@ -472,61 +495,64 @@
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "TGGG",
-      "TSSS",
-      "",
-      "TGMT",
-      "SMMM"
+      "STGG",
+      "MMTT",
+      "SGSG",
+      "TMMS",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
-      "optimal": 10,
-      "target": 8,
-      "branching": 4.71,
-      "statesSearched": 613,
+      "optimal": 9,
+      "target": 9,
+      "branching": 1.44,
+      "statesSearched": 18,
       "casualStuckPct": 0,
-      "randomPlayStuckPct": 0,
-      "seed": 80
+      "randomPlayStuckPct": 49,
+      "seed": 20
     },
     "solution": [
       [
-        3,
-        "o0"
-      ],
-      [
-        3,
-        "o1"
-      ],
-      [
-        4,
-        "o1"
-      ],
-      [
         0,
-        "o1"
-      ],
-      [
-        0,
-        "o0"
-      ],
-      [
-        1,
         4
       ],
       [
         1,
-        "o0"
+        0
+      ],
+      [
+        2,
+        4
       ],
       [
         3,
-        "o1"
+        2
       ],
       [
         3,
-        "o0"
+        1
       ],
       [
-        4,
-        "o0"
+        0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        1
       ]
     ]
   },
@@ -712,6 +738,13 @@
       "",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
     "stats": {
       "optimal": 6,
       "target": 6,
@@ -750,61 +783,78 @@
   },
   {
     "id": "2-2",
-    "title": "Bubble Bed",
-    "note": "Pearls can pour into any cup.",
+    "title": "Half Jar",
+    "note": "A half jar holds two. Empty it to finish.",
     "world": "Pearl Grotto",
+    "tutorial": "jars",
     "tier": "normal",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "PGGG",
-      "PTMG",
-      "PPTT",
-      "TMMM",
-      "",
+      "MMT",
+      "PTGG",
+      "PMMG",
+      "PTT",
+      "PG",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
     "stats": {
-      "optimal": 8,
-      "target": 8,
-      "branching": 7.45,
-      "statesSearched": 1761,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 14,
-      "seed": 86
+      "optimal": 10,
+      "target": 10,
+      "branching": 6.67,
+      "statesSearched": 4674,
+      "casualStuckPct": 3,
+      "randomPlayStuckPct": 8,
+      "seed": 5
     },
     "solution": [
       [
         0,
-        4
+        3
       ],
       [
         1,
-        4
+        5
       ],
       [
-        0,
+        2,
+        5
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
         1
       ],
       [
         1,
-        0
+        2
       ],
       [
         3,
-        0
-      ],
-      [
-        1,
-        3
-      ],
-      [
-        2,
-        3
-      ],
-      [
-        1,
         2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        3
       ]
     ]
   },
@@ -817,22 +867,31 @@
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "PPTG",
-      "PPSM",
-      "SSTG",
-      "MMGS",
-      "TTGM",
+      "GGTS",
+      "TSGT",
+      "PMMT",
+      "PPPS",
+      "SGMM",
       "",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
     "stats": {
-      "optimal": 11,
-      "target": 11,
-      "branching": 6.41,
-      "statesSearched": 13206,
+      "optimal": 12,
+      "target": 12,
+      "branching": 6.65,
+      "statesSearched": 33785,
       "casualStuckPct": 0,
-      "randomPlayStuckPct": 28,
-      "seed": 113
+      "randomPlayStuckPct": 15,
+      "seed": 1
     },
     "solution": [
       [
@@ -840,44 +899,48 @@
         5
       ],
       [
-        2,
-        5
-      ],
-      [
-        2,
+        1,
         0
       ],
       [
         3,
-        2
-      ],
-      [
-        3,
         5
       ],
       [
-        1,
-        3
-      ],
-      [
-        1,
-        2
-      ],
-      [
         4,
-        3
+        6
       ],
       [
-        4,
-        5
-      ],
-      [
-        0,
+        1,
         4
+      ],
+      [
+        1,
+        5
       ],
       [
         0,
         1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        5
       ]
     ]
   },
@@ -896,56 +959,68 @@
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "GG",
-      "MTT",
-      "GMMT",
-      "PPG"
+      "GTMG",
+      "PPTT",
+      "GMGM",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
-      "optimal": 9,
-      "target": 8,
-      "branching": 3.8,
-      "statesSearched": 363,
-      "casualStuckPct": 8,
-      "randomPlayStuckPct": 48,
-      "seed": 6
+      "optimal": 10,
+      "target": 10,
+      "branching": 4.66,
+      "statesSearched": 572,
+      "casualStuckPct": 0,
+      "randomPlayStuckPct": 18,
+      "seed": 13
     },
     "solution": [
       [
-        2,
-        1
-      ],
-      [
-        3,
-        0
-      ],
-      [
-        3,
-        "o0"
-      ],
-      [
-        1,
-        "o0"
+        0,
+        3
       ],
       [
         0,
-        "o1"
+        4
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
       ],
       [
         1,
         2
-      ],
-      [
-        3,
-        "o0"
-      ],
-      [
-        2,
-        "o0"
-      ],
-      [
-        2,
-        "o0"
       ]
     ]
   },
@@ -958,67 +1033,84 @@
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "MGMM",
-      "PPPT",
-      "PTGG",
-      "PGTT",
-      "PPPM",
-      "",
+      "PPGT",
+      "PPMT",
+      "PPG",
+      "PMGM",
+      "GTT",
+      "PM",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
     "stats": {
-      "optimal": 11,
-      "target": 11,
-      "branching": 11.19,
-      "statesSearched": 48936,
+      "optimal": 13,
+      "target": 13,
+      "branching": 9.19,
+      "statesSearched": 84392,
       "casualStuckPct": 1,
-      "randomPlayStuckPct": 14,
+      "randomPlayStuckPct": 11,
       "seed": 4
     },
     "solution": [
       [
         0,
-        5
+        4
       ],
       [
         0,
-        6
-      ],
-      [
-        0,
-        5
-      ],
-      [
-        1,
-        0
-      ],
-      [
-        2,
-        6
-      ],
-      [
-        2,
-        0
-      ],
-      [
-        1,
         2
       ],
       [
-        3,
-        0
-      ],
-      [
-        3,
+        1,
         6
       ],
       [
+        3,
+        1
+      ],
+      [
         4,
-        5
+        6
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
       ],
       [
         3,
         4
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        5,
+        3
       ]
     ]
   },
@@ -1031,32 +1123,46 @@
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "TBST",
-      "GTTB",
-      "SSSB",
-      "MMBG",
-      "PPMG",
-      "PPGM",
+      "TBBM",
+      "PPTM",
+      "BMGG",
+      "SSBM",
+      "TSTG",
+      "PPSG",
       "",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
     "stats": {
-      "optimal": 13,
-      "target": 13,
-      "branching": 6.18,
-      "statesSearched": 48793,
+      "optimal": 15,
+      "target": 15,
+      "branching": 6.04,
+      "statesSearched": 117601,
       "casualStuckPct": 0,
-      "randomPlayStuckPct": 22,
-      "seed": 22
+      "randomPlayStuckPct": 20,
+      "seed": 6
     },
     "solution": [
+      [
+        0,
+        6
+      ],
       [
         1,
         6
       ],
       [
-        0,
-        1
+        2,
+        7
       ],
       [
         2,
@@ -1067,39 +1173,43 @@
         2
       ],
       [
-        0,
-        6
-      ],
-      [
         1,
         0
       ],
       [
         3,
-        1
-      ],
-      [
-        3,
         6
       ],
       [
+        3,
+        2
+      ],
+      [
         4,
-        1
+        7
+      ],
+      [
+        4,
+        0
       ],
       [
         4,
         3
       ],
       [
+        0,
+        4
+      ],
+      [
+        5,
+        7
+      ],
+      [
         5,
         3
       ],
       [
-        5,
-        1
-      ],
-      [
-        4,
+        1,
         5
       ]
     ]
@@ -1120,127 +1230,138 @@
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "PPGG",
-      "PM",
-      "SMMT",
-      "TTS",
-      "GGS"
+      "PPM",
+      "GTMS",
+      "SSTG",
+      "GGMT",
+      "P",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      1,
+      4,
+      4
     ],
     "stats": {
       "optimal": 12,
-      "target": 9,
-      "branching": 5.73,
-      "statesSearched": 2413,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 56,
-      "seed": 24
+      "target": 12,
+      "branching": 6.95,
+      "statesSearched": 22167,
+      "casualStuckPct": 5,
+      "randomPlayStuckPct": 19,
+      "seed": 7
     },
     "solution": [
       [
+        0,
+        5
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        5
+      ],
+      [
         3,
-        4
+        1
+      ],
+      [
+        3,
+        5
       ],
       [
         2,
         3
       ],
       [
-        1,
+        2,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
         2
       ],
       [
         1,
-        "o0"
-      ],
-      [
-        3,
-        "o0"
+        0
       ],
       [
         0,
-        "o1"
+        2
       ],
       [
-        0,
-        "o0"
-      ],
-      [
-        2,
-        "o0"
-      ],
-      [
-        0,
-        "o1"
-      ],
-      [
-        2,
-        "o1"
-      ],
-      [
-        4,
-        "o1"
-      ],
-      [
-        4,
-        "o0"
+        1,
+        2
       ]
     ]
   },
   {
     "id": "2-8",
-    "title": "Deep Pearls",
-    "note": "Lots of buried pearls.",
+    "title": "Tiny Jars",
+    "note": "A half jar and a single jar.",
     "world": "Pearl Grotto",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "PTGG",
-      "PTSS",
-      "PPTS",
-      "GGMS",
-      "PMMM",
-      "PPPT",
-      "",
+      "PGTM",
+      "PP",
+      "PTGM",
+      "TGM",
+      "GM",
+      "T",
       ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      1,
+      4
     ],
     "stats": {
       "optimal": 13,
       "target": 13,
-      "branching": 9.74,
-      "statesSearched": 126800,
+      "branching": 8.64,
+      "statesSearched": 60721,
       "casualStuckPct": 0,
-      "randomPlayStuckPct": 17,
-      "seed": 24
+      "randomPlayStuckPct": 4,
+      "seed": 19
     },
     "solution": [
       [
-        1,
-        6
-      ],
-      [
-        1,
-        7
+        0,
+        3
       ],
       [
         2,
         6
       ],
       [
-        1,
+        3,
+        6
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        0,
         2
-      ],
-      [
-        2,
-        7
-      ],
-      [
-        3,
-        6
-      ],
-      [
-        3,
-        1
       ],
       [
         0,
@@ -1248,35 +1369,43 @@
       ],
       [
         0,
-        7
+        1
       ],
       [
-        0,
+        3,
+        0
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        1,
         2
       ],
       [
         4,
-        1
-      ],
-      [
-        5,
-        7
+        6
       ],
       [
         4,
-        5
+        0
+      ],
+      [
+        5,
+        3
       ]
     ]
   },
   {
     "id": "2-9",
     "title": "Moon Milk Tea",
-    "note": "Layered drinks: black tea under moon milk.",
+    "note": "Black tea and moon milk, with or without pearls.",
     "orders": [
-      "KKWW",
       "PKKK",
       "WWWW",
-      "PKWW"
+      "PWWW",
+      "KKKK"
     ],
     "slots": 2,
     "world": "Pearl Grotto",
@@ -1284,99 +1413,163 @@
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "WWKK",
-      "KKK",
-      "PW",
-      "PWKW",
-      "WWW"
+      "PPWK",
+      "WKWK",
+      "WKWK",
+      "KWKW",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
-      "optimal": 11,
-      "target": 11,
-      "branching": 9.65,
-      "statesSearched": 4734,
-      "casualStuckPct": 1,
-      "randomPlayStuckPct": 55,
-      "seed": 8
+      "optimal": 13,
+      "target": 13,
+      "branching": 9.47,
+      "statesSearched": 7939,
+      "casualStuckPct": 19,
+      "randomPlayStuckPct": 21,
+      "seed": 6
     },
     "solution": [
       [
         0,
-        "o0"
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        4,
-        "o0"
-      ],
-      [
-        2,
-        "o1"
-      ],
-      [
-        3,
-        "o1"
-      ],
-      [
-        2,
-        "o1"
-      ],
-      [
-        3,
-        "o1"
-      ],
-      [
-        3,
         4
       ],
       [
-        3,
-        "o0"
+        1,
+        4
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        0,
+        4
       ],
       [
         1,
-        "o0"
+        0
       ],
       [
-        4,
-        "o0"
+        2,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        1
       ]
     ]
   },
   {
     "id": "2-10",
     "title": "Pearl Boss",
-    "note": "Boss level: one empty cup.",
+    "note": "Boss level: one empty cup and a single jar.",
     "world": "Pearl Grotto",
     "tier": "hard",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "PPMG",
-      "MGGG",
-      "PTMT",
-      "PTMT",
+      "PTM",
+      "PPGS",
+      "MSTG",
+      "PGSM",
+      "MTTG",
+      "S",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      1,
+      4
+    ],
     "stats": {
-      "optimal": 12,
-      "target": 12,
-      "branching": 3.24,
-      "statesSearched": 167,
-      "casualStuckPct": 22,
+      "optimal": 16,
+      "target": 16,
+      "branching": 4.77,
+      "statesSearched": 19885,
+      "casualStuckPct": 29,
       "randomPlayStuckPct": 37,
-      "seed": 1
+      "seed": 3
     },
     "solution": [
       [
-        0,
-        4
+        2,
+        6
+      ],
+      [
+        3,
+        0
       ],
       [
         1,
+        3
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        0,
         4
       ],
       [
@@ -1384,26 +1577,6 @@
         1
       ],
       [
-        2,
-        0
-      ],
-      [
-        2,
-        1
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        3,
-        2
-      ],
-      [
-        3,
-        1
-      ],
-      [
         0,
         3
       ],
@@ -1412,12 +1585,12 @@
         0
       ],
       [
-        3,
-        0
+        2,
+        4
       ],
       [
-        2,
-        3
+        5,
+        0
       ]
     ]
   },
@@ -1436,6 +1609,13 @@
       "TMFF",
       "",
       ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
       "optimal": 6,
@@ -1478,57 +1658,73 @@
     "title": "Float On",
     "note": "Drinks slide under the soda.",
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "GMGF",
-      "TGFF",
-      "MMMF",
-      "TTTG",
-      "",
+      "TGTG",
+      "MMFF",
+      "TM",
+      "GTFF",
+      "GM",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
     "stats": {
-      "optimal": 8,
-      "target": 8,
-      "branching": 13.46,
-      "statesSearched": 4940,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 6,
-      "seed": 12
+      "optimal": 10,
+      "target": 10,
+      "branching": 11.28,
+      "statesSearched": 23033,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 4,
+      "seed": 1
     },
     "solution": [
       [
-        0,
-        4
-      ],
-      [
         1,
-        4
-      ],
-      [
-        0,
-        1
+        5
       ],
       [
         2,
-        4
+        1
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        0,
+        3
       ],
       [
         0,
         2
       ],
       [
-        1,
-        0
+        0,
+        3
       ],
       [
-        3,
-        0
+        0,
+        2
       ],
       [
-        1,
+        4,
+        1
+      ],
+      [
+        4,
         3
       ]
     ]
@@ -1538,42 +1734,54 @@
     "title": "Sink & Float",
     "note": "Pearls sink, soda floats.",
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "MMTF",
-      "PTTF",
-      "PPMM",
+      "PPTF",
+      "PMMF",
+      "MT",
       "PTFF",
-      "",
+      "MT",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
     "stats": {
-      "optimal": 9,
-      "target": 9,
-      "branching": 16.55,
-      "statesSearched": 23643,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 16,
-      "seed": 4
+      "optimal": 11,
+      "target": 11,
+      "branching": 14.34,
+      "statesSearched": 107475,
+      "casualStuckPct": 6,
+      "randomPlayStuckPct": 13,
+      "seed": 40
     },
     "solution": [
       [
         0,
-        4
+        5
       ],
       [
         0,
-        5
-      ],
-      [
-        1,
-        4
+        2
       ],
       [
         1,
         5
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        0,
+        3
       ],
       [
         2,
@@ -1585,15 +1793,19 @@
       ],
       [
         3,
-        4
+        0
       ],
       [
-        3,
-        5
-      ],
-      [
-        2,
+        1,
         3
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        4,
+        2
       ]
     ]
   },
@@ -1608,89 +1820,118 @@
     ],
     "slots": 2,
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "MMGG",
-      "GTTT",
-      "G",
-      "FFF"
+      "MGGF",
+      "TGMT",
+      "GTFF",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
-      "optimal": 7,
-      "target": 7,
-      "branching": 7.43,
-      "statesSearched": 963,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 7,
-      "seed": 101
+      "optimal": 9,
+      "target": 9,
+      "branching": 4.84,
+      "statesSearched": 253,
+      "casualStuckPct": 29,
+      "randomPlayStuckPct": 58,
+      "seed": 5
     },
     "solution": [
       [
         0,
-        2
+        3
       ],
       [
         0,
-        "o1"
+        3
       ],
       [
-        1,
-        "o0"
+        2,
+        0
       ],
       [
         1,
         2
       ],
       [
-        3,
-        "o0"
+        1,
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
       ],
       [
         2,
-        "o1"
+        0
       ],
       [
-        3,
-        "o0"
+        0,
+        1
       ]
     ]
   },
   {
     "id": "3-5",
     "title": "Fizz Falls",
-    "note": "Five ingredients.",
+    "note": "Five ingredients and a single jar.",
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "GSTT",
-      "TMMF",
-      "SSMM",
-      "GTFF",
-      "SGGF",
+      "TSMF",
+      "SFF",
+      "GMMF",
+      "SSTG",
+      "MGGT",
+      "T",
       "",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      1,
+      4,
+      4
+    ],
     "stats": {
-      "optimal": 11,
-      "target": 11,
-      "branching": 15.35,
-      "statesSearched": 92181,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 9,
-      "seed": 7
+      "optimal": 13,
+      "target": 13,
+      "branching": 17.88,
+      "statesSearched": 333575,
+      "casualStuckPct": 1,
+      "randomPlayStuckPct": 5,
+      "seed": 13
     },
     "solution": [
       [
-        1,
-        5
+        0,
+        1
+      ],
+      [
+        0,
+        6
       ],
       [
         1,
-        6
+        7
       ],
       [
         0,
@@ -1698,35 +1939,39 @@
       ],
       [
         2,
+        7
+      ],
+      [
+        2,
         6
       ],
       [
-        0,
+        3,
         2
       ],
       [
         3,
-        5
+        0
       ],
       [
-        3,
-        1
-      ],
-      [
-        0,
+        1,
         3
       ],
       [
         4,
-        5
+        0
       ],
       [
         4,
-        3
+        2
       ],
       [
-        2,
-        4
+        4,
+        6
+      ],
+      [
+        5,
+        0
       ]
     ]
   },
@@ -1735,71 +1980,84 @@
     "title": "Bubble Trouble",
     "note": "Both kinds of magic.",
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "MMMF",
-      "PPTT",
-      "MTGF",
-      "GGTF",
-      "PPGF",
-      "",
+      "PMF",
+      "PPMT",
+      "PTG",
+      "GGGT",
+      "MMFF",
+      "TF",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
     "stats": {
-      "optimal": 11,
-      "target": 11,
-      "branching": 18.48,
-      "statesSearched": 437517,
-      "casualStuckPct": 2,
-      "randomPlayStuckPct": 19,
-      "seed": 1
+      "optimal": 12,
+      "target": 13,
+      "branching": 14.8,
+      "statesSearched": 468334,
+      "casualStuckPct": 8,
+      "randomPlayStuckPct": 17,
+      "seed": 36
     },
     "solution": [
       [
         0,
-        5
-      ],
-      [
-        1,
         6
       ],
       [
-        2,
-        5
-      ],
-      [
-        3,
-        5
-      ],
-      [
-        3,
+        4,
         6
       ],
       [
-        2,
-        3
-      ],
-      [
-        2,
-        6
+        0,
+        4
       ],
       [
         0,
         2
       ],
       [
-        4,
-        5
-      ],
-      [
-        4,
-        3
+        1,
+        0
       ],
       [
         1,
         4
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        5,
+        0
       ]
     ]
   },
@@ -1815,34 +2073,50 @@
     ],
     "slots": 2,
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "PS",
-      "TS",
-      "PTGG",
-      "SSFF",
-      "MM",
-      "GF"
+      "SSGF",
+      "GTMF",
+      "PSTM",
+      "PGSF",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
     ],
     "stats": {
       "optimal": 13,
-      "target": 10,
-      "branching": 13.79,
-      "statesSearched": 52454,
-      "casualStuckPct": 11,
-      "randomPlayStuckPct": 35,
-      "seed": 120
+      "target": 12,
+      "branching": 11.43,
+      "statesSearched": 31050,
+      "casualStuckPct": 5,
+      "randomPlayStuckPct": 18,
+      "seed": 13
     },
     "solution": [
       [
         0,
-        1
+        4
       ],
       [
         0,
-        "o0"
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        5
       ],
       [
         2,
@@ -1850,43 +2124,35 @@
       ],
       [
         2,
-        "o0"
+        1
       ],
       [
         2,
-        "o1"
-      ],
-      [
-        4,
-        "o1"
-      ],
-      [
-        3,
-        "o1"
+        0
       ],
       [
         1,
-        "o1"
+        2
       ],
       [
         1,
-        "o0"
-      ],
-      [
-        5,
-        "o0"
-      ],
-      [
-        5,
-        "o1"
+        4
       ],
       [
         3,
-        "o1"
+        2
       ],
       [
-        3,
-        "o0"
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
       ]
     ]
   },
@@ -1895,70 +2161,87 @@
     "title": "Double Fizz",
     "note": "Two cups of soda.",
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
-      "TGTF",
+      "MFF",
+      "GGFF",
       "MGFF",
-      "TTFF",
-      "GGMF",
-      "MMFF",
-      "",
+      "MTF",
+      "TGTF",
+      "TM",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
     "stats": {
-      "optimal": 11,
-      "target": 11,
-      "branching": 20.97,
-      "statesSearched": 68244,
-      "casualStuckPct": 0,
-      "randomPlayStuckPct": 10,
-      "seed": 4
+      "optimal": 13,
+      "target": 13,
+      "branching": 17.86,
+      "statesSearched": 197995,
+      "casualStuckPct": 6,
+      "randomPlayStuckPct": 8,
+      "seed": 6
     },
     "solution": [
       [
         0,
-        5
-      ],
-      [
-        1,
-        5
+        6
       ],
       [
         2,
         6
       ],
       [
-        0,
-        2
+        4,
+        3
       ],
       [
-        0,
-        1
-      ],
-      [
-        0,
-        2
-      ],
-      [
-        3,
-        5
+        5,
+        0
       ],
       [
         4,
-        6
+        5
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        1
       ],
       [
         3,
         4
       ],
       [
-        1,
+        2,
         3
       ],
       [
-        1,
+        5,
         4
       ]
     ]
@@ -1968,25 +2251,412 @@
     "title": "Grand Brew",
     "note": "Pearls, soda and three teas.",
     "world": "Fizz Falls",
-    "tier": "normal",
+    "tier": "tough",
     "mode": "sort",
     "cap": 4,
     "cups": [
+      "SSFF",
+      "MSSM",
+      "TTF",
+      "PPMT",
+      "PTF",
+      "PM",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 14,
+      "branching": 15.04,
+      "statesSearched": 568273,
+      "casualStuckPct": 11,
+      "randomPlayStuckPct": 16,
+      "seed": 24
+    },
+    "solution": [
+      [
+        0,
+        6
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        5,
+        4
+      ]
+    ]
+  },
+  {
+    "id": "3-10",
+    "title": "Grand Opening",
+    "note": "Boss level: the whole town is here.",
+    "orders": [
+      "PTTF",
       "MMMF",
-      "PSTF",
-      "PPSF",
-      "PMTT",
-      "SSTF",
+      "PGGF",
+      "SSSS"
+    ],
+    "slots": 2,
+    "world": "Fizz Falls",
+    "tier": "hard",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "TSGF",
+      "PPMF",
+      "STMS",
+      "MGF",
+      "S",
       "",
       ""
     ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      1,
+      4,
+      4
+    ],
     "stats": {
-      "optimal": 12,
-      "target": 12,
-      "branching": 17.8,
-      "statesSearched": 414942,
-      "casualStuckPct": 1,
-      "randomPlayStuckPct": 21,
+      "optimal": 14,
+      "target": 14,
+      "branching": 14.87,
+      "statesSearched": 350793,
+      "casualStuckPct": 6,
+      "randomPlayStuckPct": 10,
+      "seed": 4
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        3
+      ]
+    ]
+  },
+  {
+    "id": "4-1",
+    "title": "Night Market",
+    "note": "Two half jars, one empty cup.",
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "GT",
+      "MSTM",
+      "MT",
+      "TBSM",
+      "SBSB",
+      "GG",
+      "GB",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      4
+    ],
+    "stats": {
+      "optimal": 15,
+      "target": 15,
+      "branching": 4.79,
+      "statesSearched": 12832,
+      "casualStuckPct": 31,
+      "randomPlayStuckPct": 37,
+      "seed": 3
+    },
+    "solution": [
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        6,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "4-2",
+    "title": "Moon & Fizz",
+    "note": "Pearls and soda in tight spaces.",
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PTMF",
+      "PTTF",
+      "PMMF",
+      "PMF",
+      "T",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      1,
+      4
+    ],
+    "stats": {
+      "optimal": 13,
+      "target": 13,
+      "branching": 18.11,
+      "statesSearched": 244517,
+      "casualStuckPct": 16,
+      "randomPlayStuckPct": 15,
+      "seed": 5
+    },
+    "solution": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "4-3",
+    "title": "Lantern Line",
+    "note": "Every jar served is a jar gone.",
+    "orders": [
+      "PTTT",
+      "MMFF",
+      "SSSS",
+      "PGGG"
+    ],
+    "slots": 2,
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "TSMM",
+      "TSGF",
+      "TG",
+      "PPSF",
+      "SG",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
+    "stats": {
+      "optimal": 13,
+      "target": 13,
+      "branching": 8.92,
+      "statesSearched": 57907,
+      "casualStuckPct": 15,
+      "randomPlayStuckPct": 18,
       "seed": 2
     },
     "solution": [
@@ -2000,11 +2670,35 @@
       ],
       [
         1,
-        6
+        2
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        3,
+        2
       ],
       [
         2,
-        5
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        0
       ],
       [
         1,
@@ -2012,64 +2706,431 @@
       ],
       [
         3,
+        2
+      ],
+      [
+        2,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "4-4",
+    "title": "Full Moon Menu",
+    "note": "Six flavours, one spare cup.",
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "TMTG",
+      "SRSR",
+      "RSBM",
+      "TMBB",
+      "MR",
+      "TGGG",
+      "BS",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
+    "stats": {
+      "optimal": 17,
+      "target": 17,
+      "branching": 3.04,
+      "statesSearched": 2420,
+      "casualStuckPct": 16,
+      "randomPlayStuckPct": 25,
+      "seed": 49
+    },
+    "solution": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        6,
+        1
+      ],
+      [
+        2,
         6
       ],
       [
         1,
-        3
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
       ],
       [
         3,
         0
       ],
       [
-        4,
+        3,
+        4
+      ],
+      [
+        3,
         5
       ],
       [
-        4,
-        6
+        6,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "4-5",
+    "title": "Pearl Market",
+    "note": "Lots of pearls, tiny jars.",
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PM",
+      "PPTF",
+      "PPMF",
+      "PPTF",
+      "PTMF",
+      "T",
+      "M",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      1,
+      1,
+      4
+    ],
+    "stats": {
+      "optimal": 15,
+      "target": 15,
+      "branching": 19.87,
+      "statesSearched": 324049,
+      "casualStuckPct": 34,
+      "randomPlayStuckPct": 40,
+      "seed": 2
+    },
+    "solution": [
+      [
+        1,
+        7
       ],
       [
         2,
+        7
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        4,
+        0
+      ],
+      [
+        3,
         4
       ],
       [
         2,
         3
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        6,
+        0
       ]
     ]
   },
   {
-    "id": "3-10",
-    "title": "Grand Opening",
-    "note": "Finale: the whole town is here.",
+    "id": "4-6",
+    "title": "Night Owls",
+    "note": "Late-night tea orders.",
     "orders": [
-      "PTTF",
-      "MMMF",
-      "PGGF",
-      "SSSS"
+      "KKWW",
+      "PKKK",
+      "WWWF",
+      "TTTT"
     ],
     "slots": 2,
-    "world": "Fizz Falls",
-    "tier": "hard",
+    "world": "Moonlight Market",
+    "tier": "tough",
     "mode": "orders",
     "cap": 4,
     "cups": [
-      "PSM",
-      "MGGF",
-      "PTM",
-      "SSSF",
-      "TF"
+      "KKWK",
+      "TWT",
+      "KWTK",
+      "PTWF",
+      "W",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      1,
+      4,
+      4
+    ],
+    "stats": {
+      "optimal": 11,
+      "target": 13,
+      "branching": 10.87,
+      "statesSearched": 41588,
+      "casualStuckPct": 34,
+      "randomPlayStuckPct": 55,
+      "seed": 11
+    },
+    "solution": [
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ]
+  },
+  {
+    "id": "4-7",
+    "title": "Starlit Shelf",
+    "note": "Pearls, soda and three flavours.",
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PGGT",
+      "PGFF",
+      "PTTT",
+      "MM",
+      "PMFF",
+      "GM",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
+    ],
+    "stats": {
+      "optimal": 12,
+      "target": 15,
+      "branching": 14.32,
+      "statesSearched": 273776,
+      "casualStuckPct": 9,
+      "randomPlayStuckPct": 17,
+      "seed": 21
+    },
+    "solution": [
+      [
+        0,
+        6
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        5,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "4-8",
+    "title": "Fizz Frenzy",
+    "note": "Two sodas, pearls and two teas.",
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PMTF",
+      "PMMF",
+      "TFF",
+      "PFF",
+      "PMTF",
+      "TF",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      4
     ],
     "stats": {
       "optimal": 15,
-      "target": 12,
-      "branching": 9.97,
-      "statesSearched": 24854,
-      "casualStuckPct": 9,
-      "randomPlayStuckPct": 45,
-      "seed": 3
+      "target": 15,
+      "branching": 19.44,
+      "statesSearched": 445071,
+      "casualStuckPct": 11,
+      "randomPlayStuckPct": 16,
+      "seed": 11
     },
     "solution": [
       [
@@ -2078,59 +3139,271 @@
       ],
       [
         1,
+        3
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        1,
         0
       ],
       [
         2,
-        "o1"
+        1
       ],
       [
-        2,
+        0,
+        2
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        0,
         4
       ],
       [
+        3,
+        0
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        5,
+        2
+      ]
+    ]
+  },
+  {
+    "id": "4-9",
+    "title": "Midnight Rush",
+    "note": "Five customers, little room.",
+    "orders": [
+      "PTTF",
+      "PMMF",
+      "PGGF",
+      "SSSS",
+      "BBBB"
+    ],
+    "slots": 2,
+    "world": "Moonlight Market",
+    "tier": "tough",
+    "mode": "orders",
+    "cap": 4,
+    "cups": [
+      "PGSG",
+      "STBF",
+      "PBMS",
+      "BSFF",
+      "PBMT",
+      "",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
+    "stats": {
+      "optimal": 16,
+      "target": 16,
+      "branching": 12.36,
+      "statesSearched": 283366,
+      "casualStuckPct": 25,
+      "randomPlayStuckPct": 37,
+      "seed": 10
+    },
+    "solution": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        6
+      ],
+      [
         2,
-        "o0"
+        0
+      ],
+      [
+        2,
+        6
       ],
       [
         1,
         2
       ],
       [
-        1,
-        "o1"
+        4,
+        1
       ],
       [
         4,
-        "o1"
-      ],
-      [
-        4,
-        "o0"
-      ],
-      [
-        0,
-        "o0"
-      ],
-      [
-        0,
-        "o1"
-      ],
-      [
-        0,
-        "o0"
+        6
       ],
       [
         2,
-        "o0"
+        4
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        1
       ],
       [
         3,
-        "o0"
+        0
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        1
       ],
       [
         3,
-        "o0"
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        2,
+        0
+      ]
+    ]
+  },
+  {
+    "id": "4-10",
+    "title": "Moonlight Boss",
+    "note": "Final boss: one empty cup, one single jar.",
+    "world": "Moonlight Market",
+    "tier": "hard",
+    "mode": "sort",
+    "cap": 4,
+    "cups": [
+      "PTFF",
+      "GTTM",
+      "PGF",
+      "PMTG",
+      "PGMF",
+      "M",
+      ""
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      1,
+      4
+    ],
+    "stats": {
+      "optimal": 16,
+      "target": 17,
+      "branching": 12.7,
+      "statesSearched": 534463,
+      "casualStuckPct": 20,
+      "randomPlayStuckPct": 39,
+      "seed": 11
+    },
+    "solution": [
+      [
+        0,
+        6
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        2
       ]
     ]
   }

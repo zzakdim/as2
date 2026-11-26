@@ -7,9 +7,10 @@
 //
 // Modes
 //  - "sort":   win when every non-empty cup is full of a single ingredient.
-//  - "orders": customers queue at the counter. Up to `slots` order cups are open at a time;
-//              you may pour into an order cup only the ingredient its recipe needs next.
-//              A finished order leaves and the next customer steps up. Win = all served.
+//  - "orders": customers queue at the counter, up to `slots` at a time, each showing a recipe
+//              (bottom -> top). As soon as any jar on the shelf holds exactly that recipe, the
+//              customer takes it: the jar leaves the shelf for good and the next customer steps
+//              up. Win = everyone served. Serving costs you a jar, so space shrinks as you go.
 (function (root) {
   const FLAVORS = {
     T: { name: 'Taro', color: '#a689e0' },
@@ -89,6 +90,7 @@
       s.open = [];
       s.next = 0;
       refillSlots(s);
+      return serveAll(s);
     }
     return s;
   }
@@ -99,6 +101,7 @@
 
   function clone(s) {
     const c = { ...s, cups: s.cups.slice(), caps: s.caps.slice() };
+    if (s.vial) c.vial = s.vial.slice();
     if (s.open) c.open = s.open.map((o) => ({ ...o }));
     return c;
   }
@@ -120,42 +123,47 @@
         if (uniform && !dst.length) continue; // pointless: moving a pure cup into an empty one
         moves.push([i, j]);
       }
-      if (s.mode === 'orders') {
-        s.open.forEach((o, k) => {
-          const recipe = s.orders[o.i];
-          if (recipe[o.filled] === t) moves.push([i, 'o' + k]);
-        });
-      }
     }
     return moves;
   }
 
   // Returns new state (does not mutate). Also returns how many units moved.
-  function applyMove(s, [i, j]) {
+  // Pour only (no serving). The UI uses this to animate the pour before customers take jars.
+  function pour(s, [i, j]) {
     const n = clone(s);
     const src = n.cups[i];
     const t = src[src.length - 1];
-    const run = topRun(src);
-    let amount;
-    if (typeof j === 'number') {
-      amount = Math.min(run, capOf(n, j) - n.cups[j].length);
-      n.cups[j] = addToCup(n.cups[j], t, amount);
-    } else {
-      const k = +j.slice(1);
-      const o = n.open[k];
-      const recipe = n.orders[o.i];
-      let need = 0;
-      while (recipe[o.filled + need] === t) need++;
-      amount = Math.min(run, need);
-      o.filled += amount;
-      if (o.filled === recipe.length) {
-        n.open.splice(k, 1);
-        refillSlots(n);
-      }
-    }
+    const amount = Math.min(topRun(src), capOf(n, j) - n.cups[j].length);
+    n.cups[j] = addToCup(n.cups[j], t, amount);
     n.cups[i] = src.slice(0, src.length - amount);
     n.lastAmount = amount;
     return n;
+  }
+
+  // One round of serving: every open customer whose recipe exactly matches a jar takes it.
+  // Returns { state, taken: [{ cup, order }] } with cup indices from before the removal.
+  function serveStep(s) {
+    if (s.mode !== 'orders') return { state: s, taken: [] };
+    const n = clone(s), taken = [], claimed = new Set();
+    for (const o of s.open) {
+      const cup = n.cups.findIndex((c, ci) => !claimed.has(ci) && c === n.orders[o.i]);
+      if (cup >= 0) { claimed.add(cup); taken.push({ cup, order: o.i }); }
+    }
+    if (!taken.length) return { state: s, taken };
+    [...claimed].sort((a, b) => b - a).forEach((ci) => { n.cups.splice(ci, 1); n.caps.splice(ci, 1); if (n.vial) n.vial.splice(ci, 1); });
+    n.open = n.open.filter((o) => !taken.some((t) => t.order === o.i));
+    refillSlots(n);
+    return { state: n, taken };
+  }
+
+  function serveAll(s) {
+    let r = serveStep(s);
+    while (r.taken.length) { s = r.state; r = serveStep(s); }
+    return s;
+  }
+
+  function applyMove(s, m) {
+    return serveAll(pour(s, m)); // clones keep lastAmount from the pour
   }
 
   // Sort win: every non-empty cup holds exactly one standard cup's worth (s.cap) of a single
@@ -239,6 +247,7 @@
   // Bonus vial (e.g. reward for watching an ad): an extra empty cup of the given size.
   function addVial(s, size) {
     const n = clone(s);
+    n.vial = (n.vial || n.cups.map(() => false)).concat(true); // which cups are bonus vials
     n.cups.push('');
     n.caps.push(size);
     return n;
@@ -272,7 +281,7 @@
     return Math.round((100 * stuck) / runs);
   }
 
-  const api = { FLAVORS, addVial, landIndex, sodaStart, casualStuckRate, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
+  const api = { FLAVORS, addVial, pour, serveStep, serveAll, landIndex, sodaStart, casualStuckRate, topRun, addToCup, accepts, initState, legalMoves, applyMove, isWon, key, solve, trapRate };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Boba = api;
 })(typeof window !== 'undefined' ? window : globalThis);

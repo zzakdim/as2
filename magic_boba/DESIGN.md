@@ -1,7 +1,7 @@
 # Magic Boba — Game Design Draft (v0.2)
 
-> **Built so far:** 30 levels in 3 worlds (Cozy Corner, Pearl Grotto with pearls, Fizz Falls with sparkle
-> soda), customer orders, a tutorial, a coin shop for themes and straws, the Sakura Twilight look, synthesized
+> **Built so far:** 40 levels in 4 worlds (Cozy Corner, Pearl Grotto with pearls, Fizz Falls with sparkle
+> soda, Moonlight Market), half and single jars, customers who take matching jars off the shelf, customer orders, a tutorial, a coin shop for themes and straws, the Sakura Twilight look, synthesized
 > sound, and an iOS app shell (`ios/`). See `proto/README.md`, `ios/README.md` and `PLAYTEST.md`.
 
 > Working title. App Store listing: **Magic Boba: Bubble Tea Sort**

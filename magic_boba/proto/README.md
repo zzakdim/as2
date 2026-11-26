@@ -29,12 +29,16 @@ then open `http://<your-computer-ip>:8000/play.html` on the phone.
 node magic_boba/proto/generate.js
 ```
 
-Edit the `PACK` array in `generate.js` to add or tune levels (30 levels across 3 worlds). Finished levels are
+Edit the `PACK` array in `generate.js` to add or tune levels (40 levels across 4 worlds). Finished levels are
 cached in `levels.cache.json`, so a rerun only redoes levels whose spec changed. Each level gets:
 
 - `optimal` – fewest possible moves (proven by the solver; drives the star rating)
 - `branching` – average legal moves per position (higher = more choice)
-- `randomPlayStuckPct` – % of random playthroughs that dead-end; a rough "how punishing" score
+- `randomPlayStuckPct` – % of random playthroughs that dead-end: how many wrong turns a level has
+- `casualStuckPct` – % of casual-bot playthroughs that get stuck: how frustrating it is
+
+Each level has a ceiling on `casualStuckPct` (its tier: easy 5 / normal 25 / tough 40 / hard 50) so no level
+needs an ad, and later worlds have a floor on `randomPlayStuckPct` (`minTrap`) so they can't come out trivial.
 
 ## Rules implemented
 
@@ -44,8 +48,12 @@ cached in `levels.cache.json`, so a rerun only redoes levels whose spec changed.
 - **Sparkle soda** pours onto any cup with room and **floats on top**. Other liquids poured onto it slide
   underneath, and must match the layer under the soda.
 - **Sort mode:** win when every cup is full of one ingredient.
-- **Orders mode:** customers wait at the counter (`slots` at a time). Pour into an order cup only the
-  ingredient its recipe needs next (bottom → top). Finished orders leave; win when everyone is served.
+- **Orders mode:** customers wait at the counter (`slots` at a time), each showing an order card (a recipe,
+  bottom → top). The moment any jar on the shelf holds exactly that recipe, the customer takes it: the jar
+  leaves the shelf for good and the next customer steps up. Win when everyone is served. Because liquids
+  only stack on the same liquid, layered recipes are built with pearls (they sink) and soda (it floats).
+- **Odd jars:** half jars (2) and single jars (1) can start with drinks in them and must end empty, so they
+  are cramped scratch space. Bonus vials from ads work the same way.
 
 ## Feel: animation & audio (`fx.js`, `audio.js`)
 

@@ -40,7 +40,8 @@ const PAGE = 'file://' + path.join(__dirname, 'play.html');
       if (typeof b === 'number') await p.locator('#board .cup').nth(b).click();
       else await p.locator('#counter .order').nth(+b.slice(1)).click();
       await settle(p);
-      await p.waitForTimeout(90);
+      await p.waitForFunction(() => !busy || document.querySelector('#win.show'), null, { timeout: 10000 }); // customers collecting jars
+      await p.waitForTimeout(60);
     }
     await p.waitForSelector('#win.show', { timeout: 8000 });
     await p.waitForFunction(() => !busy, null, { timeout: 15000 });
@@ -154,8 +155,8 @@ const PAGE = 'file://' + path.join(__dirname, 'play.html');
 
   // ---------------------------------------------------------------------------------------
   p = await open({ save: { ...owned, tutorials: {} } });
-  await step('every level loads and its stored solution wins through the UI (first 3 of each world)', async () => {
-    const picks = await p.evaluate(() => LEVELS.map((l, i) => [l.id, i]).filter(([id]) => /-(1|2|5)$/.test(id)).map(([, i]) => i));
+  await step('every level loads and its stored solution wins through the UI (4 per world, incl. customer levels)', async () => {
+    const picks = await p.evaluate(() => LEVELS.map((l, i) => [l.id, i]).filter(([id]) => /-(1|2|4|5)$/.test(id)).map(([, i]) => i));
     for (const i of picks) {
       await p.evaluate((i) => { closeScreens(); load(i); }, i); await p.waitForTimeout(500);
       await solveCurrent(p);
