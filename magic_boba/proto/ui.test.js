@@ -16,7 +16,6 @@ const PAGE = 'file://' + path.join(__dirname, 'play.html');
   async function open({ native = false, save = null } = {}) {
     const ctx = await browser.newContext({ ...devices['iPhone 13'] });
     await ctx.addInitScript(({ native, save }) => {
-      if (save) localStorage.setItem('boba.save.v1', JSON.stringify(save));
       if (native) {
         window.__native = [];
         window.webkit = { messageHandlers: { boba: { postMessage: (m) => window.__native.push(m) } } };
@@ -26,6 +25,10 @@ const PAGE = 'file://' + path.join(__dirname, 'play.html');
     page.errors = [];
     page.on('pageerror', (e) => page.errors.push(e.message));
     await page.goto(PAGE);
+    if (save) { // seed once, then reload so the game boots from it (an init script would re-seed on every reload)
+      await page.evaluate((sv) => localStorage.setItem('boba.save.v1', JSON.stringify(sv)), save);
+      await page.reload();
+    }
     await page.waitForTimeout(400);
     return page;
   }
@@ -158,6 +161,31 @@ const PAGE = 'file://' + path.join(__dirname, 'play.html');
       await solveCurrent(p);
       await p.evaluate(() => $('win').classList.remove('show'));
     }
+  });
+  await step('regulars: favourite drinks mostly match, surprises explain themselves', async () => {
+    const r = await p.evaluate(() => LEVELS.filter((l) => l.orders).map((l) => castFor(l).map((c, i) => ({ c, recipe: l.orders[i] }))).flat()
+      .map(({ c, recipe }) => ({ match: recipe.includes(REGULARS.find((x) => x.emoji === c.emoji).fav), surprise: c.surprise, line: c.line })));
+    assert.ok(r.every((x) => x.match !== x.surprise), 'surprise flag agrees with favourite');
+    assert.ok(r.every((x) => !x.surprise || x.line), 'every surprise has a line');
+    const perLevel = await p.evaluate(() => LEVELS.filter((l) => l.orders).map((l) => castFor(l).filter((c) => c.surprise).length));
+    assert.ok(perLevel.every((n) => n <= 1), 'at most one surprise per level: ' + perLevel);
+    assert.ok(await p.evaluate(() => LEVELS.filter((l) => l.orders).every((l) => { const c = castFor(l), k = l.slots || 2; return c.every((x, i) => !c.slice(Math.max(0, i - k + 1), i).some((y) => y.emoji === x.emoji)); })), 'never the same regular twice at the counter');
+    const share = r.filter((x) => x.match).length / r.length;
+    assert.ok(share > 0.6, 'mostly favourites: ' + share.toFixed(2));
+    const lvl = await p.evaluate(() => LEVELS.findIndex((l) => l.orders));
+    await p.evaluate((i) => { closeScreens(); load(i); }, lvl); await p.waitForTimeout(700);
+    const shown = await p.$$eval('#counter .cust', (els) => els.map((e) => e.textContent));
+    const want = await p.evaluate(() => state.open.map((o) => cast[o.i].emoji));
+    assert.deepStrictEqual(shown, want);
+  });
+  await step('developer mode (Settings) unlocks every level and persists', async () => {
+    await p.evaluate(() => { $('win').classList.remove('show'); Save.reset(); showScreen('titleScreen'); });
+    await p.click('#titleScreen [data-open="settings"]'); await p.click('#devBtn'); await p.click('#settingsDone');
+    await p.click('#levelsBtn'); await p.waitForTimeout(300);
+    assert.strictEqual(await p.locator('#worlds .lvl:disabled').count(), 0);
+    assert.ok(await p.evaluate(() => document.body.classList.contains('dev')));
+    await p.reload(); await p.waitForTimeout(400);
+    assert.ok(await p.evaluate(() => isDev()), 'still on after reload');
   });
   assert.deepStrictEqual(p.errors, []);
   await browser.close();

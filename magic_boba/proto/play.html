@@ -375,6 +375,10 @@
     background: var(--card); border: 1px solid var(--panel-edge); color: var(--text); padding: 10px 16px; border-radius: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.3);
     max-width: calc(100vw - 32px); text-align: center; }
   #lvlTitle { font-size: 17px; }
+  .say { position: absolute; left: 50%; bottom: calc(100% - 4px); z-index: 6; white-space: nowrap; pointer-events: none; transform: translateX(-50%);
+    background: var(--card); color: var(--text); border: 1px solid var(--panel-edge); border-radius: 12px; padding: 4px 9px; font: 600 12px var(--font-body);
+    box-shadow: 0 6px 14px rgba(0,0,0,.3); }
+  .say::after { content: ""; position: absolute; left: 50%; top: 100%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--panel-edge); }
   .legend.special span { background: color-mix(in srgb, var(--text) 8%, transparent); border-radius: 99px; padding: 3px 10px; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -444,6 +448,7 @@
   <div class="toggle"><span>Sound effects</span><button class="switch" id="sfxBtn" role="switch" aria-label="Sound effects"></button></div>
   <div class="toggle"><span>Music</span><button class="switch" id="musBtn" role="switch" aria-label="Music"></button></div>
   <div class="toggle"><span>Haptics</span><button class="switch" id="hapBtn" role="switch" aria-label="Haptics"></button></div>
+  <div class="toggle"><span>Developer mode<br><small class="fine" style="margin:0">Unlock all levels, hints, level stats</small></span><button class="switch" id="devBtn" role="switch" aria-label="Developer mode"></button></div>
   <div class="actions"><button id="resetBtn">Reset progress</button><button class="cta btn" id="settingsDone" style="padding:8px 18px">Done</button></div>
   <div class="fine" id="version"></div>
 </div></div>
@@ -465,7 +470,67 @@
 const { FLAVORS } = Boba;
 const A = window.BobaAudio, FX = window.BobaFX;
 const REDUCE = FX.reduce;
-const CUSTOMERS = ['🐸','👻','🐉','🦊','🧙','🐈‍⬛','🦉','🍄'];
+// The café's regulars. Each has a favourite drink and usually orders it; now and then one of them
+// tries something new and says so. Assignment is deterministic per level (same faces every replay).
+const REGULARS = [
+  { emoji: '🐸', name: 'Frog', fav: 'M' },        // matcha
+  { emoji: '🧙', name: 'Witch', fav: 'T' },       // taro
+  { emoji: '🐉', name: 'Dragon', fav: 'G' },      // mango
+  { emoji: '🦊', name: 'Fox', fav: 'S' },         // strawberry
+  { emoji: '👻', name: 'Ghost', fav: 'W' },       // moon milk
+  { emoji: '🦉', name: 'Owl', fav: 'B' },         // blueberry
+  { emoji: '🐈‍⬛', name: 'Cat', fav: 'K' },       // black tea
+  { emoji: '🍄', name: 'Mushroom', fav: 'R' },    // brown sugar
+  { emoji: '🐰', name: 'Bunny', fav: 'F' },       // sparkle soda
+];
+const CUSTOMERS = REGULARS.map((r) => r.emoji);
+const SURPRISE_LINES = ['Feeling adventurous today!', 'Something new for me!', "Don't tell anyone I ordered this.", 'My friend says this one is good!', 'Changing it up!'];
+// The drink an order is "about": its most common flavour, ignoring pearls (and soda unless it's all soda).
+function mainFlavour(recipe) {
+  const n = {};
+  for (const c of recipe) if (c !== 'P') n[c] = (n[c] || 0) + (c === 'F' ? 0.5 : 1);
+  return Object.keys(n).sort((a, b) => n[b] - n[a])[0];
+}
+// cast[i] = { emoji, name, surprise, line } for order i of the current level.
+// Rules: regulars order their favourite; at most one "surprise" per level (never in the tutorial
+// level); a surprise is played by someone whose favourite isn't needed later in the same level.
+function castFor(lvl) {
+  if (!lvl.orders) return [];
+  let seed = [...lvl.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
+  const mains = lvl.orders.map(mainFlavour), slots = lvl.slots || 2;
+  const last = new Map(); // regular -> index of their latest order
+  // A regular can order again once their previous order has left the counter (never two at once).
+  const free = (r, i) => !last.has(r) || i - last.get(r) >= slots;
+  let surprised = !!lvl.tutorial;
+  return lvl.orders.map((recipe, i) => {
+    const fav = REGULARS.find((r) => r.fav === mains[i]);
+    const neededLater = new Set(mains.slice(i + 1));
+    const spare = REGULARS.filter((r) => !last.has(r) && r !== fav && !neededLater.has(r.fav));
+    const tryNew = !surprised && spare.length && rnd() < 0.25;
+    let who = fav && free(fav, i) && !tryNew ? fav : null;
+    // the favourite is busy: someone free who likes something in this drink, else a true surprise
+    if (!who && !tryNew) who = REGULARS.find((r) => free(r, i) && recipe.includes(r.fav));
+    if (!who) who = spare[Math.floor(rnd() * spare.length)] || REGULARS.find((r) => free(r, i)) || REGULARS[0];
+    const repeat = last.has(who);
+    last.set(who, i);
+    const surprise = !recipe.includes(who.fav); // their favourite isn't in this drink at all
+    if (surprise) surprised = true;
+    const line = surprise ? SURPRISE_LINES[Math.floor(rnd() * SURPRISE_LINES.length)] : repeat ? 'Another one, please!' : '';
+    return { emoji: who.emoji, name: who.name, surprise, repeat, line };
+  });
+}
+let cast = [];
+// Little speech bubble over a customer at the counter.
+function say(slotEl, text, delay = 0) {
+  if (!slotEl || !text) return;
+  const b = document.createElement('div');
+  b.className = 'say'; b.textContent = text;
+  slotEl.appendChild(b);
+  b.animate([{ opacity: 0, transform: 'translate(-50%, 6px) scale(.7)' }, { opacity: 1, transform: 'translate(-50%, 0) scale(1.05)', offset: 0.1 },
+    { opacity: 1, transform: 'translate(-50%, 0) scale(1)', offset: 0.85 }, { opacity: 0, transform: 'translate(-50%, -6px) scale(1)' }],
+    { duration: 3200, delay, fill: 'both', easing: 'ease-out' }).onfinish = () => b.remove();
+}
 const PRAISE = ['Nice!', 'Sweet!', 'Yummy!', 'Boba-licious!', 'Magical!', 'Spellbinding!', 'LEGENDARY!'];
 const T = { lift: 180, unit: 110, back: 180 }; // pour timing (ms)
 
@@ -502,13 +567,16 @@ function applySkin(name, announce) {
 }
 
 let idx = 0, level, state, history = [], sel = null, moves = 0, hintCups = [], vialsUsed = 0, adTimer = null;
-let levelStart = 0, wasStuck = false;
+let levelStart = 0, wasStuck = false, lastServed = null;
 let busy = false, streak = 0, quietMoves = 0, hiddenCup = null, flying = null, knownOpen = new Set(), lastProgress = 0;
 
 const $ = (id) => document.getElementById(id);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const vialSizes = () => level.bonusVials || [2, 3, 4];
-const isDev = () => location.hash === '#dev';
+// Developer mode: open the page with #dev, or switch it on in Settings (works inside the iOS app).
+// Unlocks every level and shows hints, skip, the level picker and difficulty stats.
+let devFlag = false;
+const isDev = () => location.hash === '#dev' || devFlag;
 const syncDev = () => document.body.classList.toggle('dev', isDev());
 window.addEventListener('hashchange', () => { syncDev(); render(); });
 syncDev();
@@ -540,10 +608,12 @@ function load(i) {
   streak = 0; quietMoves = 0; busy = false; lastProgress = 0;
   finishFlight();
   knownOpen = new Set((state.open || []).map((o) => o.i));
+  cast = castFor(level); lastServed = null;
   $('win').classList.remove('show');
   clearInterval(adTimer); $('ad').classList.remove('show');
   Save.get().current = i; Save.write();
   track('level_start', { id: level.id });
+  setTimeout(() => (state.open || []).forEach((o, k) => cast[o.i]?.line && say($('counter').querySelectorAll('.cust-slot')[k], cast[o.i].line, k * 500)), 900);
   render();
   setTimeout(() => tutorial('start'), 650);
   // cups drop in, cascading
@@ -609,7 +679,8 @@ function render(anim = {}) {
         knownOpen.add(o.i);
         setTimeout(() => A.customer(), (anim.enterDelay || 0) + 150);
       }
-      wrap.innerHTML = `<div class="cust">${CUSTOMERS[o.i % CUSTOMERS.length]}</div>`;
+      wrap.innerHTML = `<div class="cust" title="${cast[o.i].name}">${cast[o.i].emoji}</div>`;
+      if (cast[o.i].line && wrap.classList.contains('enter')) say(wrap, cast[o.i].line, (anim.enterDelay || 0) + 450);
       const cup = document.createElement('div');
       cup.className = 'cup order' + (hintCups.includes('o' + k) ? ' hint' : '');
       cup.style.setProperty('--cap', level.orders[o.i].length);
@@ -621,7 +692,7 @@ function render(anim = {}) {
       if (anim.slot === k) animateIn(cup, anim);
     });
     const waiting = state.orders.length - state.next;
-    counter.insertAdjacentHTML('beforeend', `<div class="queue">${waiting ? 'In queue: ' + state.orders.slice(state.next).map((o, n) => CUSTOMERS[(state.next + n) % CUSTOMERS.length]).join(' ') : 'No one else waiting'}</div>`);
+    counter.insertAdjacentHTML('beforeend', `<div class="queue">${waiting ? 'In queue: ' + state.orders.slice(state.next).map((o, n) => cast[state.next + n].emoji).join(' ') : 'No one else waiting'}</div>`);
   }
 
   // play cups
@@ -806,6 +877,7 @@ async function pour(m) {
   const dstFrom = toOrder ? before.open[k].filled : before.cups[m[1]].length;
   const srcEl = cupEl(i), dstEl = toOrder ? orderEl(k) : cupEl(m[1]);
   const served = toOrder && !after.open.some((o) => o.i === before.open[k].i);
+  const servedWho = served ? cast[before.open[k].i] : null;
   const sealed = new Set();
   if (!toOrder && !isDone(before, m[1]) && isDone(after, m[1])) sealed.add(m[1]);
 
@@ -836,7 +908,7 @@ async function pour(m) {
     render({ sealed, enterDelay: 0 });
     busy = false;
     if (servedClone) servedClone.remove();
-    await afterMove({ sealed, served, dstEl: toOrder ? null : cupEl(m[1]), t });
+    await afterMove({ sealed, served, servedWho, dstEl: toOrder ? null : cupEl(m[1]), t });
     return;
   }
 
@@ -908,10 +980,11 @@ async function pour(m) {
     }
   };
 
-  await afterMove({ sealed, served, servedClone, dstEl: toOrder ? null : cupEl(m[1]), t });
+  await afterMove({ sealed, served, servedWho, servedClone, dstEl: toOrder ? null : cupEl(m[1]), t });
 }
 
-async function afterMove({ sealed, served, servedClone, dstEl, t }) {
+async function afterMove({ sealed, served, servedWho, servedClone, dstEl, t }) {
+  if (servedWho) lastServed = servedWho;
   const good = sealed.size > 0 || served;
   if (good) { streak++; quietMoves = 0; } else if (++quietMoves >= 4) streak = 0;
 
@@ -929,7 +1002,8 @@ async function afterMove({ sealed, served, servedClone, dstEl, t }) {
     const cust = servedClone.querySelector('.cust');
     const c = center(servedClone);
     A.serve(streak - 1);
-    FX.hearts(c.x, c.r.top + 10, 7);
+    FX.hearts(c.x, c.r.top + 10, servedWho && !servedWho.surprise ? 10 : 6);
+    if (servedWho) setTimeout(() => FX.text(c.x, c.r.top - 30, servedWho.surprise ? 'Ooh, not bad!' : 'My favourite! ♥', { color: '#ffd6e4', size: 14, rise: 30, dur: 1100 }), 380);
     FX.burst(c.x, c.y, { colors: ['#ffffff', '#ffe6a8', '#ff9ec2'], count: 22 + streak * 4, speed: 280, up: 120 });
     FX.ring(c.x, c.y, '#ffe6a8', 90);
     if (cust) cust.animate([{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-22px) scale(1.35) rotate(-10deg)', offset: 0.35 }, { transform: 'translateY(0) scale(1)', offset: 0.7 }, { transform: 'translateY(-8px) scale(1.15) rotate(8deg)' }],
@@ -1011,7 +1085,7 @@ async function celebrate() {
     const c = center($('tipLine'));
     FX.burst(c.x, c.y, { colors: ['#ffd76a', '#fff3c4'], count: 40, speed: 360, types: ['star'], g: 250 });
   } else {
-    $('tipLine').textContent = `${CUSTOMERS[idx % CUSTOMERS.length]} left a tip: +${tip}`;
+    $('tipLine').textContent = `${(lastServed || REGULARS[idx % REGULARS.length]).emoji} left a tip: +${tip}`;
     A.coin(12);
   }
   await countUp(base + tip, base);
@@ -1238,7 +1312,7 @@ $('menuBtn').onclick = () => { if (busy) return; A.tap(); screenStack = ['titleS
 
 const WORLD_INFO = { 'Cozy Corner': 'Learn to pour and serve.', 'Pearl Grotto': 'Pearls always sink.', 'Fizz Falls': 'Sparkle soda always floats.' };
 function renderLevels() {
-  const sv = Save.get(), open = unlockedUpTo(), host = $('worlds');
+  const sv = Save.get(), open = isDev() ? LEVELS.length - 1 : unlockedUpTo(), host = $('worlds');
   host.innerHTML = '';
   let total = 0;
   const worlds = [...new Set(LEVELS.map((l) => l.world))];
@@ -1310,6 +1384,7 @@ function toast(text, ms = 2200) {
 
 // ==== Settings ==============================================================================
 function syncSwitches() {
+  $('devBtn').setAttribute('aria-checked', String(isDev()));
   $('sfxBtn').setAttribute('aria-checked', String(A.sfxOn));
   $('musBtn').setAttribute('aria-checked', String(A.musicOn));
   $('hapBtn').setAttribute('aria-checked', String(Save.get().settings.haptics));
@@ -1321,6 +1396,13 @@ $('settingsDone').onclick = () => { A.tap(); $('settings').classList.remove('sho
 $('sfxBtn').onclick = () => { A.setSfx(!A.sfxOn); syncSwitches(); A.tap(); };
 $('musBtn').onclick = () => { A.setMusic(!A.musicOn); syncSwitches(); A.tap(); };
 $('hapBtn').onclick = () => { const st = Save.get().settings; st.haptics = !st.haptics; Save.write(); syncSwitches(); A.tap(); };
+$('devBtn').onclick = () => {
+  const st = Save.get().settings; st.dev = !isDev(); devFlag = st.dev; Save.write();
+  if (!st.dev && location.hash === '#dev') history.replaceState(null, '', location.pathname);
+  syncDev(); syncSwitches(); A.tap(); if (level) render();
+  if ($('levelsScreen').classList.contains('show')) renderLevels();
+  toast(st.dev ? 'Developer mode on: every level unlocked' : 'Developer mode off'); track('dev_mode', { on: st.dev });
+};
 $('resetBtn').onclick = () => {
   const b = $('resetBtn');
   if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Tap again to erase everything'; A.invalid(); return; }
@@ -1392,6 +1474,7 @@ window.addEventListener('resize', hideCoach);
 {
   const sv = Save.get();
   if (!sv.owned.skins.includes(sv.skin)) sv.skin = 'twilight';
+  devFlag = !!sv.settings.dev; syncDev();
   applySkin(sv.skin, false); applyStraw(sv.straw);
   load(Math.min(sv.current, unlockedUpTo()));
   showScreen('titleScreen');

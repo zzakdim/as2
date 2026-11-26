@@ -99,3 +99,17 @@ one layer from finished, rows balanced so no cup sits alone, and a themed counte
 Comparison screenshots are in `magic_boba/design/` (`skins-play.jpg`, `skins-orders.jpg`, `skins-win.jpg`,
 `sakura-variants.jpg` for Pastel vs Dusk vs Twilight, and `twilight.jpg`). Sakura Dusk, a mid-tone mauve, was tried and
 dropped because it looked muddy; its CSS is kept for reference but it isn't in the 🎨 rotation.
+
+## Regulars (customers)
+
+Each customer is a regular with a favourite drink: 🐸 matcha, 🧙 taro, 🐉 mango, 🦊 strawberry,
+👻 moon milk, 🦉 blueberry, 🐈‍⬛ black tea, 🍄 brown sugar, 🐰 sparkle soda. They order drinks with their
+favourite in them. At most once per level (never in the tutorial level 1-5), someone tries something new
+and says so in a speech bubble. A regular can come back for another round once their earlier order has
+left the counter ("Another one, please!"). Casting is deterministic per level (`castFor()` in `play.html`).
+
+## Developer mode
+
+Settings ▸ **Developer mode** (or open the page with `#dev`) unlocks every level and shows hints, the skip
+button, a level picker, the theme cycler and each level's difficulty stats. It's saved with the progress,
+so it also works inside the iOS app. Hide that switch before an App Store release.
