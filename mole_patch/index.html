@@ -1,0 +1,465 @@
+<title>Mole Patch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: one phone-width column — HUD, rule cards, 9×9 garden board, tool tray. Garden-plot palette: each region is a different crop bed. */
+:root {
+  --bg: #eef2e6;
+  --panel: #fbfdf6;
+  --ink: #2f3a22;
+  --muted: #6b7559;
+  --line: #d3dbc2;
+  --soil: #7a5236;
+  --soil-dark: #4c321f;
+  --heart: #e2483d;
+  --accent: #3f8a3a;
+  --accent-ink: #ffffff;
+  --bad: #d9443a;
+  --mark: rgba(60, 40, 20, .55);
+  --shadow: 0 2px 0 rgba(47, 58, 34, .18);
+  /* nine beds */
+  --r0: #a8d672; --r1: #f6c453; --r2: #f39a5b; --r3: #f2a7b8; --r4: #b9a6e0;
+  --r5: #7cc6de; --r6: #6fc3a4; --r7: #d8c89c; --r8: #e88579;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171c13; --panel: #222a1c; --ink: #eef3e2; --muted: #a3ad90; --line: #364028;
+    --soil: #8a5f3f; --soil-dark: #2a1b10; --accent: #6cbf5e; --accent-ink: #10200d;
+    --mark: rgba(30, 18, 8, .7); --shadow: 0 2px 0 rgba(0, 0, 0, .45);
+    --r0: #86b556; --r1: #d6a63c; --r2: #d77f44; --r3: #d2899b; --r4: #9886c4;
+    --r5: #5aa7c0; --r6: #4fa486; --r7: #b9a97d; --r8: #c9685d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171c13; --panel: #222a1c; --ink: #eef3e2; --muted: #a3ad90; --line: #364028;
+  --soil: #8a5f3f; --soil-dark: #2a1b10; --accent: #6cbf5e; --accent-ink: #10200d;
+  --mark: rgba(30, 18, 8, .7); --shadow: 0 2px 0 rgba(0, 0, 0, .45);
+  --r0: #86b556; --r1: #d6a63c; --r2: #d77f44; --r3: #d2899b; --r4: #9886c4;
+  --r5: #5aa7c0; --r6: #4fa486; --r7: #b9a97d; --r8: #c9685d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 28px;
+  -webkit-tap-highlight-color: transparent;
+}
+.app { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; margin: 0; text-align: center; letter-spacing: .01em; }
+.hearts { display: flex; gap: 4px; }
+.hearts svg { width: 26px; height: 26px; transition: transform .2s, opacity .2s; }
+.hearts svg.gone { opacity: .2; transform: scale(.8); filter: grayscale(1); }
+.streak { justify-self: end; font-family: var(--display); font-weight: 600; font-size: .95rem; color: var(--muted); }
+
+.hud { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pill {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: 2px dashed var(--line); border-radius: 999px; padding: 6px 12px;
+  font-family: var(--display); font-weight: 600; font-size: 1rem; color: var(--muted);
+}
+.pill b { font-size: 1.5rem; color: var(--bad); font-variant-numeric: tabular-nums; font-weight: 700; }
+.pill svg { width: 24px; height: 24px; flex: none; }
+
+.rules {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--panel); border: 2px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
+}
+.rules div {
+  padding: 12px 8px; text-align: center; font-weight: 800; font-size: .86rem; line-height: 1.25;
+  display: flex; align-items: center; justify-content: center; text-wrap: balance;
+}
+.rules div + div { border-left: 2px dashed var(--line); }
+
+.board-wrap { position: relative; }
+.board {
+  display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px;
+  width: 100%; max-width: 100%; aspect-ratio: 1; touch-action: manipulation; user-select: none;
+}
+.cell {
+  position: relative; border: 0; padding: 0; border-radius: 7px; cursor: pointer;
+  background: var(--c); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .1);
+  display: grid; place-items: center; overflow: hidden; font: inherit; color: inherit;
+}
+.cell:focus-visible { outline: 3px solid var(--ink); outline-offset: 1px; z-index: 2; }
+.cell .glyph { position: absolute; top: 2px; left: 4px; font-size: .62rem; font-weight: 800; color: rgba(0, 0, 0, .5); display: none; }
+.cb .cell .glyph { display: block; }
+.cell.blocked::after, .cell.flag::after {
+  content: ""; width: 26%; aspect-ratio: 1; border-radius: 50%; background: var(--mark);
+}
+.cell.flag::after { width: 44%; border-radius: 0; background: none;
+  background-image: linear-gradient(45deg, transparent 42%, var(--mark) 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, var(--mark) 42% 58%, transparent 58%);
+}
+.cell.blocked { cursor: default; }
+.cell svg.mole { width: 92%; height: 92%; animation: pop .38s cubic-bezier(.3, 1.6, .5, 1) both; }
+.cell.bonk { animation: shake .35s; }
+.cell.bonk::before { content: ""; position: absolute; inset: 0; background: var(--bad); opacity: .55; animation: fade .7s forwards; }
+.board.dead .cell { cursor: default; }
+.cell.reveal svg.mole { opacity: .55; }
+
+@keyframes pop { from { transform: translateY(60%) scale(.6); } to { transform: none; } }
+@keyframes shake { 0%,100% { transform: none } 25% { transform: translateX(-4px) } 75% { transform: translateX(4px) } }
+@keyframes fade { to { opacity: 0 } }
+
+.tray { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tool {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: var(--panel); border: 2px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  padding: 10px 4px 8px; cursor: pointer; font-family: var(--display); font-weight: 600; font-size: .85rem; color: var(--ink);
+  position: relative;
+}
+.tool svg { width: 34px; height: 34px; }
+.tool:active { transform: translateY(2px); box-shadow: none; }
+.tool:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tool[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tool:disabled { opacity: .45; cursor: default; }
+.badge {
+  position: absolute; top: -6px; right: -4px; min-width: 22px; height: 22px; border-radius: 11px;
+  background: var(--bad); color: #fff; font-size: .78rem; display: grid; place-items: center; padding: 0 6px;
+}
+.tip { text-align: center; color: var(--muted); font-size: .82rem; margin: 0; }
+
+.overlay {
+  position: absolute; inset: -6px; border-radius: 14px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--bg) 78%, transparent); backdrop-filter: blur(2px); z-index: 5;
+}
+.card {
+  background: var(--panel); border: 2px solid var(--line); border-radius: 20px; box-shadow: var(--shadow);
+  padding: 22px 26px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; max-width: 85%;
+}
+.card h2 { font-family: var(--display); font-size: 1.6rem; margin: 0; }
+.card p { margin: 0; color: var(--muted); }
+.card svg { width: 84px; height: 84px; }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn {
+  border: 0; border-radius: 999px; padding: 10px 20px; font-family: var(--display); font-weight: 600; font-size: 1rem;
+  background: var(--accent); color: var(--accent-ink); cursor: pointer; box-shadow: var(--shadow);
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--line); box-shadow: none; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+@media (max-width: 380px) { .rules div { font-size: .76rem; } .board { gap: 3px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mole" viewBox="0 0 100 100">
+      <ellipse cx="50" cy="86" rx="44" ry="13" fill="var(--soil-dark)"/>
+      <path d="M18 88 C18 40 30 22 50 22 C70 22 82 40 82 88 Z" fill="#6b4a3a"/>
+      <path d="M30 88 C30 58 38 46 50 46 C62 46 70 58 70 88 Z" fill="#9a735c"/>
+      <circle cx="39" cy="44" r="4" fill="#1d130c"/><circle cx="61" cy="44" r="4" fill="#1d130c"/>
+      <circle cx="40.3" cy="42.6" r="1.3" fill="#fff"/><circle cx="62.3" cy="42.6" r="1.3" fill="#fff"/>
+      <ellipse cx="50" cy="55" rx="9" ry="6.5" fill="#f08aa0"/>
+      <ellipse cx="47.5" cy="53.5" rx="2.6" ry="1.6" fill="#fff" opacity=".7"/>
+      <path d="M38 60 h-14 M38 63 l-13 4 M62 60 h14 M62 63 l13 4" stroke="#2b1d14" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M22 78 q-6 -8 2 -12 q8 -2 10 8 Z" fill="#f2b6a6"/><path d="M78 78 q6 -8 -2 -12 q-8 -2 -10 8 Z" fill="#f2b6a6"/>
+      <path d="M8 88 q10 -12 22 -4 q8 -8 20 -2 q12 -6 20 2 q12 -8 22 4 Z" fill="var(--soil)"/>
+    </symbol>
+    <symbol id="heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.4C.9 8.1 3 4.5 6.6 4.5c2.1 0 3.6 1.1 5.4 3 1.8-1.9 3.3-3 5.4-3 3.6 0 5.7 3.6 4.2 7.1C19.5 16.4 12 21 12 21z" fill="var(--heart)"/></symbol>
+  </defs>
+</svg>
+
+<main class="app" id="app">
+  <header>
+    <div class="hearts" id="hearts" aria-label="Lives"></div>
+    <h1 id="title">Level 1</h1>
+    <div class="streak" id="streak">Streak 0</div>
+  </header>
+
+  <section class="hud">
+    <div class="pill"><svg viewBox="0 0 100 100"><use href="#mole"/></svg>Left <b id="left">9</b></div>
+    <div class="pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8.5" fill="none" stroke="var(--r2)" stroke-width="2.5"/><path d="M12 8.5V13l3 2" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 2.5h6" stroke="var(--r2)" stroke-width="2.5" stroke-linecap="round"/></svg>Time <b id="time">180</b></div>
+  </section>
+
+  <section class="rules" aria-label="Rules">
+    <div>One mole in every bed</div>
+    <div>One mole per row and column</div>
+    <div>Moles never touch, even diagonally</div>
+  </section>
+
+  <div class="board-wrap">
+    <div class="board" id="board" role="grid" aria-label="Garden"></div>
+    <div class="overlay" id="overlay" hidden>
+      <div class="card">
+        <svg viewBox="0 0 100 100"><use href="#mole"/></svg>
+        <h2 id="ovTitle"></h2>
+        <p id="ovText"></p>
+        <div class="btns" id="ovBtns"></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="tray">
+    <button class="tool" id="tClear" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Clear marks</button>
+    <button class="tool" id="tMode" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span id="modeLabel">Mark mode</span></button>
+    <button class="tool" id="tSniff" type="button">
+      <span class="badge" id="sniffCount">2</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg>Sniff out</button>
+    <button class="tool" id="tCb" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Bed labels</button>
+  </section>
+  <p class="tip">Tap a square to dig for a mole. A wrong dig costs a heart. Right-click or long-press to mark a square as empty.</p>
+</main>
+
+<script>
+(() => {
+  const N = 9, D4 = [[1,0],[-1,0],[0,1],[0,-1]], GLYPHS = "ABCDEFGHI", TIME = 180, LIVES = 3;
+
+  // ---------- puzzle generator (seeded, guaranteed unique solution) ----------
+  function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  const shuffle = (a, r) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const inside = (y, x) => y >= 0 && y < N && x >= 0 && x < N;
+
+  function placeMoles(r) {
+    const p = [], used = Array(N).fill(false);
+    const go = row => {
+      if (row === N) return true;
+      for (const c of shuffle([...Array(N).keys()], r)) {
+        if (used[c] || (row && Math.abs(c - p[row - 1]) < 2)) continue;
+        used[c] = true; p[row] = c;
+        if (go(row + 1)) return true;
+        used[c] = false;
+      }
+      return false;
+    };
+    go(0); return p;
+  }
+  function growBeds(p, r) {
+    const g = Array.from({ length: N }, () => Array(N).fill(-1));
+    p.forEach((c, i) => g[i][c] = i);
+    for (let left = N * N - N; left; left--) {
+      const cands = [];
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (g[y][x] < 0)
+        for (const [dy, dx] of D4) { const yy = y + dy, xx = x + dx; if (inside(yy, xx) && g[yy][xx] >= 0) cands.push([y, x, g[yy][xx]]); }
+      const [y, x, k] = cands[Math.floor(r() * cands.length)]; g[y][x] = k;
+    }
+    return g;
+  }
+  function otherSolution(g, p) {
+    let found = null; const s = [];
+    const go = (row, cm, rm) => {
+      if (found) return;
+      if (row === N) { if (s.some((c, i) => c !== p[i])) found = [...s]; return; }
+      for (let c = 0; c < N && !found; c++) {
+        const k = g[row][c];
+        if (cm >> c & 1 || rm >> k & 1 || (row && Math.abs(c - s[row - 1]) < 2)) continue;
+        s[row] = c; go(row + 1, cm | 1 << c, rm | 1 << k);
+      }
+    };
+    go(0, 0, 0); return found;
+  }
+  function connected(g, k) {
+    let start = null, n = 0;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (g[y][x] === k) { n++; start = start || [y, x]; }
+    const seen = new Set([start + ""]), q = [start];
+    while (q.length) { const [y, x] = q.pop(); for (const [dy, dx] of D4) { const yy = y + dy, xx = x + dx, key = yy + "," + xx; if (inside(yy, xx) && g[yy][xx] === k && !seen.has(key)) { seen.add(key); q.push([yy, xx]); } } }
+    return seen.size === n;
+  }
+  function makeLevel(seed) {
+    const r = rng(seed * 7919 + 13);
+    for (;;) {
+      const p = placeMoles(r), g = growBeds(p, r);
+      for (let it = 0; it < 300; it++) {
+        const s = otherSolution(g, p);
+        if (!s) return { sol: p, beds: g };
+        // nudge one square of the rival solution into a neighbouring bed to break it
+        let done = false;
+        for (const y of shuffle(s.map((_, i) => i).filter(i => s[i] !== p[i]), r)) {
+          const x = s[y], k = g[y][x];
+          for (const [dy, dx] of shuffle([...D4], r)) {
+            const yy = y + dy, xx = x + dx;
+            if (!inside(yy, xx) || g[yy][xx] === k) continue;
+            g[y][x] = g[yy][xx];
+            if (connected(g, k)) { done = true; break; }
+            g[y][x] = k;
+          }
+          if (done) break;
+        }
+        if (!done) break;
+      }
+    }
+  }
+
+  // ---------- state ----------
+  const $ = id => document.getElementById(id);
+  const boardEl = $("board");
+  let S;
+  const saved = window.claude?.hot?.data;
+
+  function newGame(level, keep = {}) {
+    const lv = makeLevel(level);
+    S = {
+      level, sol: lv.sol, beds: lv.beds,
+      cells: Array.from({ length: N }, () => Array(N).fill("")), // "", "mole", "flag", "reveal"
+      lives: LIVES, time: TIME, started: false, over: false, sniffs: 2,
+      streak: keep.streak ?? S?.streak ?? 0, cb: keep.cb ?? S?.cb ?? false, mark: false,
+    };
+    render(true);
+  }
+
+  function blockedSet() {
+    const b = new Set();
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      if (S.cells[y][x] !== "mole" && S.cells[y][x] !== "reveal") continue;
+      for (let yy = 0; yy < N; yy++) for (let xx = 0; xx < N; xx++) {
+        if (yy === y && xx === x) continue;
+        if (yy === y || xx === x || S.beds[yy][xx] === S.beds[y][x] || (Math.abs(yy - y) < 2 && Math.abs(xx - x) < 2)) b.add(yy * N + xx);
+      }
+    }
+    return b;
+  }
+  const found = () => S.cells.flat().filter(c => c === "mole" || c === "reveal").length;
+
+  // ---------- render ----------
+  function render(rebuild) {
+    if (rebuild) {
+      boardEl.innerHTML = "";
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "cell"; b.dataset.y = y; b.dataset.x = x;
+        b.style.setProperty("--c", `var(--r${S.beds[y][x]})`);
+        b.innerHTML = `<span class="glyph">${GLYPHS[S.beds[y][x]]}</span>`;
+        boardEl.appendChild(b);
+      }
+    }
+    const blocked = blockedSet();
+    [...boardEl.children].forEach(b => {
+      const y = +b.dataset.y, x = +b.dataset.x, st = S.cells[y][x];
+      const isMole = st === "mole" || st === "reveal";
+      b.classList.toggle("flag", st === "flag");
+      b.classList.toggle("reveal", st === "reveal");
+      b.classList.toggle("blocked", !isMole && st !== "flag" && blocked.has(y * N + x));
+      const has = b.querySelector("svg.mole");
+      if (isMole && !has) b.insertAdjacentHTML("beforeend", `<svg class="mole" viewBox="0 0 100 100"><use href="#mole"/></svg>`);
+      if (!isMole && has) has.remove();
+      b.setAttribute("aria-label", `Row ${y + 1}, column ${x + 1}, bed ${GLYPHS[S.beds[y][x]]}${isMole ? ", mole" : st === "flag" ? ", marked empty" : ""}`);
+    });
+    $("title").textContent = `Level ${S.level}`;
+    $("left").textContent = N - found();
+    $("time").textContent = S.time;
+    $("streak").textContent = `Streak ${S.streak}`;
+    $("hearts").innerHTML = Array.from({ length: LIVES }, (_, i) => `<svg class="${i < S.lives ? "" : "gone"}" viewBox="0 0 24 24"><use href="#heart"/></svg>`).join("");
+    $("sniffCount").textContent = S.sniffs;
+    $("tSniff").disabled = S.sniffs === 0 || S.over;
+    $("tMode").setAttribute("aria-pressed", S.mark);
+    $("modeLabel").textContent = S.mark ? "Marking" : "Mark mode";
+    $("tCb").setAttribute("aria-pressed", S.cb);
+    boardEl.classList.toggle("cb", S.cb);
+    boardEl.classList.toggle("dead", S.over);
+  }
+
+  // ---------- play ----------
+  function startClock() {
+    if (S.started) return;
+    S.started = true;
+  }
+  setInterval(() => {
+    if (!S || !S.started || S.over || document.hidden) return;
+    S.time--; $("time").textContent = S.time;
+    if (S.time <= 0) lose("Time's up", "The moles tunneled away before you found them all.");
+  }, 1000);
+
+  function dig(y, x) {
+    const st = S.cells[y][x];
+    if (S.over || st === "mole" || st === "reveal" || st === "flag" || blockedSet().has(y * N + x)) return;
+    startClock();
+    const cell = boardEl.children[y * N + x];
+    if (S.sol[y] === x) {
+      S.cells[y][x] = "mole"; render();
+      if (found() === N) win();
+    } else {
+      S.lives--; S.cells[y][x] = "flag";
+      cell.classList.remove("bonk"); void cell.offsetWidth; cell.classList.add("bonk");
+      render();
+      if (S.lives <= 0) lose("Out of hearts", "Three empty holes. The moles are laughing underground.");
+    }
+  }
+  function toggleMark(y, x) {
+    if (S.over) return;
+    const st = S.cells[y][x];
+    if (st === "mole" || st === "reveal") return;
+    startClock();
+    S.cells[y][x] = st === "flag" ? "" : "flag"; render();
+  }
+
+  function win() {
+    S.over = true; S.streak++; render();
+    const used = TIME - S.time;
+    showOverlay("Patch cleared!", `All nine moles found in ${Math.floor(used / 60)}:${String(used % 60).padStart(2, "0")} with ${S.lives} ${S.lives === 1 ? "heart" : "hearts"} left.`,
+      [["Next level", () => newGame(S.level + 1)]]);
+  }
+  function lose(t, msg) {
+    S.over = true; S.streak = 0;
+    for (let y = 0; y < N; y++) if (S.cells[y][S.sol[y]] !== "mole") S.cells[y][S.sol[y]] = "reveal";
+    render();
+    showOverlay(t, msg, [["Try again", () => newGame(S.level)], ["See answer", hideOverlay, true]]);
+  }
+  function showOverlay(title, text, btns) {
+    $("ovTitle").textContent = title; $("ovText").textContent = text;
+    const box = $("ovBtns"); box.innerHTML = "";
+    btns.forEach(([label, fn, ghost]) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (ghost ? " ghost" : "");
+      b.textContent = label; b.onclick = () => { hideOverlay(); fn(); }; box.appendChild(b);
+    });
+    $("overlay").hidden = false; box.firstChild.focus();
+  }
+  function hideOverlay() { $("overlay").hidden = true; }
+
+  // input: tap = dig (or mark in mark mode); right-click / long-press = mark
+  let pressTimer = null, longPressed = false;
+  boardEl.addEventListener("pointerdown", e => {
+    const c = e.target.closest(".cell"); if (!c || e.button !== 0) return;
+    longPressed = false;
+    pressTimer = setTimeout(() => { longPressed = true; toggleMark(+c.dataset.y, +c.dataset.x); navigator.vibrate?.(15); }, 420);
+  });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => boardEl.addEventListener(ev, () => clearTimeout(pressTimer)));
+  boardEl.addEventListener("click", e => {
+    const c = e.target.closest(".cell"); if (!c) return;
+    if (longPressed) { longPressed = false; return; }
+    const y = +c.dataset.y, x = +c.dataset.x;
+    S.mark ? toggleMark(y, x) : dig(y, x);
+  });
+  boardEl.addEventListener("contextmenu", e => {
+    const c = e.target.closest(".cell"); if (!c) return;
+    e.preventDefault(); clearTimeout(pressTimer);
+    if (!longPressed) toggleMark(+c.dataset.y, +c.dataset.x);
+  });
+  boardEl.addEventListener("keydown", e => {
+    const c = e.target.closest(".cell"); if (!c) return;
+    let y = +c.dataset.y, x = +c.dataset.x;
+    const mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+    if (mv) { e.preventDefault(); y = Math.min(N - 1, Math.max(0, y + mv[0])); x = Math.min(N - 1, Math.max(0, x + mv[1])); boardEl.children[y * N + x].focus(); }
+    if (e.key === "x" || e.key === "X") { e.preventDefault(); toggleMark(y, x); }
+  });
+
+  $("tClear").onclick = () => {
+    if (S.over) return;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (S.cells[y][x] === "flag") S.cells[y][x] = "";
+    render();
+  };
+  $("tMode").onclick = () => { S.mark = !S.mark; render(); };
+  $("tCb").onclick = () => { S.cb = !S.cb; render(); };
+  $("tSniff").onclick = () => {
+    if (S.over || !S.sniffs) return;
+    const rows = [...Array(N).keys()].filter(y => S.cells[y][S.sol[y]] !== "mole");
+    if (!rows.length) return;
+    const y = rows[Math.floor(Math.random() * rows.length)];
+    S.sniffs--; startClock(); S.cells[y][S.sol[y]] = "mole"; render();
+    if (found() === N) win();
+  };
+
+  window.claude?.hot?.snapshot?.(() => ({ S }));
+  if (saved?.S) { S = saved.S; render(true); } else newGame(1);
+})();
+</script>
