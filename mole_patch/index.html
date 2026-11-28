@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
 <style>
-/* Layout: one phone-width column — HUD, rule cards, 9×9 garden board, tool tray. Garden-plot palette: each region is a different crop bed. */
+/* Layout: one phone-width column — HUD, rule cards, garden board (5×5 to 9×9), tool tray, settings chips. Garden-plot palette: each region is a different crop bed. */
 :root {
   --bg: #eef2e6;
   --panel: #fbfdf6;
@@ -53,12 +53,16 @@ body {
 }
 .app { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 
-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
-header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; margin: 0; text-align: center; letter-spacing: .01em; }
+header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; }
+header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; margin: 0; text-align: center; letter-spacing: .01em; min-width: 5.4em; }
+.lvl { display: flex; align-items: center; gap: 2px; }
+.arrow { border: 0; background: none; color: var(--muted); font-size: 1.6rem; line-height: 1; padding: 4px 6px; cursor: pointer; border-radius: 8px; font-family: var(--display); }
+.arrow:disabled { opacity: .25; cursor: default; }
+.arrow:focus-visible { outline: 3px solid var(--accent); }
 .hearts { display: flex; gap: 4px; }
-.hearts svg { width: 26px; height: 26px; transition: transform .2s, opacity .2s; }
+.hearts svg { width: 22px; height: 22px; transition: transform .2s, opacity .2s; }
 .hearts svg.gone { opacity: .2; transform: scale(.8); filter: grayscale(1); }
-.streak { justify-self: end; font-family: var(--display); font-weight: 600; font-size: .95rem; color: var(--muted); }
+.streak { justify-self: end; font-family: var(--display); font-weight: 600; font-size: .9rem; color: var(--muted); white-space: nowrap; }
 
 .hud { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pill {
@@ -81,8 +85,8 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
 
 .board-wrap { position: relative; }
 .board {
-  display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px;
-  width: 100%; max-width: 100%; aspect-ratio: 1; touch-action: manipulation; user-select: none;
+  display: grid; grid-template-columns: repeat(var(--n, 9), 1fr); gap: 4px;
+  width: 100%; max-width: 100%; aspect-ratio: 1; touch-action: none; user-select: none; -webkit-user-select: none;
 }
 .cell {
   position: relative; border: 0; padding: 0; border-radius: 7px; cursor: pointer;
@@ -103,20 +107,23 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
 .cell.bonk { animation: shake .35s; }
 .cell.bonk::before { content: ""; position: absolute; inset: 0; background: var(--bad); opacity: .55; animation: fade .7s forwards; }
 .board.dead .cell { cursor: default; }
+.cell.broken { box-shadow: inset 0 0 0 3px var(--bad); }
+.cell.hint { animation: glow 1s ease-in-out 3; z-index: 1; }
+@keyframes glow { 50% { box-shadow: inset 0 0 0 4px var(--ink), 0 0 0 3px var(--ink); } }
 .cell.reveal svg.mole { opacity: .55; }
 
 @keyframes pop { from { transform: translateY(60%) scale(.6); } to { transform: none; } }
 @keyframes shake { 0%,100% { transform: none } 25% { transform: translateX(-4px) } 75% { transform: translateX(4px) } }
 @keyframes fade { to { opacity: 0 } }
 
-.tray { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tray { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .tool {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   background: var(--panel); border: 2px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
-  padding: 10px 4px 8px; cursor: pointer; font-family: var(--display); font-weight: 600; font-size: .85rem; color: var(--ink);
+  padding: 10px 2px 8px; cursor: pointer; font-family: var(--display); font-weight: 600; font-size: .8rem; color: var(--ink);
   position: relative;
 }
-.tool svg { width: 34px; height: 34px; }
+.tool svg { width: 30px; height: 30px; }
 .tool:active { transform: translateY(2px); box-shadow: none; }
 .tool:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .tool[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
@@ -126,6 +133,16 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
   background: var(--bad); color: #fff; font-size: .78rem; display: grid; place-items: center; padding: 0 6px;
 }
 .tip { text-align: center; color: var(--muted); font-size: .82rem; margin: 0; }
+.status { min-height: 2.6em; text-align: center; font-weight: 800; font-size: .92rem; margin: 0; display: grid; place-items: center; text-wrap: balance; }
+.status.warn { color: var(--bad); }
+.chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.chip {
+  border: 2px solid var(--line); background: transparent; color: var(--muted); border-radius: 999px;
+  padding: 5px 12px; font-family: var(--body); font-weight: 800; font-size: .8rem; cursor: pointer;
+}
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--ink); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.chip[aria-pressed="true"]::before { content: "✓ "; color: var(--accent); }
+.chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 .overlay {
   position: absolute; inset: -6px; border-radius: 14px; display: grid; place-items: center;
@@ -146,7 +163,7 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
 .btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--line); box-shadow: none; }
 .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 
-@media (max-width: 380px) { .rules div { font-size: .76rem; } .board { gap: 3px; } }
+@media (max-width: 380px) { .rules div { font-size: .76rem; } .board { gap: 3px; } header h1 { font-size: 1.45rem; } .tool { font-size: .72rem; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 
@@ -171,7 +188,7 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
 <main class="app" id="app">
   <header>
     <div class="hearts" id="hearts" aria-label="Lives"></div>
-    <h1 id="title">Level 1</h1>
+    <div class="lvl"><button class="arrow" id="prev" type="button" aria-label="Previous level">‹</button><h1 id="title">Practice</h1><button class="arrow" id="next" type="button" aria-label="Next level">›</button></div>
     <div class="streak" id="streak">Streak 0</div>
   </header>
 
@@ -198,82 +215,97 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
     </div>
   </div>
 
+  <p class="status" id="status" aria-live="polite"></p>
+
   <section class="tray">
+    <button class="tool" id="tUndo" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>Undo</button>
     <button class="tool" id="tClear" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Clear marks</button>
-    <button class="tool" id="tMode" type="button" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg><span id="modeLabel">Mark mode</span></button>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Clear X's</button>
+    <button class="tool" id="tHint" type="button">
+      <span class="badge" id="hintCount">3</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"/></svg>Hint</button>
     <button class="tool" id="tSniff" type="button">
       <span class="badge" id="sniffCount">2</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg>Sniff out</button>
-    <button class="tool" id="tCb" type="button" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Bed labels</button>
+    <button class="tool" id="tRestart" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 11-2.3-5.7"/><path d="M20 4v5h-5"/></svg>Restart</button>
   </section>
-  <p class="tip">Tap a square to dig for a mole. A wrong dig costs a heart. Right-click or long-press to mark a square as empty.</p>
+  <div class="chips">
+    <button class="chip" id="cAuto" type="button" aria-pressed="true">Auto-dot ruled-out squares</button>
+    <button class="chip" id="cCb" type="button" aria-pressed="false">Bed labels</button>
+  </div>
+  <p class="tip">Tap a square to put an X on it, or drag across squares to X a whole stretch. Double-tap to dig for a mole; a wrong dig costs a heart. Keyboard: arrows move, Space marks, Enter digs.</p>
 </main>
 
 <script>
 (() => {
-  const N = 9, D4 = [[1,0],[-1,0],[0,1],[0,-1]], GLYPHS = "ABCDEFGHI", TIME = 180, LIVES = 3;
+  const D4 = [[1,0],[-1,0],[0,1],[0,-1]], GLYPHS = "ABCDEFGHI", LIVES = 3, DOUBLE_TAP_MS = 320;
+
+  // Level 0 is a hand-picked 5×5 practice garden (one-square bed gives an obvious first move).
+  const PRACTICE = { sol: [4, 1, 3, 0, 2], beds: "BBCCA BBCCC DBCCC DDDCE DDEEE".split(" ").map(r => [...r].map(c => c.charCodeAt(0) - 65)) };
+  const sizeFor = level => level === 0 ? 5 : Math.min(9, 6 + level); // 1→7×7, 2→8×8, 3+→9×9
+  const levelName = level => level === 0 ? "Practice" : `Level ${level}`;
 
   // ---------- puzzle generator (seeded, guaranteed unique solution) ----------
   function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   const shuffle = (a, r) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const inside = (y, x) => y >= 0 && y < N && x >= 0 && x < N;
 
-  function placeMoles(r) {
-    const p = [], used = Array(N).fill(false);
-    const go = row => {
-      if (row === N) return true;
-      for (const c of shuffle([...Array(N).keys()], r)) {
-        if (used[c] || (row && Math.abs(c - p[row - 1]) < 2)) continue;
-        used[c] = true; p[row] = c;
-        if (go(row + 1)) return true;
-        used[c] = false;
-      }
-      return false;
+  function makeLevel(level) {
+    if (level === 0) return { n: 5, sol: PRACTICE.sol, beds: PRACTICE.beds.map(r => [...r]) };
+    const N = sizeFor(level), r = rng(level * 7919 + 13);
+    const inside = (y, x) => y >= 0 && y < N && x >= 0 && x < N;
+    const placeMoles = () => {
+      const p = [], used = Array(N).fill(false);
+      const go = row => {
+        if (row === N) return true;
+        for (const c of shuffle([...Array(N).keys()], r)) {
+          if (used[c] || (row && Math.abs(c - p[row - 1]) < 2)) continue;
+          used[c] = true; p[row] = c;
+          if (go(row + 1)) return true;
+          used[c] = false;
+        }
+        return false;
+      };
+      go(0); return p;
     };
-    go(0); return p;
-  }
-  function growBeds(p, r) {
-    const g = Array.from({ length: N }, () => Array(N).fill(-1));
-    p.forEach((c, i) => g[i][c] = i);
-    for (let left = N * N - N; left; left--) {
-      const cands = [];
-      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (g[y][x] < 0)
-        for (const [dy, dx] of D4) { const yy = y + dy, xx = x + dx; if (inside(yy, xx) && g[yy][xx] >= 0) cands.push([y, x, g[yy][xx]]); }
-      const [y, x, k] = cands[Math.floor(r() * cands.length)]; g[y][x] = k;
-    }
-    return g;
-  }
-  function otherSolution(g, p) {
-    let found = null; const s = [];
-    const go = (row, cm, rm) => {
-      if (found) return;
-      if (row === N) { if (s.some((c, i) => c !== p[i])) found = [...s]; return; }
-      for (let c = 0; c < N && !found; c++) {
-        const k = g[row][c];
-        if (cm >> c & 1 || rm >> k & 1 || (row && Math.abs(c - s[row - 1]) < 2)) continue;
-        s[row] = c; go(row + 1, cm | 1 << c, rm | 1 << k);
+    const growBeds = p => {
+      const g = Array.from({ length: N }, () => Array(N).fill(-1));
+      p.forEach((c, i) => g[i][c] = i);
+      for (let left = N * N - N; left; left--) {
+        const cands = [];
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (g[y][x] < 0)
+          for (const [dy, dx] of D4) { const yy = y + dy, xx = x + dx; if (inside(yy, xx) && g[yy][xx] >= 0) cands.push([y, x, g[yy][xx]]); }
+        const [y, x, k] = cands[Math.floor(r() * cands.length)]; g[y][x] = k;
       }
+      return g;
     };
-    go(0, 0, 0); return found;
-  }
-  function connected(g, k) {
-    let start = null, n = 0;
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (g[y][x] === k) { n++; start = start || [y, x]; }
-    const seen = new Set([start + ""]), q = [start];
-    while (q.length) { const [y, x] = q.pop(); for (const [dy, dx] of D4) { const yy = y + dy, xx = x + dx, key = yy + "," + xx; if (inside(yy, xx) && g[yy][xx] === k && !seen.has(key)) { seen.add(key); q.push([yy, xx]); } } }
-    return seen.size === n;
-  }
-  function makeLevel(seed) {
-    const r = rng(seed * 7919 + 13);
+    const otherSolution = (g, p) => {
+      let found = null; const s = [];
+      const go = (row, cm, rm) => {
+        if (found) return;
+        if (row === N) { if (s.some((c, i) => c !== p[i])) found = [...s]; return; }
+        for (let c = 0; c < N && !found; c++) {
+          const k = g[row][c];
+          if (cm >> c & 1 || rm >> k & 1 || (row && Math.abs(c - s[row - 1]) < 2)) continue;
+          s[row] = c; go(row + 1, cm | 1 << c, rm | 1 << k);
+        }
+      };
+      go(0, 0, 0); return found;
+    };
+    const connected = (g, k) => {
+      let start = null, n = 0;
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (g[y][x] === k) { n++; start = start || [y, x]; }
+      const seen = new Set([start + ""]), q = [start];
+      while (q.length) { const [y, x] = q.pop(); for (const [dy, dx] of D4) { const yy = y + dy, xx = x + dx, key = yy + "," + xx; if (inside(yy, xx) && g[yy][xx] === k && !seen.has(key)) { seen.add(key); q.push([yy, xx]); } } }
+      return seen.size === n;
+    };
     for (;;) {
-      const p = placeMoles(r), g = growBeds(p, r);
+      const p = placeMoles(), g = growBeds(p);
       for (let it = 0; it < 300; it++) {
         const s = otherSolution(g, p);
-        if (!s) return { sol: p, beds: g };
-        // nudge one square of the rival solution into a neighbouring bed to break it
+        if (!s) return { n: N, sol: p, beds: g };
+        // move one square of the rival solution into a neighbouring bed to break it
         let done = false;
         for (const y of shuffle(s.map((_, i) => i).filter(i => s[i] !== p[i]), r)) {
           const x = s[y], k = g[y][x];
@@ -295,37 +327,58 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
   const $ = id => document.getElementById(id);
   const boardEl = $("board");
   let S;
-  const saved = window.claude?.hot?.data;
 
-  function newGame(level, keep = {}) {
-    const lv = makeLevel(level);
+  function newGame(level) {
+    const lv = makeLevel(level), n = lv.n;
     S = {
-      level, sol: lv.sol, beds: lv.beds,
-      cells: Array.from({ length: N }, () => Array(N).fill("")), // "", "mole", "flag", "reveal"
-      lives: LIVES, time: TIME, started: false, over: false, sniffs: 2,
-      streak: keep.streak ?? S?.streak ?? 0, cb: keep.cb ?? S?.cb ?? false, mark: false,
+      level, n, sol: lv.sol, beds: lv.beds,
+      cells: Array.from({ length: n }, () => Array(n).fill("")), // "", "mole", "flag", "reveal"
+      lives: LIVES, time: n * 20, timeMax: n * 20, started: false, over: false,
+      sniffs: n <= 5 ? 1 : 2, hints: 3, undo: [],
+      streak: S?.streak ?? 0, cb: S?.cb ?? false, auto: S?.auto ?? true,
     };
+    hideOverlay();
+    say(level === 0 ? "Bed A is a single square. Double-tap it to dig up your first mole." : "");
     render(true);
   }
 
-  function blockedSet() {
-    const b = new Set();
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-      if (S.cells[y][x] !== "mole" && S.cells[y][x] !== "reveal") continue;
-      for (let yy = 0; yy < N; yy++) for (let xx = 0; xx < N; xx++) {
-        if (yy === y && xx === x) continue;
-        if (yy === y || xx === x || S.beds[yy][xx] === S.beds[y][x] || (Math.abs(yy - y) < 2 && Math.abs(xx - x) < 2)) b.add(yy * N + xx);
-      }
+  // ---------- rules helpers ----------
+  const isMole = st => st === "mole" || st === "reveal";
+  const found = () => S.cells.flat().filter(isMole).length;
+  const conflicts = (y, x, yy, xx) => yy === y || xx === x || S.beds[yy][xx] === S.beds[y][x] || (Math.abs(yy - y) < 2 && Math.abs(xx - x) < 2);
+
+  function ruledOut() { // squares no mole can occupy, given moles already found
+    const b = new Set(), n = S.n;
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      if (!isMole(S.cells[y][x])) continue;
+      for (let yy = 0; yy < n; yy++) for (let xx = 0; xx < n; xx++)
+        if (!(yy === y && xx === x) && conflicts(y, x, yy, xx)) b.add(yy * n + xx);
     }
     return b;
   }
-  const found = () => S.cells.flat().filter(c => c === "mole" || c === "reveal").length;
+  // every row, column and bed that still needs its mole, with the squares left open in it
+  function openUnits() {
+    const n = S.n, out = ruledOut(), units = [];
+    const open = (y, x) => S.cells[y][x] === "" && !out.has(y * n + x);
+    for (let i = 0; i < n; i++) {
+      const row = [], col = [];
+      for (let j = 0; j < n; j++) { row.push([i, j]); col.push([j, i]); }
+      units.push({ name: `Row ${i + 1}`, sq: row }, { name: `Column ${i + 1}`, sq: col });
+      const bed = [];
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (S.beds[y][x] === i) bed.push([y, x]);
+      units.push({ name: `Bed ${GLYPHS[i]}`, sq: bed });
+    }
+    return units.filter(u => !u.sq.some(([y, x]) => isMole(S.cells[y][x])))
+      .map(u => ({ ...u, open: u.sq.filter(([y, x]) => open(y, x)) }));
+  }
 
   // ---------- render ----------
   function render(rebuild) {
+    const n = S.n;
     if (rebuild) {
       boardEl.innerHTML = "";
-      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      boardEl.style.setProperty("--n", n);
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
         const b = document.createElement("button");
         b.type = "button"; b.className = "cell"; b.dataset.y = y; b.dataset.x = x;
         b.style.setProperty("--c", `var(--r${S.beds[y][x]})`);
@@ -333,76 +386,88 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
         boardEl.appendChild(b);
       }
     }
-    const blocked = blockedSet();
+    const out = S.auto ? ruledOut() : new Set();
+    // rule check: a row/column/bed with every square X'd out means one of the X's is wrong
+    const broken = new Set();
+    for (const u of openUnits()) if (!u.open.length) u.sq.forEach(([y, x]) => broken.add(y * n + x));
     [...boardEl.children].forEach(b => {
-      const y = +b.dataset.y, x = +b.dataset.x, st = S.cells[y][x];
-      const isMole = st === "mole" || st === "reveal";
+      const y = +b.dataset.y, x = +b.dataset.x, st = S.cells[y][x], m = isMole(st);
       b.classList.toggle("flag", st === "flag");
       b.classList.toggle("reveal", st === "reveal");
-      b.classList.toggle("blocked", !isMole && st !== "flag" && blocked.has(y * N + x));
+      b.classList.toggle("blocked", !m && st !== "flag" && out.has(y * n + x));
+      b.classList.toggle("broken", !S.over && broken.has(y * n + x));
       const has = b.querySelector("svg.mole");
-      if (isMole && !has) b.insertAdjacentHTML("beforeend", `<svg class="mole" viewBox="0 0 100 100"><use href="#mole"/></svg>`);
-      if (!isMole && has) has.remove();
-      b.setAttribute("aria-label", `Row ${y + 1}, column ${x + 1}, bed ${GLYPHS[S.beds[y][x]]}${isMole ? ", mole" : st === "flag" ? ", marked empty" : ""}`);
+      if (m && !has) b.insertAdjacentHTML("beforeend", `<svg class="mole" viewBox="0 0 100 100"><use href="#mole"/></svg>`);
+      if (!m && has) has.remove();
+      b.setAttribute("aria-label", `Row ${y + 1}, column ${x + 1}, bed ${GLYPHS[S.beds[y][x]]}${m ? ", mole" : st === "flag" ? ", X" : ""}`);
     });
-    $("title").textContent = `Level ${S.level}`;
-    $("left").textContent = N - found();
+    if (broken.size && !S.over && !$("status").dataset.hint) say("A row, column or bed has no room left. One of your X's is wrong.", true, true);
+    else if (!broken.size && $("status").dataset.broken) say("");
+    $("title").textContent = levelName(S.level);
+    $("prev").disabled = S.level === 0;
+    $("left").textContent = n - found();
     $("time").textContent = S.time;
     $("streak").textContent = `Streak ${S.streak}`;
     $("hearts").innerHTML = Array.from({ length: LIVES }, (_, i) => `<svg class="${i < S.lives ? "" : "gone"}" viewBox="0 0 24 24"><use href="#heart"/></svg>`).join("");
     $("sniffCount").textContent = S.sniffs;
-    $("tSniff").disabled = S.sniffs === 0 || S.over;
-    $("tMode").setAttribute("aria-pressed", S.mark);
-    $("modeLabel").textContent = S.mark ? "Marking" : "Mark mode";
-    $("tCb").setAttribute("aria-pressed", S.cb);
+    $("hintCount").textContent = S.hints;
+    $("tSniff").disabled = !S.sniffs || S.over;
+    $("tHint").disabled = !S.hints || S.over;
+    $("tUndo").disabled = !S.undo.length || S.over;
+    $("cAuto").setAttribute("aria-pressed", S.auto);
+    $("cCb").setAttribute("aria-pressed", S.cb);
     boardEl.classList.toggle("cb", S.cb);
     boardEl.classList.toggle("dead", S.over);
   }
-
-  // ---------- play ----------
-  function startClock() {
-    if (S.started) return;
-    S.started = true;
+  function say(text, warn = false, broken = false) {
+    const el = $("status");
+    el.textContent = text; el.classList.toggle("warn", warn);
+    el.dataset.broken = broken ? "1" : ""; el.dataset.hint = "";
   }
+
+  // ---------- clock ----------
   setInterval(() => {
     if (!S || !S.started || S.over || document.hidden) return;
     S.time--; $("time").textContent = S.time;
     if (S.time <= 0) lose("Time's up", "The moles tunneled away before you found them all.");
   }, 1000);
 
+  // ---------- actions ----------
   function dig(y, x) {
-    const st = S.cells[y][x];
-    if (S.over || st === "mole" || st === "reveal" || st === "flag" || blockedSet().has(y * N + x)) return;
-    startClock();
-    const cell = boardEl.children[y * N + x];
+    if (S.over || isMole(S.cells[y][x])) return;
+    if (S.auto && ruledOut().has(y * S.n + x)) { say("That square is ruled out by a mole you already found."); return; }
+    S.started = true;
+    const cell = boardEl.children[y * S.n + x];
     if (S.sol[y] === x) {
-      S.cells[y][x] = "mole"; render();
-      if (found() === N) win();
+      S.cells[y][x] = "mole"; say(""); render();
+      if (found() === S.n) win();
     } else {
       S.lives--; S.cells[y][x] = "flag";
       cell.classList.remove("bonk"); void cell.offsetWidth; cell.classList.add("bonk");
+      say(S.lives ? "Empty hole! That cost a heart." : "", true);
       render();
       if (S.lives <= 0) lose("Out of hearts", "Three empty holes. The moles are laughing underground.");
     }
   }
-  function toggleMark(y, x) {
-    if (S.over) return;
+  // set a square's X; returns an undo record or null
+  function setMark(y, x, on) {
     const st = S.cells[y][x];
-    if (st === "mole" || st === "reveal") return;
-    startClock();
-    S.cells[y][x] = st === "flag" ? "" : "flag"; render();
+    if (isMole(st) || (st === "flag") === on) return null;
+    S.cells[y][x] = on ? "flag" : "";
+    return [y, x, st];
   }
+  function pushUndo(changes) { if (changes.length) S.undo.push(changes); if (S.undo.length > 200) S.undo.shift(); }
 
   function win() {
     S.over = true; S.streak++; render();
-    const used = TIME - S.time;
-    showOverlay("Patch cleared!", `All nine moles found in ${Math.floor(used / 60)}:${String(used % 60).padStart(2, "0")} with ${S.lives} ${S.lives === 1 ? "heart" : "hearts"} left.`,
-      [["Next level", () => newGame(S.level + 1)]]);
+    const used = S.timeMax - S.time;
+    showOverlay("Patch cleared!", `All ${S.n} moles found in ${Math.floor(used / 60)}:${String(used % 60).padStart(2, "0")} with ${S.lives} ${S.lives === 1 ? "heart" : "hearts"} left.`,
+      [["Next level", () => newGame(S.level + 1)], ["Play again", () => newGame(S.level), true]]);
   }
   function lose(t, msg) {
     S.over = true; S.streak = 0;
-    for (let y = 0; y < N; y++) if (S.cells[y][S.sol[y]] !== "mole") S.cells[y][S.sol[y]] = "reveal";
-    render();
+    for (let y = 0; y < S.n; y++) if (S.cells[y][S.sol[y]] !== "mole") S.cells[y][S.sol[y]] = "reveal";
+    say(""); render();
     showOverlay(t, msg, [["Try again", () => newGame(S.level)], ["See answer", hideOverlay, true]]);
   }
   function showOverlay(title, text, btns) {
@@ -416,50 +481,121 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; ma
   }
   function hideOverlay() { $("overlay").hidden = true; }
 
-  // input: tap = dig (or mark in mark mode); right-click / long-press = mark
-  let pressTimer = null, longPressed = false;
+  // ---------- hint: find one logical step and explain it ----------
+  function findHint() {
+    const n = S.n, units = openUnits();
+    const dead = units.find(u => !u.open.length);
+    if (dead) return { text: `${dead.name} has no open squares. Undo or clear some X's.`, cells: dead.sq };
+    const single = units.find(u => u.open.length === 1);
+    if (single) { const [y, x] = single.open[0]; return { text: `${single.name} has only one open square left. The mole must be here.`, cells: [[y, x]] }; }
+    // a square is impossible if a mole there would leave some other row/column/bed with nowhere to go
+    const seen = new Set();
+    for (const u of units) for (const [y, x] of u.open) {
+      const key = y * n + x; if (seen.has(key)) continue; seen.add(key);
+      const victim = units.find(v => !v.sq.some(([a, b]) => a === y && b === x) && v.open.every(([a, b]) => conflicts(y, x, a, b)));
+      if (victim) return { text: `A mole here would leave ${victim.name} with nowhere to go, so it gets an X.`, cells: [[y, x]], mark: true };
+    }
+    // k beds squeezed into k rows (or columns): the rest of those rows can be X'd
+    for (const axis of [0, 1]) {
+      const beds = units.filter(u => u.name.startsWith("Bed"));
+      for (const b of beds) {
+        const lines = new Set(b.open.map(c => c[axis]));
+        const inside = beds.filter(o => o.open.every(c => lines.has(c[axis])));
+        if (inside.length === lines.size && lines.size < n) {
+          const names = new Set(inside.map(o => o.name));
+          const extra = units.filter(u => !names.has(u.name) && u.name.startsWith("Bed")).flatMap(u => u.open.filter(c => lines.has(c[axis])));
+          if (extra.length) {
+            const label = axis === 0 ? "rows" : "columns";
+            return { text: `${[...names].join(", ")} fit only in ${label} ${[...lines].map(v => v + 1).sort((a, b) => a - b).join(", ")}, so other beds can't use them.`, cells: extra, mark: true };
+          }
+        }
+      }
+    }
+    return { text: "No simple step found. Try Sniff out to reveal a mole.", cells: [] };
+  }
+  function useHint() {
+    if (S.over || !S.hints) return;
+    const h = findHint();
+    if (h.cells.length) S.hints--;
+    if (h.mark) pushUndo(h.cells.map(([y, x]) => setMark(y, x, true)).filter(Boolean));
+    render();
+    say(h.text); $("status").dataset.hint = "1";
+    h.cells.forEach(([y, x]) => { const c = boardEl.children[y * S.n + x]; c.classList.remove("hint"); void c.offsetWidth; c.classList.add("hint"); });
+  }
+
+  // ---------- input: tap/drag = X, double-tap = dig ----------
+  let drag = null, lastTap = null;
+  const cellAt = (cx, cy) => document.elementFromPoint(cx, cy)?.closest?.(".cell");
   boardEl.addEventListener("pointerdown", e => {
-    const c = e.target.closest(".cell"); if (!c || e.button !== 0) return;
-    longPressed = false;
-    pressTimer = setTimeout(() => { longPressed = true; toggleMark(+c.dataset.y, +c.dataset.x); navigator.vibrate?.(15); }, 420);
+    const c = e.target.closest(".cell");
+    if (!c || S.over || (e.pointerType === "mouse" && e.button !== 0)) return;
+    e.preventDefault();
+    const y = +c.dataset.y, x = +c.dataset.x, now = performance.now();
+    if (lastTap && lastTap.c === c && now - lastTap.t < DOUBLE_TAP_MS) {
+      // second tap: take back the first tap's X, then dig
+      if (lastTap.change) { S.cells[y][x] = lastTap.change[2]; S.undo.pop(); }
+      lastTap = null; drag = null;
+      dig(y, x); return;
+    }
+    if (isMole(S.cells[y][x])) { lastTap = { c, t: now, change: null }; return; }
+    const on = S.cells[y][x] !== "flag";
+    const ch = setMark(y, x, on);
+    drag = { on, visited: new Set([c]), changes: ch ? [ch] : [], id: e.pointerId };
+    lastTap = { c, t: now, change: ch };
+    S.started = true;
+    render();
   });
-  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => boardEl.addEventListener(ev, () => clearTimeout(pressTimer)));
-  boardEl.addEventListener("click", e => {
-    const c = e.target.closest(".cell"); if (!c) return;
-    if (longPressed) { longPressed = false; return; }
-    const y = +c.dataset.y, x = +c.dataset.x;
-    S.mark ? toggleMark(y, x) : dig(y, x);
+  window.addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const c = cellAt(e.clientX, e.clientY);
+    if (!c || drag.visited.has(c) || !boardEl.contains(c)) return;
+    drag.visited.add(c); lastTap = null;
+    const ch = setMark(+c.dataset.y, +c.dataset.x, drag.on);
+    if (ch) { drag.changes.push(ch); render(); }
   });
-  boardEl.addEventListener("contextmenu", e => {
-    const c = e.target.closest(".cell"); if (!c) return;
-    e.preventDefault(); clearTimeout(pressTimer);
-    if (!longPressed) toggleMark(+c.dataset.y, +c.dataset.x);
-  });
+  const endDrag = () => { if (drag) { pushUndo(drag.changes); drag = null; render(); } };
+  window.addEventListener("pointerup", endDrag);
+  window.addEventListener("pointercancel", endDrag);
+  boardEl.addEventListener("contextmenu", e => e.preventDefault());
+  boardEl.addEventListener("click", e => e.preventDefault());
   boardEl.addEventListener("keydown", e => {
     const c = e.target.closest(".cell"); if (!c) return;
     let y = +c.dataset.y, x = +c.dataset.x;
     const mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
-    if (mv) { e.preventDefault(); y = Math.min(N - 1, Math.max(0, y + mv[0])); x = Math.min(N - 1, Math.max(0, x + mv[1])); boardEl.children[y * N + x].focus(); }
-    if (e.key === "x" || e.key === "X") { e.preventDefault(); toggleMark(y, x); }
+    if (mv) { e.preventDefault(); y = Math.min(S.n - 1, Math.max(0, y + mv[0])); x = Math.min(S.n - 1, Math.max(0, x + mv[1])); boardEl.children[y * S.n + x].focus(); }
+    else if (e.key === " " || e.key === "x" || e.key === "X") { e.preventDefault(); if (S.over) return; const ch = setMark(y, x, S.cells[y][x] !== "flag"); if (ch) { pushUndo([ch]); S.started = true; render(); } }
+    else if (e.key === "Enter") { e.preventDefault(); dig(y, x); }
   });
 
+  // ---------- tools ----------
+  $("tUndo").onclick = () => {
+    if (S.over || !S.undo.length) return;
+    for (const [y, x, prev] of S.undo.pop().reverse()) if (!isMole(S.cells[y][x])) S.cells[y][x] = prev;
+    say(""); render();
+  };
   $("tClear").onclick = () => {
     if (S.over) return;
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (S.cells[y][x] === "flag") S.cells[y][x] = "";
-    render();
+    const changes = [];
+    for (let y = 0; y < S.n; y++) for (let x = 0; x < S.n; x++) { const ch = setMark(y, x, false); if (ch) changes.push(ch); }
+    pushUndo(changes); say(changes.length ? "Cleared all X's. Undo brings them back." : ""); render();
   };
-  $("tMode").onclick = () => { S.mark = !S.mark; render(); };
-  $("tCb").onclick = () => { S.cb = !S.cb; render(); };
+  $("tHint").onclick = useHint;
   $("tSniff").onclick = () => {
     if (S.over || !S.sniffs) return;
-    const rows = [...Array(N).keys()].filter(y => S.cells[y][S.sol[y]] !== "mole");
+    const rows = [...Array(S.n).keys()].filter(y => !isMole(S.cells[y][S.sol[y]]));
     if (!rows.length) return;
     const y = rows[Math.floor(Math.random() * rows.length)];
-    S.sniffs--; startClock(); S.cells[y][S.sol[y]] = "mole"; render();
-    if (found() === N) win();
+    S.sniffs--; S.started = true; S.cells[y][S.sol[y]] = "mole"; say("Sniffed out a mole."); render();
+    if (found() === S.n) win();
   };
+  $("tRestart").onclick = () => newGame(S.level);
+  $("prev").onclick = () => S.level > 0 && newGame(S.level - 1);
+  $("next").onclick = () => newGame(S.level + 1);
+  $("cAuto").onclick = () => { S.auto = !S.auto; render(); };
+  $("cCb").onclick = () => { S.cb = !S.cb; render(); };
 
   window.claude?.hot?.snapshot?.(() => ({ S }));
-  if (saved?.S) { S = saved.S; render(true); } else newGame(1);
+  const saved = window.claude?.hot?.data?.S;
+  if (saved?.n && saved.undo) { S = saved; render(true); } else newGame(0);
 })();
 </script>
