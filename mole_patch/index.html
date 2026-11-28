@@ -235,12 +235,12 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; ma
     <button class="chip" id="cAuto" type="button" aria-pressed="true">Auto-dot ruled-out squares</button>
     <button class="chip" id="cCb" type="button" aria-pressed="false">Bed labels</button>
   </div>
-  <p class="tip">Tap a square to put an X on it, or drag across squares to X a whole stretch. Double-tap to dig for a mole; a wrong dig costs a heart. Keyboard: arrows move, Space marks, Enter digs.</p>
+  <p class="tip">Tap a square to put an X on it, or drag across squares to X a whole stretch. Double-tap to dig for a mole. A wrong dig, or an X on a square that hides a mole, costs a heart. Keyboard: arrows move, Space marks, Enter digs.</p>
 </main>
 
 <script>
 (() => {
-  const D4 = [[1,0],[-1,0],[0,1],[0,-1]], GLYPHS = "ABCDEFGHI", LIVES = 3, DOUBLE_TAP_MS = 320;
+  const D4 = [[1,0],[-1,0],[0,1],[0,-1]], GLYPHS = "ABCDEFGHI", LIVES = 3, DOUBLE_TAP_MS = 420, DRAG_START_PX = 10;
 
   // Level 0 is a hand-picked 5×5 practice garden (one-square bed gives an obvious first move).
   const PRACTICE = { sol: [4, 1, 3, 0, 2], beds: "BBCCA BBCCC DBCCC DDDCE DDEEE".split(" ").map(r => [...r].map(c => c.charCodeAt(0) - 65)) };
@@ -337,6 +337,8 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; ma
       sniffs: n <= 5 ? 1 : 2, hints: 3, undo: [],
       streak: S?.streak ?? 0, cb: S?.cb ?? false, auto: S?.auto ?? true,
     };
+    if (pending) { clearTimeout(pending.timer); pending = null; }
+    drag = null; lastTap = null;
     hideOverlay();
     say(level === 0 ? "Bed A is a single square. Double-tap it to dig up your first mole." : "");
     render(true);
@@ -446,7 +448,7 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; ma
       cell.classList.remove("bonk"); void cell.offsetWidth; cell.classList.add("bonk");
       say(S.lives ? "Empty hole! That cost a heart." : "", true);
       render();
-      if (S.lives <= 0) lose("Out of hearts", "Three empty holes. The moles are laughing underground.");
+      if (S.lives <= 0) lose("Out of hearts", "Three wrong guesses. The moles are laughing underground.");
     }
   }
   // set a square's X; returns an undo record or null
@@ -455,6 +457,25 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; ma
     if (isMole(st) || (st === "flag") === on) return null;
     S.cells[y][x] = on ? "flag" : "";
     return [y, x, st];
+  }
+  // an X on a square that really hides a mole is a wrong guess: it costs a heart and the X is refused
+  function wrongMark(y, x) {
+    if (S.over || S.sol[y] !== x || S.cells[y][x] !== "flag") return false;
+    S.cells[y][x] = ""; S.lives--;
+    const cell = boardEl.children[y * S.n + x];
+    cell.classList.remove("bonk"); void cell.offsetWidth; cell.classList.add("bonk");
+    navigator.vibrate?.(60);
+    say(S.lives ? "There's a mole under that one! That X cost a heart." : "", true);
+    render();
+    if (S.lives <= 0) lose("Out of hearts", "Three wrong guesses. The moles are laughing underground.");
+    return true;
+  }
+  let pending = null; // a single tap's X waits for the double-tap window before it is checked
+  function settlePending() {
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    const { y, x } = pending; pending = null;
+    wrongMark(y, x);
   }
   function pushUndo(changes) { if (changes.length) S.undo.push(changes); if (S.undo.length > 200) S.undo.shift(); }
 
@@ -524,36 +545,52 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; ma
   }
 
   // ---------- input: tap/drag = X, double-tap = dig ----------
+  // A second tap counts as a double-tap if it lands within ~¾ of a square of the first tap, so a
+  // slightly-off finger still digs the square you meant instead of marking its neighbour.
   let drag = null, lastTap = null;
   const cellAt = (cx, cy) => document.elementFromPoint(cx, cy)?.closest?.(".cell");
   boardEl.addEventListener("pointerdown", e => {
     const c = e.target.closest(".cell");
     if (!c || S.over || (e.pointerType === "mouse" && e.button !== 0)) return;
     e.preventDefault();
-    const y = +c.dataset.y, x = +c.dataset.x, now = performance.now();
-    if (lastTap && lastTap.c === c && now - lastTap.t < DOUBLE_TAP_MS) {
-      // second tap: take back the first tap's X, then dig
-      if (lastTap.change) { S.cells[y][x] = lastTap.change[2]; S.undo.pop(); }
+    const now = performance.now(), reach = c.getBoundingClientRect().width * 0.75;
+    if (lastTap && now - lastTap.t < DOUBLE_TAP_MS && Math.hypot(e.clientX - lastTap.px, e.clientY - lastTap.py) < reach) {
+      const { y, x, change } = lastTap;
+      if (pending && pending.y === y && pending.x === x) { clearTimeout(pending.timer); pending = null; }
+      if (change && S.cells[y][x] === (change[2] === "flag" ? "" : "flag")) { S.cells[y][x] = change[2]; S.undo.pop(); }
       lastTap = null; drag = null;
       dig(y, x); return;
     }
-    if (isMole(S.cells[y][x])) { lastTap = { c, t: now, change: null }; return; }
+    settlePending();
+    if (S.over) return;
+    const y = +c.dataset.y, x = +c.dataset.x;
+    lastTap = { y, x, t: now, px: e.clientX, py: e.clientY, change: null };
+    if (isMole(S.cells[y][x])) return;
     const on = S.cells[y][x] !== "flag";
     const ch = setMark(y, x, on);
-    drag = { on, visited: new Set([c]), changes: ch ? [ch] : [], id: e.pointerId };
-    lastTap = { c, t: now, change: ch };
+    lastTap.change = ch;
+    drag = { on, visited: new Set([c]), changes: ch ? [ch] : [], id: e.pointerId, sx: e.clientX, sy: e.clientY, moving: false };
+    if (ch && on) pending = { y, x, timer: setTimeout(settlePending, DOUBLE_TAP_MS) };
     S.started = true;
     render();
   });
   window.addEventListener("pointermove", e => {
     if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moving) {
+      if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < DRAG_START_PX) return; // finger jitter, not a drag
+      drag.moving = true; lastTap = null; settlePending();
+      if (!drag) return;
+    }
     const c = cellAt(e.clientX, e.clientY);
     if (!c || drag.visited.has(c) || !boardEl.contains(c)) return;
-    drag.visited.add(c); lastTap = null;
-    const ch = setMark(+c.dataset.y, +c.dataset.x, drag.on);
-    if (ch) { drag.changes.push(ch); render(); }
+    drag.visited.add(c);
+    const y = +c.dataset.y, x = +c.dataset.x;
+    const ch = setMark(y, x, drag.on);
+    if (!ch) return;
+    if (drag.on && wrongMark(y, x)) { endDrag(); return; } // stop painting after a wrong X
+    drag.changes.push(ch); render();
   });
-  const endDrag = () => { if (drag) { pushUndo(drag.changes); drag = null; render(); } };
+  function endDrag() { if (drag) { pushUndo(drag.changes); drag = null; render(); } }
   window.addEventListener("pointerup", endDrag);
   window.addEventListener("pointercancel", endDrag);
   boardEl.addEventListener("contextmenu", e => e.preventDefault());
@@ -563,7 +600,7 @@ header h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; ma
     let y = +c.dataset.y, x = +c.dataset.x;
     const mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
     if (mv) { e.preventDefault(); y = Math.min(S.n - 1, Math.max(0, y + mv[0])); x = Math.min(S.n - 1, Math.max(0, x + mv[1])); boardEl.children[y * S.n + x].focus(); }
-    else if (e.key === " " || e.key === "x" || e.key === "X") { e.preventDefault(); if (S.over) return; const ch = setMark(y, x, S.cells[y][x] !== "flag"); if (ch) { pushUndo([ch]); S.started = true; render(); } }
+    else if (e.key === " " || e.key === "x" || e.key === "X") { e.preventDefault(); if (S.over) return; const ch = setMark(y, x, S.cells[y][x] !== "flag"); if (ch) { S.started = true; if (!wrongMark(y, x)) { pushUndo([ch]); render(); } } }
     else if (e.key === "Enter") { e.preventDefault(); dig(y, x); }
   });
 
